@@ -71,7 +71,10 @@ function createAuthPDF(p, folder) {
   var guestName   = p.guest_name        || 'Unknown Guest';
   var arrivalDate = p.arrival_date      || '';
   var deptDate    = p.departure_date    || '';
-  var fileName    = 'CC_Auth_' + sanitize(guestName) + '_' + arrivalDate.replace(/-/g,'') + '.pdf';
+  var today2    = new Date().toISOString().split('T')[0].replace(/-/g,'');
+  var arrClean  = arrivalDate  ? arrivalDate.replace(/-/g,'')  : today2;
+  var deptClean = deptDate     ? deptDate.replace(/-/g,'')     : 'TBD';
+  var fileName  = 'CC_Auth_' + sanitize(guestName) + '_ArrIn' + arrClean + '_ArrOut' + deptClean + '.pdf';
 
   // Create a temporary Google Doc
   var doc  = DocumentApp.create('_temp_ccauth_' + new Date().getTime());
@@ -382,7 +385,9 @@ function createApplicationPDF(p, folder) {
   var lastName  = p.last_name  || '';
   var position  = p.position   || 'General Application';
   var today     = new Date().toISOString().split('T')[0].replace(/-/g,'');
-  var fileName  = 'Application_' + sanitize(lastName + '_' + firstName) + '_' + today + '.pdf';
+  var appStart  = (p.start_date || '').replace(/-/g,'');
+  var appSuffix = appStart ? '_StartDate' + appStart : '_Submitted' + today;
+  var fileName  = 'Application_' + sanitize(lastName + '_' + firstName) + '_' + sanitize(position) + appSuffix + '.pdf';
 
   var doc  = DocumentApp.create('_temp_application_' + new Date().getTime());
   var body = doc.getBody();
@@ -635,7 +640,10 @@ function doPostGroupTravel(e) {
 function createGroupTravelPDF(p, folder) {
   var org      = p.org_name   || 'Unknown Organization';
   var today    = new Date().toISOString().split('T')[0].replace(/-/g,'');
-  var fileName = 'GroupInquiry_'+sanitize(org)+'_'+today+'.pdf';
+  var gtArr  = (p.checkin_date  || '').replace(/-/g,'');
+  var gtDept = (p.checkout_date || '').replace(/-/g,'');
+  var gtDates = (gtArr && gtDept) ? '_Arr'+gtArr+'_Dep'+gtDept : '_'+today;
+  var fileName = 'GroupInquiry_'+sanitize(org)+gtDates+'.pdf';
   var doc      = DocumentApp.create('_temp_gt_'+new Date().getTime());
   var body     = doc.getBody();
   body.setPageWidth(612).setPageHeight(792).setMarginTop(54).setMarginBottom(54).setMarginLeft(54).setMarginRight(54);
@@ -763,7 +771,9 @@ function createFeedbackPDF(p, folder) {
   var name     = p.guest_name || 'Anonymous Guest';
   var today    = new Date().toISOString().split('T')[0].replace(/-/g,'');
   var overall  = p.rating_overall || '—';
-  var fileName = 'Feedback_'+overall+'star_'+sanitize(name)+'_'+today+'.pdf';
+  var fbStay = (p.stay_date || '').replace(/-/g,'');
+  var fbDate = fbStay ? '_Stay'+fbStay : '_'+today;
+  var fileName = 'Feedback_'+overall+'star_'+sanitize(name)+fbDate+'.pdf';
   var doc      = DocumentApp.create('_temp_fb_'+new Date().getTime());
   var body     = doc.getBody();
   body.setPageWidth(612).setPageHeight(792).setMarginTop(54).setMarginBottom(54).setMarginLeft(54).setMarginRight(54);

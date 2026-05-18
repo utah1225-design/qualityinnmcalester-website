@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Photo Gallery | Quality Inn & Suites McAlester on Hwy 69</title>
-<meta name="description" content="Photo gallery for Quality Inn & Suites McAlester on Hwy 69. View exterior, rooms, kitchenette suites, free hot breakfast, parking lot, fitness center, and property photos.">
+<title>Photo Gallery | Quality Inn &amp; Suites McAlester on Hwy 69</title>
+<meta name="description" content="Photo gallery for Quality Inn &amp; Suites McAlester on Hwy 69. View rooms, kitchenette suites, free hot breakfast, parking lot, fitness center, lobby, and exterior.">
 <link rel="canonical" href="https://www.qualityinnmcalester.com/gallery.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Photo Gallery">
-<meta property="og:description" content="Photo gallery for Quality Inn & Suites McAlester on Hwy 69. View exterior, rooms, kitchenette suites, free hot breakfast, parking lot, fitness center, and property photos.">
+<meta property="og:title" content="Photo Gallery | Quality Inn &amp; Suites McAlester on Hwy 69">
+<meta property="og:description" content="View 26 property photos of Quality Inn &amp; Suites McAlester on Hwy 69 — rooms, breakfast, parking, fitness center, and exterior.">
 <meta property="og:url" content="https://www.qualityinnmcalester.com/gallery.html">
 <meta property="og:site_name" content="Quality Inn &amp; Suites McAlester on Hwy 69">
+<meta property="og:image" content="https://www.qualityinnmcalester.com/images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-front-day-parking-lot-01.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -287,6 +288,38 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 .anim-3{animation:fadeUp .45s .16s ease both}
 .anim-4{animation:fadeUp .45s .24s ease both}
 .anim-5{animation:fadeUp .45s .32s ease both}
+</style>
+<style>
+
+.gal-wrap{max-width:1100px;margin:0 auto}
+.gal-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+.gal-tab{padding:9px 18px;border-radius:40px;font-size:13px;font-weight:600;border:1.5px solid var(--border);color:var(--slate);background:var(--cream);cursor:pointer;transition:all .15s;user-select:none}
+.gal-tab.active,.gal-tab:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.gal-item{border-radius:var(--rl);overflow:hidden;cursor:zoom-in;position:relative;background:var(--navy-mid);aspect-ratio:4/3;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
+.gal-item:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(15,31,61,0.14)}
+.gal-item img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.gal-item:hover img{transform:scale(1.04)}
+.gal-item.wide{grid-column:span 2}
+.gal-caption{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(15,31,61,0.85) 0%,transparent 100%);padding:14px 16px 10px;opacity:0;transition:opacity .2s}
+.gal-item:hover .gal-caption{opacity:1}
+.gal-caption-text{font-size:12px;font-weight:500;color:#fff}
+.gal-caption-cat{font-size:10px;color:var(--gold);font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+
+/* LIGHTBOX */
+.lb-overlay{display:none;position:fixed;inset:0;background:rgba(10,18,40,0.95);z-index:9998;align-items:center;justify-content:center;padding:24px}
+.lb-overlay.open{display:flex}
+.lb-inner{max-width:1000px;width:100%;position:relative}
+.lb-img{width:100%;max-height:80vh;object-fit:contain;border-radius:var(--r);display:block}
+.lb-close{position:fixed;top:20px;right:24px;background:rgba(255,255,255,0.12);border:none;color:#fff;width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:20px;line-height:40px;text-align:center;transition:background .15s}
+.lb-close:hover{background:rgba(255,255,255,0.22)}
+.lb-caption{text-align:center;margin-top:12px;font-size:13px;color:rgba(255,255,255,0.6);font-weight:400}
+.lb-nav{position:fixed;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);border:none;color:#fff;width:44px;height:44px;border-radius:50%;cursor:pointer;font-size:20px;line-height:44px;text-align:center;transition:background .15s}
+.lb-nav:hover{background:rgba(255,255,255,0.2)}
+.lb-prev{left:16px}
+.lb-next{right:16px}
+
+@media(max-width:640px){.gal-item.wide{grid-column:span 1}}
 
 /* ── BOOKING MODAL ── */
 .bm-overlay{display:none;position:fixed;inset:0;background:rgba(10,18,40,0.82);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
@@ -326,59 +359,8 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 .bm-perk{display:flex;align-items:center;gap:5px;font-size:11px;color:#718096}
 .bm-perk::before{content:'✓';color:#2d6a4f;font-weight:700}
 @media(max-width:480px){.bm-row{grid-template-columns:1fr}.bm-box{margin:8px}.bm-body{padding:20px 20px 24px}.bm-head{padding:22px 20px 18px}}
-</style>
 
-<script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebPage",
-        "@id": "https://www.qualityinnmcalester.com/gallery.html#webpage",
-        "url": "https://www.qualityinnmcalester.com/gallery.html",
-        "name": "Hotel Photo Gallery — Quality Inn &amp; Suites McAlester on Hwy 69 OK Rooms, Breakfast & Parking",
-        "isPartOf": {"@id": "https://www.qualityinnmcalester.com/#website"},
-        "about": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
-        "description": "Photo gallery of Quality Inn & Suites McAlester on Hwy 69. Rooms, hot breakfast area, oversized parking lot, fitness center, guest laundry.",
-        "inLanguage": "en-US",
-        "dateModified": "2026-04-01"
-      },
-      {
-        "@type": "Hotel",
-        "@id": "https://www.qualityinnmcalester.com/#hotel",
-        "name": "Quality Inn & Suites McAlester on Hwy 69",
-        "telephone": "+1-918-426-8091",
-        "image": [
-          "https://www.qualityinnmcalester.com/assets/exterior.jpg",
-          "https://www.qualityinnmcalester.com/assets/room-standard.jpg",
-          "https://www.qualityinnmcalester.com/assets/room-kitchenette.jpg",
-          "https://www.qualityinnmcalester.com/assets/breakfast.jpg",
-          "https://www.qualityinnmcalester.com/assets/parking-lot.jpg",
-          "https://www.qualityinnmcalester.com/assets/fitness-center.jpg",
-          "https://www.qualityinnmcalester.com/assets/lobby.jpg",
-          "https://www.qualityinnmcalester.com/assets/meeting-room.jpg"
-        ],
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "400 S George Nigh Expy",
-          "addressLocality": "McAlester",
-          "addressRegion": "OK",
-          "postalCode": "74501",
-          "addressCountry": "US"
-        },
-        "url": "https://www.qualityinnmcalester.com"
-      },
-      {
-        "@type": "WebSite",
-        "@id": "https://www.qualityinnmcalester.com/#website",
-        "url": "https://www.qualityinnmcalester.com",
-        "name": "Quality Inn & Suites McAlester on Hwy 69",
-        "publisher": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
-        "inLanguage": "en-US"
-      }
-    ]
-  }
-  </script>
+</style>
 </head>
 <body>
 <nav class="nav">
@@ -394,7 +376,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
     <a href="direction.html">Directions</a>
   </div>
   <div style="display:flex;align-items:center;gap:12px">
-    <a href="#" onclick="bmOpen();return false;" class="nav-book" target="_blank" rel="noopener">Book Direct →</a>
+    <a href="https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293" class="nav-book" target="_blank" rel="noopener">Book Direct →</a>
     <button class="nav-mobile-btn" onclick="document.getElementById('mob-menu').classList.toggle('open')" aria-label="Menu">☰</button>
   </div>
 </nav>
@@ -414,62 +396,266 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 <section class="page-hero">
 <div class="page-hero-inner">
 <nav class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">&#8250;</span><span>Gallery</span></nav>
-<div class="page-eyebrow">Quality Inn &amp; Suites McAlester on Hwy 69 &mdash; Photo Gallery</div>
+<div class="page-eyebrow">Quality Inn &amp; Suites McAlester on Hwy 69 &mdash; Gallery</div>
 <h1>Property <em>Photo Gallery</em></h1>
-<p>View photos of our rooms, kitchenette suites, free hot breakfast, McAlester&rsquo;s largest truck and RV parking lot, fitness center, and property exterior.</p>
-<a href="#" onclick="bmOpen();return false;" class="btn-primary" style="font-size:14px">Book Direct &#8594;</a>
+<p>26 photos of rooms, amenities, breakfast, and facilities. Click any photo to enlarge.</p>
 </div>
 </section>
 
 <section class="section section-alt">
-<div class="container">
-<div class="sh"><div><div class="sl">Property photos</div><h2 class="st">See the Property</h2><p class="ss">All photos are of the actual property. Updated after the 2024 room renovation.</p></div><a href="https://www.google.com/maps?cid=4759600980004547287" target="_blank" rel="noopener" class="btn-primary" style="font-size:13px">View on Google Maps &#8594;</a></div>
-<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-top:32px">
-<div style="background:linear-gradient(135deg,var(--navy-mid),var(--navy));border-radius:var(--rl);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'"><div style="font-size:48px">&#127970;</div><div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase">Exterior</div></div>
-<div style="background:linear-gradient(135deg,#1a3a1a,#2d5a2d);border-radius:var(--rl);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'"><div style="font-size:48px">&#127859;</div><div style="font-size:12px;font-weight:600;color:#7bc47f;letter-spacing:2px;text-transform:uppercase">Free Breakfast</div></div>
-<div style="background:linear-gradient(135deg,#1a1a3a,#2a2a5a);border-radius:var(--rl);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'"><div style="font-size:48px">&#128716;</div><div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase">King Room</div></div>
-<div style="background:linear-gradient(135deg,#2a1a0d,#5a3a1a);border-radius:var(--rl);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'"><div style="font-size:48px">&#127859;</div><div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase">Kitchenette Suite</div></div>
-<div style="background:linear-gradient(135deg,#0a2a0a,#1a4a1a);border-radius:var(--rl);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'"><div style="font-size:48px">&#128666;</div><div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase">Truck Parking</div></div>
-<div style="background:linear-gradient(135deg,#1a0a2a,#3a1a5a);border-radius:var(--rl);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;cursor:pointer;transition:transform .2s" onmouseover="this.style.transform='scale(1.02)'" onmouseout="this.style.transform='scale(1)'"><div style="font-size:48px">&#128170;</div><div style="font-size:12px;font-weight:600;color:var(--gold);letter-spacing:2px;text-transform:uppercase">Fitness Center</div></div>
+<div class="container gal-wrap">
+<div class="gal-tabs"><button class="gal-tab active" onclick="filterGal('all',this)">All Photos</button><button class="gal-tab" onclick="filterGal('exterior',this)">Exterior &amp; Parking</button><button class="gal-tab" onclick="filterGal('rooms',this)">Guest Rooms</button><button class="gal-tab" onclick="filterGal('amenities',this)">Amenities</button><button class="gal-tab" onclick="filterGal('breakfast',this)">Free Breakfast</button><button class="gal-tab" onclick="filterGal('lobby',this)">Lobby &amp; Facilities</button></div>
+<div class="gal-grid" id="gal-grid">
+<div class="gal-item wide" data-cat="exterior" onclick="openLB(0)">
+  <img src="images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-front-day-parking-lot-01.jpg" alt="Exterior front view of Quality Inn & Suites McAlester on Hwy 69" loading="eager" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Exterior &amp; Parking</div>
+    <div class="gal-caption-text">Front Exterior &mdash; McAlester&rsquo;s Largest Parking Lot</div>
+  </div>
 </div>
-<div class="card" style="margin-top:20px;text-align:center;background:var(--navy);border-color:var(--navy)">
-<p style="color:rgba(255,255,255,0.6);font-size:13px;margin-bottom:12px">See all current property photos with verified guest contributions on Google and Choice Hotels.</p>
-<div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-<a href="https://www.google.com/maps?cid=4759600980004547287" target="_blank" rel="noopener" class="btn-primary" style="font-size:13px">View on Google Maps</a>
-<a href="https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293" target="_blank" rel="noopener" class="btn-ghost" style="font-size:13px">View on Choice Hotels</a>
+<div class="gal-item" data-cat="exterior" onclick="openLB(1)">
+  <img src="images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-front-twilight-parking-lot-02.jpg" alt="Quality Inn & Suites McAlester on Hwy 69 exterior at twilight" loading="eager" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Exterior &amp; Parking</div>
+    <div class="gal-caption-text">Exterior at Twilight &mdash; On Hwy 69</div>
+  </div>
 </div>
+<div class="gal-item" data-cat="exterior" onclick="openLB(2)">
+  <img src="images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-parking-lot.jpg" alt="McAlester's largest hotel parking lot - Quality Inn & Suites on Hwy 69" loading="eager" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Exterior &amp; Parking</div>
+    <div class="gal-caption-text">Parking Lot &mdash; Free for All Guests</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="rooms" onclick="openLB(3)">
+  <img src="images/rooms/quality-inn-suites-mcalester-on-hwy69-king-room-02.jpg" alt="King room at Quality Inn & Suites McAlester on Hwy 69" loading="eager" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Guest Rooms</div>
+    <div class="gal-caption-text">King Room</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="rooms" onclick="openLB(4)">
+  <img src="images/rooms/quality-inn-suites-mcalester-on-hwy69-king-room-with-sofa-01.jpg" alt="King room with sofa at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Guest Rooms</div>
+    <div class="gal-caption-text">King Room with Sofa</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="rooms" onclick="openLB(5)">
+  <img src="images/rooms/quality-inn-suites-mcalester-on-hwy69-double-queen-room-02.jpg" alt="Double queen room at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Guest Rooms</div>
+    <div class="gal-caption-text">Double Queen Room</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="rooms" onclick="openLB(6)">
+  <img src="images/rooms/quality-inn-suites-mcalester-on-hwy69-double-queen-room-with-sofa-01.jpg" alt="Double queen room with sofa at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Guest Rooms</div>
+    <div class="gal-caption-text">Double Queen Room with Sofa</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="rooms" onclick="openLB(7)">
+  <img src="images/rooms/quality-inn-suites-mcalester-on-hwy69-kitchenette-room-01.jpg" alt="Kitchenette suite with stovetop at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Guest Rooms</div>
+    <div class="gal-caption-text">Kitchenette Suite &mdash; Limited Availability</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="amenities" onclick="openLB(8)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-guest-using-refrigerator.jpg" alt="Guest using in-room mini-fridge at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Amenities</div>
+    <div class="gal-caption-text">Mini-Fridge &mdash; In Every Room</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="amenities" onclick="openLB(9)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-guest-using-hotel-room-safe.jpg" alt="Guest using in-room safe at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Amenities</div>
+    <div class="gal-caption-text">In-Room Safe &mdash; In Every Room</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="amenities" onclick="openLB(10)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-family-watching-primevideo.jpg" alt="Family streaming Amazon Prime Video on Smart TV at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Amenities</div>
+    <div class="gal-caption-text">Smart TV &mdash; Netflix &amp; Prime Built In</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="amenities" onclick="openLB(11)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-fitness-center-01.jpg" alt="24-hour fitness center at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Amenities</div>
+    <div class="gal-caption-text">Fitness Center &mdash; Open 24/7</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="amenities" onclick="openLB(12)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-meeting-room.jpg" alt="On-site meeting room at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Amenities</div>
+    <div class="gal-caption-text">On-Site Meeting Room</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="amenities" onclick="openLB(13)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-icemachine.jpg" alt="Ice machine at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Amenities</div>
+    <div class="gal-caption-text">Ice Machine</div>
+  </div>
+</div>
+<div class="gal-item wide" data-cat="breakfast" onclick="openLB(14)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-buffet-1.jpg" alt="Free hot breakfast buffet at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Free Breakfast</div>
+    <div class="gal-caption-text">Free Full Hot Breakfast &mdash; Daily 6&ndash;9 AM</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="breakfast" onclick="openLB(15)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-buffet-2.jpg" alt="Free hot breakfast spread at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Free Breakfast</div>
+    <div class="gal-caption-text">Hot Breakfast Buffet</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="breakfast" onclick="openLB(16)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-hot-pancakes-6.jpg" alt="Hot pancakes at free breakfast buffet - Quality Inn & Suites McAlester" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Free Breakfast</div>
+    <div class="gal-caption-text">Hot Pancakes &mdash; Every Morning</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="breakfast" onclick="openLB(17)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-hot-waffles-4.jpg" alt="Fresh waffles at free breakfast buffet - Quality Inn & Suites McAlester" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Free Breakfast</div>
+    <div class="gal-caption-text">Fresh Waffles &mdash; Every Morning</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="breakfast" onclick="openLB(18)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-seating-11.jpg" alt="Breakfast seating area at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Free Breakfast</div>
+    <div class="gal-caption-text">Breakfast Dining Area</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="breakfast" onclick="openLB(19)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-24-hr-cofffee-station-8.jpg" alt="24-hour coffee station at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Free Breakfast</div>
+    <div class="gal-caption-text">24-Hour Coffee Station</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="lobby" onclick="openLB(20)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-lobby-sofa-1.jpg" alt="Lobby seating area at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Lobby &amp; Facilities</div>
+    <div class="gal-caption-text">Lobby Seating</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="lobby" onclick="openLB(21)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-lobby-sofa-coffee-station-2.jpg" alt="Lobby coffee station and sofa area at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Lobby &amp; Facilities</div>
+    <div class="gal-caption-text">Lobby &mdash; Coffee Station &amp; Lounge</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="lobby" onclick="openLB(22)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-lobyy-tv-3.jpg" alt="Lobby TV lounge at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Lobby &amp; Facilities</div>
+    <div class="gal-caption-text">Lobby TV Lounge</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="lobby" onclick="openLB(23)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-lobby-sports-team.jpg" alt="Sports team checking in at lobby - Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Lobby &amp; Facilities</div>
+    <div class="gal-caption-text">Lobby &mdash; Group Check-In</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="lobby" onclick="openLB(24)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-hallway-02.jpg" alt="Guest room hallway at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Lobby &amp; Facilities</div>
+    <div class="gal-caption-text">Guest Room Hallway</div>
+  </div>
+</div>
+<div class="gal-item" data-cat="lobby" onclick="openLB(25)">
+  <img src="images/amenities/quality-inn-suites-mcalester-on-hwy69-eleveator-hallway.jpg" alt="Elevator and hallway at Quality Inn & Suites McAlester on Hwy 69" loading="lazy" width="800" height="534">
+  <div class="gal-caption">
+    <div class="gal-caption-cat">Lobby &amp; Facilities</div>
+    <div class="gal-caption-text">Elevator Hallway</div>
+  </div>
+</div></div>
+<div style="text-align:center;margin-top:32px">
+  <p style="font-size:13px;color:var(--slate-light)">26 property photos &mdash; Quality Inn &amp; Suites McAlester on Hwy 69</p>
+  <div style="display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap">
+    <a href="https://www.google.com/maps?cid=4759600980004547287" target="_blank" rel="noopener" class="btn-primary" style="font-size:13px">More Photos on Google Maps &#8594;</a>
+    <a href="https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293" target="_blank" rel="noopener" class="btn-secondary" style="font-size:13px">View on Choice Hotels &#8594;</a>
+  </div>
 </div>
 </div>
 </section>
 
-<section class="booking-section">
-  <div class="booking-inner">
-    <div class="sl" style="color:var(--gold);margin-bottom:8px">Ready to book?</div>
-    <h2>Secure Your Stay in McAlester</h2>
-    <p>Best rate guaranteed when booking direct. Weekly and monthly rates available. Call for kitchenette suite availability.</p>
-    <div class="booking-opts">
-      <div class="bo-card">
-        <div style="font-size:22px;margin-bottom:8px">🌐</div>
-        <div class="bo-title">Book Online</div>
-        <div class="bo-sub">Secure booking through Choice Hotels. Earn Choice Privileges points. Best rate guaranteed.</div>
-        <a href="#" onclick="bmOpen();return false;" class="bo-btn bo-btn-gold" target="_blank" rel="noopener">Book at ChoiceHotels.com →</a>
-      </div>
-      <div class="bo-card">
-        <div style="font-size:22px;margin-bottom:8px">📞</div>
-        <div class="bo-title">Call Direct</div>
-        <div class="bo-sub">Extended stay rates, kitchenette suites, crew billing, government per diem — call us directly.</div>
-        <a href="tel:+19184268091" class="bo-btn bo-btn-outline">Call 918-426-8091</a>
-      </div>
-    </div>
-    <div class="booking-details">
-      <span>400 S George Nigh Expy, McAlester OK 74501</span>
-      <span>Check-in 3:00 PM</span>
-      <span>Check-out 11:00 AM</span>
-      <span>24-Hour Front Desk</span>
-      <span>Pet friendly · $15/night</span>
-    </div>
+<!-- LIGHTBOX -->
+<div class="lb-overlay" id="lb-overlay" onclick="if(event.target===this)closeLB()">
+  <div class="lb-inner">
+    <img src="" alt="" id="lb-img" class="lb-img">
+    <div class="lb-caption" id="lb-caption"></div>
   </div>
-</section>
+  <button class="lb-close" onclick="closeLB()">&#x2715;</button>
+  <button class="lb-nav lb-prev" onclick="navLB(-1)" aria-label="Previous photo">&#8592;</button>
+  <button class="lb-nav lb-next" onclick="navLB(1)" aria-label="Next photo">&#8594;</button>
+</div>
+
+<script>
+var LB_IMGS = [{src:"images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-front-day-parking-lot-01.jpg",alt:"Exterior front view of Quality Inn & Suites McAlester on Hwy 69",caption:"Front Exterior &mdash; McAlester&rsquo;s Largest Parking Lot"},{src:"images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-front-twilight-parking-lot-02.jpg",alt:"Quality Inn & Suites McAlester on Hwy 69 exterior at twilight",caption:"Exterior at Twilight &mdash; On Hwy 69"},{src:"images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-parking-lot.jpg",alt:"McAlester's largest hotel parking lot - Quality Inn & Suites on Hwy 69",caption:"Parking Lot &mdash; Free for All Guests"},{src:"images/rooms/quality-inn-suites-mcalester-on-hwy69-king-room-02.jpg",alt:"King room at Quality Inn & Suites McAlester on Hwy 69",caption:"King Room"},{src:"images/rooms/quality-inn-suites-mcalester-on-hwy69-king-room-with-sofa-01.jpg",alt:"King room with sofa at Quality Inn & Suites McAlester on Hwy 69",caption:"King Room with Sofa"},{src:"images/rooms/quality-inn-suites-mcalester-on-hwy69-double-queen-room-02.jpg",alt:"Double queen room at Quality Inn & Suites McAlester on Hwy 69",caption:"Double Queen Room"},{src:"images/rooms/quality-inn-suites-mcalester-on-hwy69-double-queen-room-with-sofa-01.jpg",alt:"Double queen room with sofa at Quality Inn & Suites McAlester on Hwy 69",caption:"Double Queen Room with Sofa"},{src:"images/rooms/quality-inn-suites-mcalester-on-hwy69-kitchenette-room-01.jpg",alt:"Kitchenette suite with stovetop at Quality Inn & Suites McAlester on Hwy 69",caption:"Kitchenette Suite &mdash; Limited Availability"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-guest-using-refrigerator.jpg",alt:"Guest using in-room mini-fridge at Quality Inn & Suites McAlester on Hwy 69",caption:"Mini-Fridge &mdash; In Every Room"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-guest-using-hotel-room-safe.jpg",alt:"Guest using in-room safe at Quality Inn & Suites McAlester on Hwy 69",caption:"In-Room Safe &mdash; In Every Room"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-family-watching-primevideo.jpg",alt:"Family streaming Amazon Prime Video on Smart TV at Quality Inn & Suites McAlester on Hwy 69",caption:"Smart TV &mdash; Netflix &amp; Prime Built In"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-fitness-center-01.jpg",alt:"24-hour fitness center at Quality Inn & Suites McAlester on Hwy 69",caption:"Fitness Center &mdash; Open 24/7"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-meeting-room.jpg",alt:"On-site meeting room at Quality Inn & Suites McAlester on Hwy 69",caption:"On-Site Meeting Room"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-icemachine.jpg",alt:"Ice machine at Quality Inn & Suites McAlester on Hwy 69",caption:"Ice Machine"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-buffet-1.jpg",alt:"Free hot breakfast buffet at Quality Inn & Suites McAlester on Hwy 69",caption:"Free Full Hot Breakfast &mdash; Daily 6&ndash;9 AM"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-buffet-2.jpg",alt:"Free hot breakfast spread at Quality Inn & Suites McAlester on Hwy 69",caption:"Hot Breakfast Buffet"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-hot-pancakes-6.jpg",alt:"Hot pancakes at free breakfast buffet - Quality Inn & Suites McAlester",caption:"Hot Pancakes &mdash; Every Morning"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-hot-waffles-4.jpg",alt:"Fresh waffles at free breakfast buffet - Quality Inn & Suites McAlester",caption:"Fresh Waffles &mdash; Every Morning"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-seating-11.jpg",alt:"Breakfast seating area at Quality Inn & Suites McAlester on Hwy 69",caption:"Breakfast Dining Area"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-hot-breakfast-24-hr-cofffee-station-8.jpg",alt:"24-hour coffee station at Quality Inn & Suites McAlester on Hwy 69",caption:"24-Hour Coffee Station"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-lobby-sofa-1.jpg",alt:"Lobby seating area at Quality Inn & Suites McAlester on Hwy 69",caption:"Lobby Seating"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-lobby-sofa-coffee-station-2.jpg",alt:"Lobby coffee station and sofa area at Quality Inn & Suites McAlester on Hwy 69",caption:"Lobby &mdash; Coffee Station &amp; Lounge"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-lobyy-tv-3.jpg",alt:"Lobby TV lounge at Quality Inn & Suites McAlester on Hwy 69",caption:"Lobby TV Lounge"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-lobby-sports-team.jpg",alt:"Sports team checking in at lobby - Quality Inn & Suites McAlester on Hwy 69",caption:"Lobby &mdash; Group Check-In"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-hallway-02.jpg",alt:"Guest room hallway at Quality Inn & Suites McAlester on Hwy 69",caption:"Guest Room Hallway"},{src:"images/amenities/quality-inn-suites-mcalester-on-hwy69-eleveator-hallway.jpg",alt:"Elevator and hallway at Quality Inn & Suites McAlester on Hwy 69",caption:"Elevator Hallway"}];
+var curCat='all', curIdx=0, filteredIdxs=[];
+
+function filterGal(cat,btn){
+  curCat=cat;
+  document.querySelectorAll('.gal-tab').forEach(function(b){b.classList.remove('active')});
+  btn.classList.add('active');
+  document.querySelectorAll('.gal-item').forEach(function(el){
+    el.style.display=(cat==='all'||el.dataset.cat===cat)?'':'none';
+  });
+}
+
+function getFiltered(){
+  return Array.from(document.querySelectorAll('.gal-item')).map(function(el,i){return el.style.display!=='none'?i:-1}).filter(function(i){return i>=0});
+}
+
+function openLB(idx){
+  filteredIdxs=getFiltered();
+  curIdx=filteredIdxs.indexOf(idx);
+  if(curIdx<0)curIdx=0;
+  showLB(filteredIdxs[curIdx]);
+  document.getElementById('lb-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function showLB(idx){
+  var img=LB_IMGS[idx];
+  document.getElementById('lb-img').src=img.src;
+  document.getElementById('lb-img').alt=img.alt;
+  document.getElementById('lb-caption').textContent=img.caption.replace(/&mdash;/g,'—').replace(/&ndash;/g,'–').replace(/&amp;/g,'&').replace(/&rsquo;/g,"'");
+}
+function closeLB(){
+  document.getElementById('lb-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function navLB(dir){
+  curIdx=(curIdx+dir+filteredIdxs.length)%filteredIdxs.length;
+  showLB(filteredIdxs[curIdx]);
+}
+document.addEventListener('keydown',function(e){
+  if(!document.getElementById('lb-overlay').classList.contains('open'))return;
+  if(e.key==='Escape')closeLB();
+  if(e.key==='ArrowLeft')navLB(-1);
+  if(e.key==='ArrowRight')navLB(1);
+});
+</script>
+
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-grid">
@@ -525,7 +711,6 @@ details[open] .faq-arrow{transform:rotate(180deg)}
     </div>
   </div>
 </footer>
-
 <!-- BOOKING MODAL -->
 <div class="bm-overlay" id="bm-overlay" role="dialog" aria-modal="true" aria-label="Book your stay">
   <div class="bm-box">
@@ -632,6 +817,7 @@ function bookNow(){bmOpen();}
 document.getElementById('bm-overlay').addEventListener('click',function(e){if(e.target===this)bmClose();});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')bmClose();});
 </script>
+
 
 </body>
 </html>
