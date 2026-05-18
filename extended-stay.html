@@ -287,6 +287,45 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 .anim-3{animation:fadeUp .45s .16s ease both}
 .anim-4{animation:fadeUp .45s .24s ease both}
 .anim-5{animation:fadeUp .45s .32s ease both}
+
+/* ── BOOKING MODAL ── */
+.bm-overlay{display:none;position:fixed;inset:0;background:rgba(10,18,40,0.82);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.bm-overlay.open{display:flex}
+.bm-box{background:#fff;border-radius:20px;width:100%;max-width:500px;margin:16px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.35);animation:bmIn .25s ease}
+@keyframes bmIn{from{opacity:0;transform:translateY(24px) scale(0.97)}to{opacity:1;transform:none}}
+.bm-head{background:#0f1f3d;padding:28px 28px 24px;position:relative}
+.bm-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;line-height:32px;text-align:center;transition:background .15s}
+.bm-close:hover{background:rgba(255,255,255,0.2)}
+.bm-logo{font-family:'Playfair Display',Georgia,serif;font-size:14px;color:rgba(255,255,255,0.55);margin-bottom:6px}
+.bm-logo span{color:#c9964a}
+.bm-head h2{font-family:'Playfair Display',Georgia,serif;font-size:22px;color:#fff;margin-bottom:4px}
+.bm-head p{font-size:13px;color:rgba(255,255,255,0.5);font-weight:300}
+.bm-body{padding:24px 28px 28px}
+.bm-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.bm-field{display:flex;flex-direction:column;gap:5px}
+.bm-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#718096}
+.bm-input{padding:11px 14px;border:1.5px solid #e8e0d5;border-radius:10px;font-size:14px;font-family:inherit;color:#0f1f3d;outline:none;transition:border-color .15s;background:#faf7f2;width:100%}
+.bm-input:focus{border-color:#c9964a;background:#fff}
+.bm-guests{width:100%;padding:11px 14px;border:1.5px solid #e8e0d5;border-radius:10px;font-size:14px;font-family:inherit;color:#0f1f3d;outline:none;background:#faf7f2;cursor:pointer;margin-bottom:12px}
+.bm-promo-row{display:flex;align-items:center;gap:8px;margin-bottom:20px}
+.bm-promo-toggle{font-size:12px;color:#c9964a;cursor:pointer;font-weight:600;border:none;background:none;padding:0;font-family:inherit}
+.bm-promo-field{display:none;flex:1}
+.bm-promo-field.show{display:block}
+.bm-promo-input{width:100%;padding:9px 12px;border:1.5px solid #e8e0d5;border-radius:8px;font-size:13px;font-family:inherit;color:#0f1f3d;background:#faf7f2;outline:none;letter-spacing:.08em;text-transform:uppercase}
+.bm-promo-input:focus{border-color:#c9964a}
+.bm-submit{width:100%;background:#c9964a;color:#0f1f3d;font-weight:700;font-size:15px;padding:15px;border-radius:40px;border:none;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.bm-submit:hover{background:#e8b96a;transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,150,74,0.4)}
+.bm-divider{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.bm-divider::before,.bm-divider::after{content:'';flex:1;height:1px;background:#e8e0d5}
+.bm-divider span{font-size:11px;color:#a0aec0;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.bm-call{width:100%;background:transparent;color:#0f1f3d;font-weight:600;font-size:14px;padding:13px;border-radius:40px;border:2px solid #e8e0d5;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;text-decoration:none}
+.bm-call:hover{border-color:#0f1f3d;background:#0f1f3d;color:#fff}
+.bm-note{font-size:11px;color:#a0aec0;text-align:center;margin-top:14px;line-height:1.6}
+.bm-note a{color:#c9964a;font-weight:600}
+.bm-perks{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;padding-top:16px;border-top:1px solid #f0ede8}
+.bm-perk{display:flex;align-items:center;gap:5px;font-size:11px;color:#718096}
+.bm-perk::before{content:'✓';color:#2d6a4f;font-weight:700}
+@media(max-width:480px){.bm-row{grid-template-columns:1fr}.bm-box{margin:8px}.bm-body{padding:20px 20px 24px}.bm-head{padding:22px 20px 18px}}
 </style>
 
 <script type="application/ld+json">
@@ -346,15 +385,15 @@ details[open] .faq-arrow{transform:rotate(180deg)}
         "mainEntity": [
           {
             "@type": "Question",
-            "name": "What is the minimum stay for extended stay rates at Quality Inn McAlester?",
+            "name": "What is the minimum stay for extended stay rates at Quality Inn &amp; Suites McAlester on Hwy 69?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Extended stay rates at Quality Inn McAlester are available for stays of 7 nights or longer, with a separate lower-rate tier for stays of 28 nights or longer. Contact (918) 426-8091 or email reservations@qualityinnmcalester.com for current weekly and monthly pricing. Promo code RAIL applies to railroad crew bookings; promo code MCAAP applies to MCAAP contractor bookings."
+              "text": "Extended stay rates at Quality Inn &amp; Suites McAlester on Hwy 69 are available for stays of 7 nights or longer, with a separate lower-rate tier for stays of 28 nights or longer. Contact (918) 426-8091 or email QualityMcAlester@gmail.com for current weekly and monthly pricing. Promo code RAIL applies to railroad crew bookings; promo code MCAAP applies to MCAAP contractor bookings."
             }
           },
           {
             "@type": "Question",
-            "name": "Does the extended stay rate include breakfast at Quality Inn McAlester?",
+            "name": "Does the extended stay rate include breakfast at Quality Inn &amp; Suites McAlester on Hwy 69?",
             "acceptedAnswer": {
               "@type": "Answer",
               "text": "Yes. Free full hot breakfast is included for all registered guests regardless of rate type, including extended stay guests. Breakfast is served daily from 6:00 AM to 9:00 AM and includes eggs, sausage, waffles, pancakes, fresh fruit, oatmeal, juices, coffee, breads, and bagels."
@@ -362,10 +401,10 @@ details[open] .faq-arrow{transform:rotate(180deg)}
           },
           {
             "@type": "Question",
-            "name": "Are kitchenette suites available for long-term stays at Quality Inn McAlester?",
+            "name": "Are kitchenette suites available for long-term stays at Quality Inn &amp; Suites McAlester on Hwy 69?",
             "acceptedAnswer": {
               "@type": "Answer",
-              "text": "Yes. Quality Inn McAlester has select kitchenette suites with a stovetop, full-size refrigerator, microwave, and in-room safe — available for extended stay guests at no additional equipment charge. These 6 suites have limited availability. All other rooms include a mini-fridge and microwave as standard."
+              "text": "Yes. Quality Inn &amp; Suites McAlester on Hwy 69 has select kitchenette suites with a stovetop, full-size refrigerator, microwave, and in-room safe — available for extended stay guests at no additional equipment charge. These 6 suites have limited availability. All other rooms include a mini-fridge and microwave as standard."
             }
           }
         ]
@@ -388,7 +427,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
     <a href="direction.html">Directions</a>
   </div>
   <div style="display:flex;align-items:center;gap:12px">
-    <a href="https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293" class="nav-book" target="_blank" rel="noopener">Book Direct →</a>
+    <a href="#" onclick="bmOpen();return false;" class="nav-book" target="_blank" rel="noopener">Book Direct →</a>
     <button class="nav-mobile-btn" onclick="document.getElementById('mob-menu').classList.toggle('open')" aria-label="Menu">☰</button>
   </div>
 </nav>
@@ -411,7 +450,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 <div class="page-eyebrow">Extended Stay McAlester OK</div>
 <h1>Extended Stay Rates in <em>McAlester, Oklahoma</em></h1>
 <p>Weekly and monthly rates for 7-night and 28-night minimum stays. Six kitchenette suites with stovetop. Free hot breakfast every morning. Daily housekeeping. No cookware fees. MCAAP contractor rates available.</p>
-<a href="https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293" class="btn-primary" target="_blank" rel="noopener" style="font-size:14px">Book Direct &#8594;</a>
+<a href="#" onclick="bmOpen();return false;" class="btn-primary" style="font-size:14px">Book Direct &#8594;</a>
 </div>
 </section>
 
@@ -422,6 +461,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 <div class="card" style="border-left:4px solid var(--gold)">
 <div class="card-icon">&#128197;</div>
 <h3>Weekly Rate &mdash; 7-Night Minimum</h3>
+<span style="display:inline-block;background:rgba(45,106,79,0.1);color:var(--green);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(45,106,79,0.2);margin-bottom:10px">Save up to 25% vs. nightly rate</span>
 <p style="color:var(--slate);font-size:14px;margin-bottom:16px">Best for short contracts, project crews, relocation, and travelers staying 1&ndash;4 weeks.</p>
 <ul style="list-style:none;font-size:13px;color:var(--slate)">
 <li style="padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px"><span style="color:var(--green);font-weight:700">&#10003;</span> 7-night minimum stay</li>
@@ -430,11 +470,12 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 <li style="padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px"><span style="color:var(--green);font-weight:700">&#10003;</span> Free parking for trucks and RVs</li>
 <li style="padding:5px 0;display:flex;gap:8px"><span style="color:var(--green);font-weight:700">&#10003;</span> 24/7 front desk</li>
 </ul>
-<div style="margin-top:16px"><a href="https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293" class="btn-primary" style="font-size:13px;width:100%;justify-content:center" target="_blank" rel="noopener">Book Weekly Rate &#8594;</a></div>
+<div style="margin-top:16px"><a href="#" onclick="bmOpen();return false;" class="btn-primary" style="font-size:13px;width:100%;justify-content:center">Book Weekly Rate &#8594;</a></div>
 </div>
 <div class="card" style="border-left:4px solid var(--gold)">
 <div class="card-icon">&#128467;</div>
 <h3>Monthly Rate &mdash; 28-Night Minimum</h3>
+<span style="display:inline-block;background:rgba(45,106,79,0.1);color:var(--green);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(45,106,79,0.2);margin-bottom:10px">Best available nightly rate</span>
 <p style="color:var(--slate);font-size:14px;margin-bottom:16px">Best for long-term assignments, insurance-placed guests, and construction or renovation crews.</p>
 <ul style="list-style:none;font-size:13px;color:var(--slate)">
 <li style="padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px"><span style="color:var(--green);font-weight:700">&#10003;</span> 28-night minimum stay</li>
@@ -456,7 +497,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 <div class="card"><div class="card-icon">&#9749;</div><h3>Free Breakfast Every Morning</h3><p>Hot breakfast daily 6&ndash;9 AM. Eggs, sausage, waffles. Saves $10&ndash;15 per person per day versus eating out every morning.</p><span class="card-tag">Included &middot; daily</span></div>
 <div class="card"><div class="card-icon">&#129529;</div><h3>Daily Housekeeping</h3><p>Fresh towels and clean room every single day &mdash; not weekly. A critical difference from extended-stay-only competitors.</p><span class="card-tag">Every day</span></div>
 <div class="card"><div class="card-icon">&#128247;</div><h3>24/7 Guest Laundry</h3><p>On-site laundry facilities open around the clock. No trips off-property during long stays.</p><span class="card-tag">24/7</span></div>
-<div class="card"><div class="card-icon">&#128250;</div><h3>Netflix &amp; Amazon Prime</h3><p>Built into every Smart TV. No subscription needed. Wind down every evening on your own schedule.</p><span class="card-tag">Every room</span></div>
+<div class="card"><div class="card-icon">&#128250;</div><h3>Netflix &amp; Amazon Prime</h3><p>Sign in with your own Netflix or Prime account and resume any show right where you left off at home.</p><span class="card-tag">Every room</span></div>
 <div class="card"><div class="card-icon">&#128666;</div><h3>Free Oversized Parking</h3><p>Bring your work truck, trailer, or personal vehicle. McAlester&rsquo;s largest on-site lot &mdash; free for all hotel guests.</p><span class="card-tag">Free &middot; no fees</span></div>
 </div>
 </div>
@@ -466,7 +507,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 <div style="text-align:center;margin-bottom:32px"><div class="sl">FAQ</div><h2 class="st">Extended Stay Questions</h2></div>
 <div class="faq-list">
 <details class="faq-item"><summary>Is there a minimum stay for extended stay rates? <span class="faq-arrow">&#9660;</span></summary><div class="faq-body"><strong>Yes.</strong> Weekly rate: 7-night minimum. Monthly rate: 28-night minimum. Call (918) 426-8091 for current pricing and availability.</div></details>
-<details class="faq-item"><summary>Do kitchenette suites include cooking equipment? <span class="faq-arrow">&#9660;</span></summary><div class="faq-body"><strong>Yes &mdash; at no extra charge.</strong> Stovetop, full-size refrigerator, microwave, and basic kitchen equipment included. No cookware rental fee.</div></details>
+<details class="faq-item"><summary>Do kitchenette suites include cooking equipment? <span class="faq-arrow">&#9660;</span></summary><div class="faq-body"><strong>Yes.</strong> Six select kitchenette suites include a stovetop and full-size refrigerator. No kitchen equipment or cookware is provided &mdash; bring your own or pick up supplies at the adjacent Walmart Supercenter.</div></details>
 <details class="faq-item"><summary>Is daily housekeeping included on extended stays? <span class="faq-arrow">&#9660;</span></summary><div class="faq-body"><strong>Yes &mdash; daily housekeeping is included on all stays</strong>, including extended-stay reservations. Fresh linens and room cleaning every day.</div></details>
 <details class="faq-item"><summary>Is tax-exempt billing available? <span class="faq-arrow">&#9660;</span></summary><div class="faq-body"><strong>Yes.</strong> Corporate crew billing, purchase order payment, and tax-exempt invoicing available for qualifying organizations and government agencies. Call (918) 426-8091 to set up an account.</div></details>
 </div>
@@ -483,7 +524,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
         <div style="font-size:22px;margin-bottom:8px">🌐</div>
         <div class="bo-title">Book Online</div>
         <div class="bo-sub">Secure booking through Choice Hotels. Earn Choice Privileges points. Best rate guaranteed.</div>
-        <a href="https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293" class="bo-btn bo-btn-gold" target="_blank" rel="noopener">Book at ChoiceHotels.com →</a>
+        <a href="#" onclick="bmOpen();return false;" class="bo-btn bo-btn-gold" target="_blank" rel="noopener">Book at ChoiceHotels.com →</a>
       </div>
       <div class="bo-card">
         <div style="font-size:22px;margin-bottom:8px">📞</div>
@@ -508,10 +549,13 @@ details[open] .faq-arrow{transform:rotate(180deg)}
         <div class="logo-text">Quality Inn &amp; Suites<br><span>McAlester on Hwy 69</span></div>
         <p>400 S George Nigh Expy<br>McAlester, OK 74501<br>(918) 426-8091<br>Choice Hotels · Family-Owned</p>
         <div class="footer-social">
-          <a href="https://www.facebook.com/QualityInnMcalester/" class="social-link" target="_blank" rel="noopener" aria-label="Facebook">f</a>
-          <a href="https://www.instagram.com/qualityinnmcalester/" class="social-link" target="_blank" rel="noopener" aria-label="Instagram">ig</a>
+          <a href="https://www.facebook.com/QualityInnMcAlester" class="social-link" target="_blank" rel="noopener" aria-label="Facebook">f</a>
+          <a href="https://www.instagram.com/QualityInnMcAlester/" class="social-link" target="_blank" rel="noopener" aria-label="Instagram">ig</a>
           <a href="https://www.tiktok.com/@qualityinnmcalester" class="social-link" target="_blank" rel="noopener" aria-label="TikTok">tk</a>
-          <a href="https://www.x.com/QualityInnHwy69" class="social-link" target="_blank" rel="noopener" aria-label="X">x</a>
+          <a href="https://x.com/QualityInnHwy69" class="social-link" target="_blank" rel="noopener" aria-label="X / Twitter">x</a>
+          <a href="https://www.youtube.com/@QualityInnMcAlester" class="social-link" target="_blank" rel="noopener" aria-label="YouTube">yt</a>
+          <a href="https://www.linkedin.com/company/quality-inn-and-suites-mcalester-ok" class="social-link" target="_blank" rel="noopener" aria-label="LinkedIn">in</a>
+          <a href="https://www.pinterest.com/QualityInnMcAlester" class="social-link" target="_blank" rel="noopener" aria-label="Pinterest">pt</a>
         </div>
       </div>
       <div class="footer-col">
@@ -549,9 +593,117 @@ details[open] .faq-arrow{transform:rotate(180deg)}
     </div>
     <div class="footer-bottom">
       <p>© 2026 Quality Inn &amp; Suites McAlester on Hwy 69. Family-owned &amp; operated. Franchised by Choice Hotels International.</p>
-      <div style="display:flex;gap:16px"><a href="#">Privacy Policy</a><a href="#">Accessibility</a></div>
+      <div style="display:flex;gap:16px;flex-wrap:wrap"><a href="privacy-policy.html">Privacy Policy</a><a href="accessibility.html">Accessibility</a><a href="ada.html">ADA Accommodations</a></div>
     </div>
   </div>
 </footer>
+
+<!-- BOOKING MODAL -->
+<div class="bm-overlay" id="bm-overlay" role="dialog" aria-modal="true" aria-label="Book your stay">
+  <div class="bm-box">
+    <div class="bm-head">
+      <button class="bm-close" onclick="bmClose()" aria-label="Close">&#x2715;</button>
+      <div class="bm-logo">Quality Inn &amp; Suites &middot; <span>McAlester on Hwy 69</span></div>
+      <h2>Check Rates &amp; Availability</h2>
+      <p>Best rate guaranteed &mdash; secure booking through Choice Hotels</p>
+    </div>
+    <div class="bm-body">
+      <div class="bm-row">
+        <div class="bm-field">
+          <label class="bm-label" for="bm-ci">Check In</label>
+          <input type="date" id="bm-ci" class="bm-input">
+        </div>
+        <div class="bm-field">
+          <label class="bm-label" for="bm-co">Check Out</label>
+          <input type="date" id="bm-co" class="bm-input">
+        </div>
+      </div>
+      <label class="bm-label" style="display:block;margin-bottom:5px" for="bm-guests">Guests</label>
+      <select class="bm-guests" id="bm-guests">
+        <option value="1">1 Adult</option>
+        <option value="2" selected>2 Adults</option>
+        <option value="3">2 Adults, 1 Child</option>
+        <option value="4">2 Adults, 2 Children</option>
+      </select>
+      <div class="bm-promo-row">
+        <button class="bm-promo-toggle" onclick="bmTogglePromo()" id="bm-promo-btn">+ Have a promo code?</button>
+        <div class="bm-promo-field" id="bm-promo-field">
+          <input type="text" class="bm-promo-input" id="bm-promo-input" placeholder="e.g. MCAAP or RAIL" maxlength="12">
+        </div>
+      </div>
+      <button class="bm-submit" onclick="bmBook()">
+        <span>&#128197;</span> Check Rates &amp; Book at ChoiceHotels.com
+      </button>
+      <div class="bm-divider"><span>or</span></div>
+      <a href="tel:+19184268091" class="bm-call">
+        <span>&#128222;</span> Call Direct &mdash; (918) 426-8091
+      </a>
+      <div class="bm-perks">
+        <div class="bm-perk">Best rate guaranteed</div>
+        <div class="bm-perk">Earn Choice Privileges points</div>
+        <div class="bm-perk">Free cancellation on most rates</div>
+        <div class="bm-perk">24/7 front desk</div>
+      </div>
+      <div class="bm-note">
+        Reservations processed securely by <a href="https://www.choicehotels.com" target="_blank" rel="noopener">ChoiceHotels.com</a><br>
+        Check-in 3:00 PM &nbsp;&middot;&nbsp; Check-out 11:00 AM &nbsp;&middot;&nbsp; Pet-friendly $15/night
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script>
+(function(){
+  var t=new Date(),tm=new Date(t);
+  tm.setDate(tm.getDate()+1);
+  function fmt(d){return d.toISOString().split('T')[0];}
+  var ci=document.getElementById('bm-ci'),co=document.getElementById('bm-co');
+  if(ci)ci.value=fmt(t);
+  if(co)co.value=fmt(tm);
+  // Also set inline hero widget if present
+  var hci=document.getElementById('checkin'),hco=document.getElementById('checkout');
+  if(hci)hci.value=fmt(t);
+  if(hco)hco.value=fmt(tm);
+})();
+
+function bmOpen(promo){
+  document.getElementById('bm-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  if(promo){
+    var pf=document.getElementById('bm-promo-field');
+    var pi=document.getElementById('bm-promo-input');
+    pf.classList.add('show');
+    if(pi)pi.value=promo;
+    document.getElementById('bm-promo-btn').textContent='- Promo code';
+  }
+}
+function bmClose(){
+  document.getElementById('bm-overlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function bmTogglePromo(){
+  var pf=document.getElementById('bm-promo-field');
+  var btn=document.getElementById('bm-promo-btn');
+  var show=pf.classList.toggle('show');
+  btn.textContent=show?'- Promo code':'+ Have a promo code?';
+}
+function bmBook(){
+  var ci=document.getElementById('bm-ci').value;
+  var co=document.getElementById('bm-co').value;
+  var promo=document.getElementById('bm-promo-input').value.trim().toUpperCase();
+  var url='https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293';
+  var params=[];
+  if(ci)params.push('checkInDate='+ci);
+  if(co)params.push('checkOutDate='+co);
+  if(promo)params.push('ratePlanCode='+promo);
+  if(params.length)url+='?'+params.join('&');
+  window.open(url,'_blank');
+}
+function bookNow(){bmOpen();}
+document.getElementById('bm-overlay').addEventListener('click',function(e){if(e.target===this)bmClose();});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')bmClose();});
+</script>
+
 </body>
 </html>
