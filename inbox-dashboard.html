@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Front Desk — Quality Inn &amp; Suites McAlester on Hwy 69</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#faf7f2;color:#0f1f3d;height:100vh;overflow:hidden;display:flex;flex-direction:column}
+.dh-top{background:#0f1f3d;border-bottom:3px solid #c9964a;padding:11px 20px;
+  display:flex;align-items:center;gap:14px;flex-shrink:0}
+.dh-logo{width:36px;height:36px;border-radius:8px;background:#c9964a;display:flex;
+  align-items:center;justify-content:center;font-size:18px}
+.dh-title{flex:1}
+.dh-title h1{font-size:15px;color:#fff;font-weight:700;font-family:'Playfair Display',Georgia,serif}
+.dh-title p{font-size:11px;color:rgba(255,255,255,0.5)}
+.dh-nav{display:flex;gap:4px}
+.dh-nav-btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;
+  color:rgba(255,255,255,0.6);cursor:pointer;border:none;background:transparent;font-family:inherit}
+.dh-nav-btn.active{background:#c9964a;color:#0f1f3d}
+
+.dh-body{flex:1;overflow:hidden;display:flex}
+
+/* ===== INBOX VIEW ===== */
+.dh-list{width:290px;flex-shrink:0;background:#fff;border-right:1px solid #e2e0d8;overflow-y:auto}
+.dh-list-h{padding:11px 15px;font-size:10px;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:#718096;border-bottom:1px solid #e2e0d8;position:sticky;top:0;background:#fff}
+.dh-conv{padding:12px 15px;border-bottom:1px solid #f0eee6;cursor:pointer;position:relative}
+.dh-conv:hover{background:#faf7f2}
+.dh-conv.active{background:#f5efe4;border-left:3px solid #c9964a;padding-left:12px}
+.dh-conv-top{display:flex;justify-content:space-between;margin-bottom:3px}
+.dh-conv-name{font-size:14px;font-weight:700}
+.dh-conv-time{font-size:10px;color:#718096}
+.dh-conv-prev{font-size:12px;color:#4a5568;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dh-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;
+  text-transform:uppercase;letter-spacing:.04em;margin-top:5px;display:inline-block}
+.dh-b-web{background:#e3f0ff;color:#1a5ec4}
+.dh-b-attn{background:#fbe9e7;color:#c0392b}
+.dh-b-case{background:#fdeede;color:#b7791f}
+.dh-attn-dot{position:absolute;top:13px;right:13px;width:8px;height:8px;border-radius:50%;background:#c53030}
+
+.dh-view{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#faf7f2}
+.dh-view-h{background:#fff;border-bottom:1px solid #e2e0d8;padding:12px 18px;
+  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.dh-view-h h2{font-size:15px;font-weight:700}
+.dh-view-h p{font-size:11px;color:#718096}
+.dh-btn{border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;
+  cursor:pointer;font-family:inherit}
+.dh-btn-case{background:#c9964a;color:#0f1f3d}
+.dh-btn-takeover{background:#0f1f3d;color:#fff}
+.dh-thread{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:10px}
+.dh-bub{max-width:72%;padding:9px 13px;border-radius:13px;font-size:13px;line-height:1.5}
+.dh-bub-guest{background:#fff;border:1px solid #e2e0d8;align-self:flex-start;border-bottom-left-radius:3px}
+.dh-bub-hotel{background:#0f1f3d;color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
+.dh-bub-ai{background:#c9964a;color:#0f1f3d;align-self:flex-end;border-bottom-right-radius:3px}
+.dh-bub-system{background:#eef2f6;color:#3a5a78;align-self:center;font-size:11px;text-align:center;border-radius:9px}
+.dh-bub-l{font-size:9px;font-weight:700;text-transform:uppercase;opacity:.7;margin-bottom:2px}
+.dh-bub-t{font-size:9px;opacity:.55;margin-top:3px}
+.dh-ai-panel{background:#fff;border-top:1px solid #e2e0d8;padding:9px 18px;flex-shrink:0}
+.dh-ai-head{font-size:10px;font-weight:700;color:#c9964a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
+.dh-ai-chips{display:flex;gap:6px;flex-wrap:wrap}
+.dh-ai-chip{font-size:12px;background:#f5efe4;border:1.5px solid #e6d3ad;border-radius:13px;
+  padding:6px 11px;cursor:pointer;color:#0f1f3d;text-align:left;line-height:1.4}
+.dh-ai-chip:hover{background:#c9964a;color:#fff}
+.dh-composer{background:#fff;border-top:1px solid #e2e0d8;padding:11px 18px;display:flex;
+  gap:9px;align-items:flex-end;flex-shrink:0}
+.dh-input{flex:1;border:1.5px solid #e2e0d8;border-radius:20px;padding:10px 15px;font-size:13px;
+  font-family:inherit;resize:none;outline:none;max-height:80px;line-height:1.4}
+.dh-input:focus{border-color:#c9964a}
+.dh-send{background:#c9964a;border:none;border-radius:50%;width:40px;height:40px;
+  color:#0f1f3d;font-size:16px;cursor:pointer;flex-shrink:0}
+
+/* ===== CASES + MAINTENANCE TABLE VIEWS ===== */
+.dh-panel{flex:1;overflow-y:auto;padding:22px}
+.dh-panel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.dh-panel-h h2{font-size:18px;font-weight:700;font-family:'Playfair Display',Georgia,serif}
+.dh-filter{display:flex;gap:6px}
+.dh-fbtn{padding:6px 12px;border-radius:16px;font-size:11px;font-weight:600;
+  border:1.5px solid #e2e0d8;background:#fff;color:#4a5568;cursor:pointer;font-family:inherit}
+.dh-fbtn.active{background:#0f1f3d;color:#fff;border-color:#0f1f3d}
+.dh-card{background:#fff;border:1px solid #e2e0d8;border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.dh-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
+.dh-case-id{font-size:11px;font-weight:700;color:#718096;font-family:monospace}
+.dh-case-guest{font-size:15px;font-weight:700;margin-top:2px}
+.dh-case-meta{font-size:12px;color:#718096;margin-top:3px}
+.dh-status{font-size:10px;font-weight:700;padding:3px 10px;border-radius:11px;text-transform:uppercase}
+.dh-s-open{background:#fbe9e7;color:#c0392b}
+.dh-s-resolved{background:#fdeede;color:#b7791f}
+.dh-s-closed{background:#e8f3ee;color:#2d6a4f}
+.dh-case-summary{font-size:13px;color:#0f1f3d;margin:8px 0;line-height:1.5}
+.dh-case-type{font-size:10px;font-weight:700;padding:2px 8px;border-radius:9px;
+  background:#eef2f6;color:#3a5a78;text-transform:uppercase}
+.dh-case-actions{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
+.dh-ca-btn{font-size:11px;font-weight:600;padding:7px 12px;border-radius:7px;
+  border:1.5px solid #e2e0d8;background:#fff;cursor:pointer;font-family:inherit;color:#0f1f3d}
+.dh-ca-btn:hover{border-color:#c9964a}
+.dh-ca-resolve{background:#fdeede;border-color:#e6d3ad}
+.dh-ca-close{background:#e8f3ee;border-color:#bfe3cf}
+.dh-empty{text-align:center;padding:50px;color:#718096}
+.dh-empty-icon{font-size:42px;opacity:.4;margin-bottom:10px}
+
+/* maintenance table */
+.dh-mtable{width:100%;background:#fff;border:1px solid #e2e0d8;border-radius:12px;
+  border-collapse:collapse;overflow:hidden}
+.dh-mtable th{background:#0f1f3d;color:#fff;font-size:10px;text-transform:uppercase;
+  letter-spacing:.05em;padding:10px 12px;text-align:left;font-weight:700}
+.dh-mtable td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f0eee6}
+.dh-mtable tr:last-child td{border-bottom:none}
+.dh-mt-input{width:100%;border:1px solid #e2e0d8;border-radius:6px;padding:6px 8px;
+  font-size:12px;font-family:inherit}
+
+.dh-empty-main{flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;color:#718096;text-align:center}
+</style>
+</head>
+<body>
+
+<div class="dh-top">
+  <div class="dh-logo">&#127976;</div>
+  <div class="dh-title">
+    <h1>Front Desk Console</h1>
+    <p>Quality Inn &amp; Suites McAlester on Hwy 69</p>
+  </div>
+  <div class="dh-nav">
+    <button class="dh-nav-btn active" data-view="inbox" onclick="nav(this)">&#128172; Inbox</button>
+    <button class="dh-nav-btn" data-view="cases" onclick="nav(this)">&#128221; Cases</button>
+    <button class="dh-nav-btn" data-view="maint" onclick="nav(this)">&#128295; Maintenance Log</button>
+  </div>
+</div>
+
+<div class="dh-body" id="body"></div>
+
+<script>
+/* ============================================================
+   QUALITY INN McALESTER — FRONT DESK CONSOLE
+   Inbox + Cases + Maintenance Log
+   Set WORKER_URL to your deployed Cloudflare Worker.
+   ============================================================ */
+var WORKER_URL = "";   /* e.g. https://qi-concierge.yourname.workers.dev */
+
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
+function timeNow(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+
+/* ---- DEMO DATA (used when no Worker connected) ---- */
+var DEMO_CONVS=[
+  {id:"c1",guest:"Guest 4821",room:"214",channel:"web",status:"attention",
+   caseId:"CASE-204417",time:"2:41 PM",
+   messages:[
+     {from:"ai",text:"Welcome to Quality Inn & Suites McAlester! How can I help?",at:"2:38 PM"},
+     {from:"guest",text:"The AC in my room is making a loud rattling noise",at:"2:40 PM"},
+     {from:"ai",text:"I'm sorry to hear that. Let's get this taken care of — I'll open a case so our team follows up until it's resolved.",at:"2:40 PM"},
+     {from:"system",text:"Case CASE-204417 opened for Room 214.",at:"2:41 PM"}
+   ]},
+  {id:"c2",guest:"Guest 7330",room:"108",channel:"web",status:"ai",
+   time:"1:18 PM",
+   messages:[
+     {from:"ai",text:"Welcome! How can I help?",at:"1:16 PM"},
+     {from:"guest",text:"what time is breakfast",at:"1:17 PM"},
+     {from:"ai",text:"Breakfast is free hot breakfast 6:00-9:00 AM daily — included with your stay!",at:"1:17 PM"},
+     {from:"guest",text:"great thanks",at:"1:18 PM"}
+   ]}
+];
+var DEMO_CASES=[
+  {id:"CASE-204417",firstName:"Michael",lastName:"Torres",phone:"(918) 555-0142",
+   room:"214",type:"maintenance",status:"Open",
+   summary:"AC unit making loud rattling noise",
+   createdAt:new Date().toISOString(),
+   timeline:[{at:new Date().toISOString(),note:"Case opened by guest via chat"}]},
+  {id:"CASE-204390",firstName:"Sarah",lastName:"Chen",phone:"(918) 555-0177",
+   room:"108",type:"housekeeping",status:"Resolved",
+   summary:"Extra towels requested, not yet delivered",
+   createdAt:new Date(Date.now()-86400000).toISOString(),
+   timeline:[{at:"yesterday",note:"Case opened"},{at:"yesterday",note:"Towels delivered — marked Resolved"}]}
+];
+var DEMO_MAINT=[
+  {id:"MAINT-204417",caseId:"CASE-204417",room:"214",guestName:"Michael Torres",
+   issue:"AC unit making loud rattling noise",status:"Open",
+   assignedTech:"",fixNotes:"",createdAt:new Date().toISOString()}
+];
+
+/* ---- live data holders ---- */
+var conversations=[], cases=[], maintenance=[];
+
+/* ---- load data: from Worker, or demo ---- */
+function loadData(){
+  if(WORKER_URL){
+    return Promise.all([
+      fetch(WORKER_URL+"/conversations").then(function(r){return r.json();}).catch(function(){return{};}),
+      fetch(WORKER_URL+"/cases").then(function(r){return r.json();}).catch(function(){return{};}),
+      fetch(WORKER_URL+"/maintenance-log").then(function(r){return r.json();}).catch(function(){return{};})
+    ]).then(function(res){
+      conversations=res[0].conversations||[];
+      cases=res[1].cases||[];
+      maintenance=res[2].maintenance||[];
+    });
+  }
+  /* demo mode — also pick up a live session from the chat widget if open */
+  conversations=DEMO_CONVS.slice();
+  cases=DEMO_CASES.slice();
+  maintenance=DEMO_MAINT.slice();
+  if(window.__qiSession){
+    var s=window.__qiSession;
+    conversations.unshift({id:s.id,guest:s.guest?
+      (s.guest.firstName+" "+s.guest.lastName):"Live Web Guest",
+      room:s.guest?s.guest.room:"—",channel:"web",
+      status:s.status||"ai",caseId:s.caseId,time:timeNow(),messages:s.messages});
+  }
+  if(window.__qiLastCase){
+    if(!cases.find(function(c){return c.id===window.__qiLastCase.id;}))
+      cases.unshift(window.__qiLastCase);
+  }
+  return Promise.resolve();
+}
+
+/* ============================================================
+   VIEW ROUTER
+   ============================================================ */
+var currentView='inbox';
+function nav(btn){
+  document.querySelectorAll('.dh-nav-btn').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  currentView=btn.dataset.view;
+  render();
+}
+function render(){
+  loadData().then(function(){
+    if(currentView==='inbox')renderInbox();
+    else if(currentView==='cases')renderCases();
+    else renderMaint();
+  });
+}
+
+/* ============================================================
+   INBOX VIEW
+   ============================================================ */
+var activeConvId=null;
+function renderInbox(){
+  var body=document.getElementById('body');
+  body.innerHTML=
+    '<div class="dh-list"><div class="dh-list-h">Guest Conversations</div>'+
+      '<div id="convList"></div></div>'+
+    '<div class="dh-view" id="convView">'+
+      '<div class="dh-empty-main"><div class="dh-empty-icon">&#128172;</div>'+
+      '<h3>Select a conversation</h3></div></div>';
+  var list=document.getElementById('convList');
+  if(conversations.length===0){
+    list.innerHTML='<div class="dh-empty">No conversations yet.</div>';return;
+  }
+  conversations.forEach(function(c){
+    var last=c.messages[c.messages.length-1];
+    var div=document.createElement('div');
+    div.className='dh-conv'+(c.id===activeConvId?' active':'');
+    div.onclick=function(){openConv(c.id);};
+    var badge=c.caseId
+      ?'<span class="dh-badge dh-b-case">Case '+esc(c.caseId)+'</span>'
+      :c.status==='attention'
+      ?'<span class="dh-badge dh-b-attn">Needs Help</span>'
+      :'<span class="dh-badge dh-b-web">Web Chat</span>';
+    div.innerHTML=
+      (c.status==='attention'?'<div class="dh-attn-dot"></div>':'')+
+      '<div class="dh-conv-top"><span class="dh-conv-name">'+esc(c.guest)+'</span>'+
+        '<span class="dh-conv-time">'+esc(c.time||'')+'</span></div>'+
+      '<div class="dh-conv-prev">Room '+esc(c.room)+' &middot; '+esc(last?last.text:'')+'</div>'+
+      badge;
+    list.appendChild(div);
+  });
+}
+function openConv(id){
+  activeConvId=id;
+  var c=conversations.find(function(x){return x.id===id;});
+  if(!c)return;
+  var view=document.getElementById('convView');
+  var caseBtn=c.caseId
+    ?'<button class="dh-btn dh-btn-case" onclick="goCases()">View Case '+esc(c.caseId)+'</button>'
+    :'<button class="dh-btn dh-btn-case" onclick="openCaseFromConv(\''+c.id+'\')">+ Open a Case</button>';
+  view.innerHTML=
+    '<div class="dh-view-h"><div><h2>'+esc(c.guest)+'</h2>'+
+      '<p>Room '+esc(c.room)+' &middot; Web Chat</p></div>'+caseBtn+'</div>'+
+    '<div class="dh-thread" id="thread"></div>'+
+    '<div class="dh-ai-panel" id="aiPanel"></div>'+
+    '<div class="dh-composer">'+
+      '<textarea class="dh-input" id="composer" rows="1" placeholder="Reply to guest..."></textarea>'+
+      '<button class="dh-send" id="sendBtn">&#10148;</button></div>';
+  renderThread(c);
+  renderAI(c);
+  var input=document.getElementById('composer');
+  input.addEventListener('input',function(){this.style.height='auto';
+    this.style.height=Math.min(this.scrollHeight,80)+'px';});
+  input.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendReply(c.id);}});
+  document.getElementById('sendBtn').onclick=function(){sendReply(c.id);};
+  renderInbox();openConvHighlight(id);
+}
+function openConvHighlight(id){activeConvId=id;
+  var c=conversations.find(function(x){return x.id===id;});if(c)openConvBody(c);}
+function openConvBody(c){/* no-op, kept for clarity */}
+function renderThread(c){
+  var box=document.getElementById('thread');
+  box.innerHTML='';
+  c.messages.forEach(function(m){
+    var div=document.createElement('div');
+    if(m.from==='system'){
+      div.className='dh-bub dh-bub-system';
+      div.innerHTML='<div>'+esc(m.text)+'</div>';
+    }else{
+      var cls=m.from==='guest'?'dh-bub-guest':m.from==='ai'?'dh-bub-ai':'dh-bub-hotel';
+      div.className='dh-bub '+cls;
+      var label=m.from==='guest'?'':m.from==='ai'?'<div class="dh-bub-l">AI Concierge</div>':'<div class="dh-bub-l">Front Desk</div>';
+      div.innerHTML=label+'<div>'+esc(m.text)+'</div><div class="dh-bub-t">'+esc(m.at)+'</div>';
+    }
+    box.appendChild(div);
+  });
+  box.scrollTop=box.scrollHeight;
+}
+function renderAI(c){
+  var panel=document.getElementById('aiPanel');
+  var lastGuest=null;
+  for(var i=c.messages.length-1;i>=0;i--){
+    if(c.messages[i].from==='guest'){lastGuest=c.messages[i].text;break;}
+  }
+  if(!lastGuest){panel.innerHTML='';return;}
+  panel.innerHTML='<div class="dh-ai-head">&#129302; AI Smart Replies</div>'+
+    '<div class="dh-ai-chips" id="aiChips"><span style="font-size:11px;color:#718096">Loading...</span></div>';
+  getSuggestions(lastGuest).then(function(sugg){
+    var chips=document.getElementById('aiChips');
+    if(!chips)return;
+    chips.innerHTML='';
+    sugg.forEach(function(s){
+      var b=document.createElement('button');
+      b.className='dh-ai-chip';b.textContent=s;
+      b.onclick=function(){var ci=document.getElementById('composer');
+        if(ci){ci.value=s;ci.focus();}};
+      chips.appendChild(b);
+    });
+  });
+}
+function getSuggestions(msg){
+  if(WORKER_URL){
+    return fetch(WORKER_URL+"/suggest",{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({guestMessage:msg})})
+      .then(function(r){return r.json();})
+      .then(function(d){return d.suggestions||[];})
+      .catch(function(){return localSugg(msg);});
+  }
+  return Promise.resolve(localSugg(msg));
+}
+function localSugg(msg){
+  var t=msg.toLowerCase();
+  if(/ac|noise|loud|broken|not work|leak/.test(t))
+    return["So sorry about that! I'm sending our maintenance team to your room right away.",
+           "Apologies for the trouble — someone will be up within a few minutes to take a look.",
+           "Thanks for letting us know. We'll get that fixed for you right away."];
+  if(/breakfast/.test(t))
+    return["Breakfast is served 6:00-9:00 AM daily — free hot breakfast included with your stay!",
+           "Good morning! Hot breakfast runs 6-9 AM right off the lobby.",
+           "We serve free hot breakfast 6-9 AM every day. Enjoy!"];
+  if(/towel|clean|housekeep/.test(t))
+    return["Of course — I'll have housekeeping bring those right up to your room.",
+           "Happy to help! Fresh towels are on the way now.",
+           "Thanks for letting us know — housekeeping will be up shortly."];
+  return["Thank you for reaching out — happy to help with that!",
+         "Thanks for your message! Let me take care of that for you.",
+         "Happy to help — give me just a moment."];
+}
+function sendReply(id){
+  var c=conversations.find(function(x){return x.id===id;});
+  var input=document.getElementById('composer');
+  var text=input.value.trim();
+  if(!text)return;
+  c.messages.push({from:'hotel',text:text,at:timeNow()});
+  input.value='';input.style.height='auto';
+  renderThread(c);renderAI(c);
+}
+function goCases(){
+  document.querySelectorAll('.dh-nav-btn').forEach(function(b){
+    b.classList.toggle('active',b.dataset.view==='cases');});
+  currentView='cases';render();
+}
+function openCaseFromConv(convId){
+  var c=conversations.find(function(x){return x.id===convId;});
+  var first=prompt("Guest first name:");if(first===null)return;
+  var last=prompt("Guest last name:");if(last===null)return;
+  var phone=prompt("Guest phone number:");if(phone===null)return;
+  var room=prompt("Room number:",c.room||"");if(room===null)return;
+  var type=prompt("Case type — type 'maintenance', 'housekeeping', or 'service':","service");
+  var summary=prompt("Brief description of the issue:");
+  var caseObj={
+    id:"CASE-"+Date.now().toString().slice(-6),
+    conversationId:convId,firstName:first,lastName:last,phone:phone,room:room,
+    type:(type||"service").toLowerCase(),summary:summary||"Front-desk opened case",
+    status:"Open",channel:"web",createdAt:new Date().toISOString(),
+    timeline:[{at:new Date().toISOString(),note:"Case opened by front desk"}]
+  };
+  saveCaseToWorker(caseObj);
+  cases.unshift(caseObj);
+  c.caseId=caseObj.id;c.status='attention';
+  alert("Case "+caseObj.id+" opened.");
+  goCases();
+}
+
+/* ============================================================
+   CASES VIEW
+   ============================================================ */
+var caseFilter='all';
+function renderCases(){
+  var body=document.getElementById('body');
+  body.innerHTML='<div class="dh-panel">'+
+    '<div class="dh-panel-h"><h2>Guest Cases</h2>'+
+      '<div class="dh-filter">'+
+        '<button class="dh-fbtn'+(caseFilter==='all'?' active':'')+'" onclick="setCaseFilter(\'all\')">All</button>'+
+        '<button class="dh-fbtn'+(caseFilter==='Open'?' active':'')+'" onclick="setCaseFilter(\'Open\')">Open</button>'+
+        '<button class="dh-fbtn'+(caseFilter==='Resolved'?' active':'')+'" onclick="setCaseFilter(\'Resolved\')">Resolved</button>'+
+        '<button class="dh-fbtn'+(caseFilter==='Closed'?' active':'')+'" onclick="setCaseFilter(\'Closed\')">Closed</button>'+
+      '</div></div>'+
+    '<div id="caseList"></div></div>';
+  var list=document.getElementById('caseList');
+  var shown=cases.filter(function(c){return caseFilter==='all'||c.status===caseFilter;});
+  if(shown.length===0){
+    list.innerHTML='<div class="dh-empty"><div class="dh-empty-icon">&#128221;</div>'+
+      '<div>No cases in this category.</div></div>';return;
+  }
+  shown.forEach(function(c){
+    var sClass=c.status==='Open'?'dh-s-open':c.status==='Resolved'?'dh-s-resolved':'dh-s-closed';
+    var actions='';
+    if(c.status==='Open')
+      actions='<button class="dh-ca-btn dh-ca-resolve" onclick="caseAction(\''+c.id+'\',\'Resolved\')">Mark Resolved</button>';
+    else if(c.status==='Resolved')
+      actions='<button class="dh-ca-btn dh-ca-close" onclick="caseAction(\''+c.id+'\',\'Closed\')">'+
+              'Close (guest confirmed satisfied)</button>'+
+              '<button class="dh-ca-btn" onclick="caseAction(\''+c.id+'\',\'Open\')">Re-open</button>';
+    else
+      actions='<button class="dh-ca-btn" onclick="caseAction(\''+c.id+'\',\'Open\')">Re-open</button>';
+
+    var div=document.createElement('div');
+    div.className='dh-card';
+    div.innerHTML=
+      '<div class="dh-card-top"><div>'+
+        '<div class="dh-case-id">'+esc(c.id)+'</div>'+
+        '<div class="dh-case-guest">'+esc(c.firstName)+' '+esc(c.lastName)+'</div>'+
+        '<div class="dh-case-meta">Room '+esc(c.room)+' &middot; '+esc(c.phone)+'</div>'+
+      '</div><span class="dh-status '+sClass+'">'+esc(c.status)+'</span></div>'+
+      '<div class="dh-case-summary">'+esc(c.summary)+'</div>'+
+      '<span class="dh-case-type">'+esc(c.type)+'</span>'+
+      '<div class="dh-case-actions">'+actions+'</div>';
+    list.appendChild(div);
+  });
+}
+function setCaseFilter(f){caseFilter=f;renderCases();}
+function caseAction(id,newStatus){
+  var c=cases.find(function(x){return x.id===id;});
+  if(!c)return;
+  if(newStatus==='Closed'){
+    if(!confirm('Confirm the guest is satisfied and this case can be closed?'))return;
+  }
+  c.status=newStatus;
+  c.updatedAt=new Date().toISOString();
+  c.timeline=c.timeline||[];
+  c.timeline.push({at:c.updatedAt,note:"Status changed to "+newStatus});
+  saveCaseToWorker(c);
+  /* keep maintenance log in sync */
+  if(c.type==='maintenance'){
+    var m=maintenance.find(function(x){return x.caseId===c.id;});
+    if(m){m.status=newStatus;saveMaintToWorker(m);}
+  }
+  renderCases();
+}
+function saveCaseToWorker(c){
+  if(WORKER_URL){
+    fetch(WORKER_URL+"/case",{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(c)}).catch(function(){});
+  }
+}
+
+/* ============================================================
+   MAINTENANCE LOG VIEW
+   ============================================================ */
+function renderMaint(){
+  var body=document.getElementById('body');
+  /* rebuild maintenance list from maintenance-type cases too */
+  var fromCases=cases.filter(function(c){return c.type==='maintenance';})
+    .map(function(c){
+      var existing=maintenance.find(function(m){return m.caseId===c.id;});
+      return existing||{
+        id:"MAINT-"+c.id.replace("CASE-",""),caseId:c.id,room:c.room,
+        guestName:(c.firstName||"")+" "+(c.lastName||""),issue:c.summary,
+        status:c.status,assignedTech:"",fixNotes:"",createdAt:c.createdAt};
+    });
+  /* merge any standalone maintenance entries */
+  maintenance.forEach(function(m){
+    if(!fromCases.find(function(x){return x.id===m.id;}))fromCases.push(m);
+  });
+  maintenance=fromCases;
+
+  body.innerHTML='<div class="dh-panel">'+
+    '<div class="dh-panel-h"><h2>Maintenance Log</h2>'+
+      '<button class="dh-fbtn active" onclick="render()">&#8635; Refresh</button></div>'+
+    (maintenance.length===0
+      ?'<div class="dh-empty"><div class="dh-empty-icon">&#128295;</div>'+
+       '<div>No maintenance items yet. They appear here automatically '+
+       'when a maintenance-type case is opened.</div></div>'
+      :'<table class="dh-mtable"><thead><tr>'+
+       '<th>Log ID</th><th>Room</th><th>Guest</th><th>Issue</th>'+
+       '<th>Assigned Tech</th><th>Fix Notes</th><th>Status</th>'+
+       '</tr></thead><tbody id="maintBody"></tbody></table>')+
+    '</div>';
+
+  if(maintenance.length===0)return;
+  var tbody=document.getElementById('maintBody');
+  maintenance.forEach(function(m,idx){
+    var sClass=m.status==='Open'?'dh-s-open':m.status==='Resolved'?'dh-s-resolved':'dh-s-closed';
+    var tr=document.createElement('tr');
+    tr.innerHTML=
+      '<td style="font-family:monospace;font-size:11px">'+esc(m.id)+'</td>'+
+      '<td><b>'+esc(m.room)+'</b></td>'+
+      '<td>'+esc(m.guestName)+'</td>'+
+      '<td>'+esc(m.issue)+'</td>'+
+      '<td><input class="dh-mt-input" value="'+esc(m.assignedTech||'')+'" '+
+        'placeholder="Tech name" onchange="updateMaint('+idx+',\'assignedTech\',this.value)"></td>'+
+      '<td><input class="dh-mt-input" value="'+esc(m.fixNotes||'')+'" '+
+        'placeholder="Notes" onchange="updateMaint('+idx+',\'fixNotes\',this.value)"></td>'+
+      '<td><span class="dh-status '+sClass+'">'+esc(m.status)+'</span></td>';
+    tbody.appendChild(tr);
+  });
+}
+function updateMaint(idx,field,value){
+  maintenance[idx][field]=value;
+  maintenance[idx].updatedAt=new Date().toISOString();
+  saveMaintToWorker(maintenance[idx]);
+}
+function saveMaintToWorker(m){
+  if(WORKER_URL){
+    fetch(WORKER_URL+"/maintenance",{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(m)}).catch(function(){});
+  }
+}
+
+/* INIT */
+render();
+</script>
+</body>
+</html>

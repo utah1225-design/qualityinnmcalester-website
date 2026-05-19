@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>Guest Concierge — Quality Inn &amp; Suites McAlester on Hwy 69</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  background:#faf7f2;display:flex;flex-direction:column;height:100vh;overflow:hidden;color:#0f1f3d}
+
+.cw-header{background:#0f1f3d;border-bottom:3px solid #c9964a;padding:14px 18px;
+  display:flex;align-items:center;gap:12px;flex-shrink:0}
+.cw-logo{width:42px;height:42px;border-radius:10px;background:#c9964a;display:flex;
+  align-items:center;justify-content:center;font-size:21px;flex-shrink:0}
+.cw-htext{flex:1;min-width:0}
+.cw-hname{font-size:15px;font-weight:700;color:#fff;line-height:1.25;
+  font-family:'Playfair Display',Georgia,serif}
+.cw-status{font-size:11px;color:rgba(255,255,255,0.55);display:flex;align-items:center;gap:5px;margin-top:2px}
+.cw-dot{width:7px;height:7px;border-radius:50%;background:#5ad19a;display:inline-block}
+
+.cw-chat{flex:1;overflow-y:auto;padding:18px 14px;display:flex;flex-direction:column;
+  gap:12px;-webkit-overflow-scrolling:touch}
+.cw-msg{max-width:82%;padding:11px 15px;border-radius:16px;font-size:14px;line-height:1.55;
+  word-wrap:break-word;animation:fade .2s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.cw-ai{background:#fff;border:1px solid #e2e0d8;border-bottom-left-radius:4px;align-self:flex-start}
+.cw-user{background:#0f1f3d;color:#fff;border-bottom-right-radius:4px;align-self:flex-end}
+.cw-staff{background:#fdf6e9;border:1px solid #ecd9b0;border-bottom-left-radius:4px;align-self:flex-start}
+.cw-system{background:#eef2f6;color:#3a5a78;align-self:center;font-size:12px;
+  text-align:center;border-radius:10px;max-width:90%}
+.cw-label{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+.cw-ai .cw-label{color:#c9964a}
+.cw-staff .cw-label{color:#b7791f}
+.cw-time{font-size:10px;color:#718096;margin-top:4px}
+.cw-user .cw-time{text-align:right;color:rgba(255,255,255,0.6)}
+
+/* case form card inside chat */
+.cw-caseform{background:#fff;border:1.5px solid #c9964a;border-radius:14px;
+  padding:16px;align-self:stretch;max-width:100%}
+.cw-caseform h4{font-size:13px;color:#0f1f3d;margin-bottom:3px}
+.cw-caseform p{font-size:11px;color:#718096;margin-bottom:12px;line-height:1.5}
+.cw-cf-row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.cw-cf-input{width:100%;padding:9px 11px;border:1.5px solid #e2e0d8;border-radius:8px;
+  font-size:13px;font-family:inherit;outline:none}
+.cw-cf-input:focus{border-color:#c9964a}
+.cw-cf-full{margin-bottom:8px}
+.cw-cf-btn{width:100%;background:#c9964a;color:#0f1f3d;border:none;border-radius:8px;
+  padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px}
+.cw-cf-btn:hover{background:#dbb069}
+
+.cw-quick{display:flex;flex-wrap:wrap;gap:7px;padding:0 14px 10px;flex-shrink:0}
+.cw-qbtn{background:#fff;border:1.5px solid #e2e0d8;border-radius:20px;padding:7px 13px;
+  font-size:12px;font-weight:600;color:#0f1f3d;cursor:pointer;font-family:inherit;transition:all .15s}
+.cw-qbtn:hover{background:#0f1f3d;color:#fff;border-color:#0f1f3d}
+
+.cw-typing{align-self:flex-start;background:#fff;border:1px solid #e2e0d8;border-radius:16px;
+  border-bottom-left-radius:4px;padding:13px 16px;display:none;margin:0 14px 10px}
+.cw-typing.show{display:block}
+.cw-typing span{width:7px;height:7px;border-radius:50%;background:#718096;display:inline-block;
+  margin-right:3px;animation:bounce 1.2s infinite}
+.cw-typing span:nth-child(2){animation-delay:.15s}
+.cw-typing span:nth-child(3){animation-delay:.3s;margin-right:0}
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+.cw-bar{background:#fff;border-top:1px solid #e2e0d8;padding:12px 14px;display:flex;
+  gap:9px;align-items:flex-end;flex-shrink:0}
+.cw-input{flex:1;border:1.5px solid #e2e0d8;border-radius:22px;padding:11px 16px;
+  font-size:14px;font-family:inherit;resize:none;outline:none;max-height:96px;line-height:1.4}
+.cw-input:focus{border-color:#c9964a}
+.cw-send{width:44px;height:44px;border-radius:50%;background:#c9964a;border:none;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;
+  flex-shrink:0;color:#0f1f3d}
+.cw-send:disabled{opacity:.4;cursor:not-allowed}
+
+.cw-foot{font-size:10px;color:#718096;text-align:center;padding:6px 14px;background:#faf7f2;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<div class="cw-header">
+  <div class="cw-logo">&#127976;</div>
+  <div class="cw-htext">
+    <div class="cw-hname">Quality Inn &amp; Suites McAlester</div>
+    <div class="cw-status"><span class="cw-dot"></span><span>Concierge &mdash; here to help</span></div>
+  </div>
+</div>
+
+<div class="cw-chat" id="chat"></div>
+<div class="cw-typing" id="typing"><span></span><span></span><span></span></div>
+<div class="cw-quick" id="quick"></div>
+<div class="cw-bar">
+  <textarea class="cw-input" id="input" rows="1" placeholder="Ask us anything about your stay..."></textarea>
+  <button class="cw-send" id="send" aria-label="Send">&#10148;</button>
+</div>
+<div class="cw-foot">Quality Inn &amp; Suites McAlester on Hwy 69 &middot; Front desk 24/7 &middot; (918) 426-8091</div>
+
+<script>
+/* ============================================================
+   QUALITY INN McALESTER — GUEST CHAT WIDGET
+   ============================================================
+   Set WORKER_URL to your deployed Cloudflare Worker.
+   Until then it runs in local demo mode (keyword replies).
+   ============================================================ */
+var WORKER_URL = "";   /* e.g. https://qi-concierge.yourname.workers.dev */
+
+var HOTEL = {
+  name:"Quality Inn & Suites McAlester on Hwy 69", phone:"(918) 426-8091",
+  checkIn:"3:00 PM", checkOut:"11:00 AM",
+  breakfast:"free full hot breakfast 6:00-9:00 AM daily",
+  parking:"free, including McAlester's largest truck and RV lot",
+  wifi:"free property-wide; password on your in-room card"
+};
+
+var QUICK = ["What time is breakfast?","Check-out time?","Where do I park?",
+             "Wi-Fi password","Report a problem"];
+
+/* ---- session — tracks this guest's conversation ---- */
+var session = {
+  id: "conv_" + Date.now() + "_" + Math.random().toString(36).slice(2,7),
+  hotelId: "qi-mcalester",
+  channel: "web",
+  startedAt: new Date().toISOString(),
+  createdAt: new Date().toISOString(),
+  guest: null,           /* filled when a case is opened */
+  messages: []
+};
+
+var chat=document.getElementById('chat');
+var input=document.getElementById('input');
+var sendBtn=document.getElementById('send');
+var typing=document.getElementById('typing');
+var quick=document.getElementById('quick');
+
+function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
+function timeNow(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
+
+function addMsg(text,sender){
+  var msg=document.createElement('div');
+  msg.className='cw-msg cw-'+sender;
+  var label=sender==='ai'?'<div class="cw-label">&#129302; Concierge</div>'
+    :sender==='staff'?'<div class="cw-label">&#128100; Front Desk</div>':'';
+  if(sender==='system'){
+    msg.innerHTML='<div>'+esc(text)+'</div>';
+  }else{
+    msg.innerHTML=label+'<div>'+esc(text)+'</div><div class="cw-time">'+timeNow()+'</div>';
+  }
+  chat.appendChild(msg);
+  chat.scrollTop=chat.scrollHeight;
+  if(sender!=='system'){
+    session.messages.push({from:sender==='user'?'guest':sender,text:text,at:timeNow()});
+    saveSession();
+  }
+}
+
+/* ---- save the session to the Worker (or window for demo) ---- */
+function saveSession(){
+  window.__qiSession=session;
+  if(WORKER_URL){
+    fetch(WORKER_URL+"/conversation",{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(session)
+    }).catch(function(){});
+  }
+}
+
+/* ---- send a guest message ---- */
+function send(){
+  var text=input.value.trim();
+  if(!text)return;
+  addMsg(text,'user');
+  input.value='';input.style.height='auto';
+  sendBtn.disabled=true;
+  typing.classList.add('show');
+  chat.scrollTop=chat.scrollHeight;
+
+  getReply(text).then(function(result){
+    typing.classList.remove('show');
+    addMsg(result.reply,'ai');
+    sendBtn.disabled=false;
+    /* if the AI flagged this as an issue -> offer to open a case */
+    if(result.flagAsCase && !session.caseOpened){
+      offerCase(result.issueType||'service');
+    }
+  });
+}
+
+/* ---- get a reply: from the Worker, or local demo ---- */
+function getReply(text){
+  if(WORKER_URL){
+    return fetch(WORKER_URL+"/reply",{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({guestMessage:text,history:session.messages})
+    })
+    .then(function(r){return r.json();})
+    .catch(function(){return localReply(text);});
+  }
+  return new Promise(function(res){
+    setTimeout(function(){res(localReply(text));},700+Math.random()*600);
+  });
+}
+
+/* ---- local demo reply engine ---- */
+function localReply(text){
+  var t=text.toLowerCase();
+  var issue=/broken|not work|leak|dirty|smell|noise|loud|cold|no hot water|ac|a\/c|heat|stuck|locked|missing|maintenance|repair|fix|problem|issue|complaint|roach|stain|report a problem/.test(t);
+  var issueType='service';
+  if(/ac|a\/c|heat|cold|hot water|leak|broken|not work|tv|wifi|wi-fi|light|door|lock|key/.test(t))issueType='maintenance';
+  else if(/dirty|towels|smell|stain|clean|sheets/.test(t))issueType='housekeeping';
+
+  var reply;
+  if(/breakfast/.test(t))reply="Breakfast is "+HOTEL.breakfast+" — included with your stay!";
+  else if(/check.?out/.test(t))reply="Check-out is at "+HOTEL.checkOut+". Need extra time? Just let us know.";
+  else if(/check.?in/.test(t))reply="Check-in starts at "+HOTEL.checkIn+". Our front desk is open 24/7.";
+  else if(/park|rv|truck/.test(t))reply="Parking is "+HOTEL.parking+".";
+  else if(/wi.?fi|internet|password/.test(t))reply="Our wi-fi is "+HOTEL.wifi+".";
+  else if(/report a problem/.test(t))reply="I'm sorry to hear something's not right. Let's get this taken care of for you.";
+  else if(issue)reply="I'm sorry to hear that. Let's get this taken care of — I'll open a case so our team follows up until it's resolved.";
+  else if(/thank/.test(t))reply="You're very welcome! Enjoy your stay with us.";
+  else reply="Thanks for your message! For anything I can't answer, our front desk is available 24/7 at "+HOTEL.phone+".";
+
+  return {reply:reply,flagAsCase:issue,issueType:issue?issueType:null};
+}
+
+/* ============================================================
+   CASE FLOW — collect identity ONLY when an issue arises
+   ============================================================ */
+function offerCase(issueType){
+  var card=document.createElement('div');
+  card.className='cw-msg cw-caseform';
+  card.innerHTML=
+    '<h4>&#128221; Let\'s open a case for you</h4>'+
+    '<p>So our team can follow up until this is fully resolved, '+
+       'please confirm a few details:</p>'+
+    '<div class="cw-cf-row">'+
+      '<input class="cw-cf-input" id="cf-first" placeholder="First name">'+
+      '<input class="cw-cf-input" id="cf-last" placeholder="Last name">'+
+    '</div>'+
+    '<div class="cw-cf-row">'+
+      '<input class="cw-cf-input" id="cf-phone" placeholder="Phone number" inputmode="tel">'+
+      '<input class="cw-cf-input" id="cf-room" placeholder="Room number" inputmode="numeric">'+
+    '</div>'+
+    '<div class="cw-cf-full">'+
+      '<input class="cw-cf-input" id="cf-summary" placeholder="Brief description of the issue">'+
+    '</div>'+
+    '<button class="cw-cf-btn" id="cf-submit">Open My Case</button>';
+  chat.appendChild(card);
+  chat.scrollTop=chat.scrollHeight;
+
+  document.getElementById('cf-submit').onclick=function(){
+    var first=document.getElementById('cf-first').value.trim();
+    var last=document.getElementById('cf-last').value.trim();
+    var phone=document.getElementById('cf-phone').value.trim();
+    var room=document.getElementById('cf-room').value.trim();
+    var summary=document.getElementById('cf-summary').value.trim();
+    if(!first||!last||!phone||!room){
+      alert('Please fill in first name, last name, phone, and room number.');
+      return;
+    }
+    submitCase({firstName:first,lastName:last,phone:phone,room:room,
+      summary:summary,type:issueType});
+    card.remove();
+  };
+}
+
+function submitCase(data){
+  session.caseOpened=true;
+  session.guest={firstName:data.firstName,lastName:data.lastName,
+    phone:data.phone,room:data.room};
+
+  var caseObj={
+    id:"CASE-"+Date.now().toString().slice(-6),
+    conversationId:session.id,
+    firstName:data.firstName,lastName:data.lastName,
+    phone:data.phone,room:data.room,
+    type:data.type,
+    summary:data.summary||"Guest-reported issue",
+    status:"Open",
+    channel:"web",
+    createdAt:new Date().toISOString(),
+    timeline:[{at:new Date().toISOString(),note:"Case opened by guest via chat"}]
+  };
+
+  /* save case to Worker */
+  if(WORKER_URL){
+    fetch(WORKER_URL+"/case",{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(caseObj)
+    }).catch(function(){});
+  }
+  window.__qiLastCase=caseObj;
+
+  addMsg("Case "+caseObj.id+" has been opened for Room "+data.room+
+    ". Our front desk team has been notified and will follow up with you until "+
+    "this is fully resolved. You can keep chatting here any time.",'system');
+
+  /* mark the session so the dashboard shows it needs attention */
+  session.status='attention';
+  session.caseId=caseObj.id;
+  saveSession();
+}
+
+/* ---- quick reply buttons ---- */
+QUICK.forEach(function(q){
+  var b=document.createElement('button');
+  b.className='cw-qbtn';b.textContent=q;
+  b.onclick=function(){input.value=q;send();};
+  quick.appendChild(b);
+});
+
+input.addEventListener('input',function(){
+  this.style.height='auto';this.style.height=Math.min(this.scrollHeight,96)+'px';});
+input.addEventListener('keydown',function(e){
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
+sendBtn.addEventListener('click',send);
+
+/* opening greeting */
+setTimeout(function(){
+  addMsg("Welcome to Quality Inn & Suites McAlester on Hwy 69! I'm your digital "+
+    "concierge. Ask me about breakfast, parking, check-out, or let me know if "+
+    "anything in your room needs attention.",'ai');
+},400);
+</script>
+</body>
+</html>
