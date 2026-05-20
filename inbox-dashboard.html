@@ -155,9 +155,55 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 .dh-sb-waiting-high .dh-sb-dot{background:#c53030}
 
 /* ARCHIVE TAB BUTTON */
+
+/* AGENT MODAL */
+.dh-modal-bg{position:fixed;inset:0;background:rgba(15,31,61,0.55);
+  display:flex;align-items:center;justify-content:center;z-index:1000}
+.dh-modal{background:#fff;border-radius:14px;padding:26px 28px;width:340px;max-width:90%}
+.dh-modal h3{font-size:17px;font-weight:700;margin-bottom:6px;font-family:'Playfair Display',Georgia,serif}
+.dh-modal p{font-size:12px;color:#718096;margin-bottom:14px;line-height:1.5}
+.dh-modal input{width:100%;padding:11px 13px;border:1.5px solid #e2e0d8;border-radius:8px;
+  font-size:14px;font-family:inherit;outline:none;margin-bottom:12px}
+.dh-modal input:focus{border-color:#c9964a}
+.dh-modal-btn{width:100%;background:#c9964a;color:#0f1f3d;border:none;border-radius:8px;
+  padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+
+/* AGENT BADGE IN TOPBAR */
+.dh-agent-tag{font-size:11px;color:rgba(255,255,255,0.65);padding:5px 10px;
+  background:rgba(255,255,255,0.07);border-radius:14px;margin-right:8px;cursor:pointer;
+  border:none;font-family:inherit}
+.dh-agent-tag:hover{background:rgba(255,255,255,0.13);color:#fff}
+
+/* TOAST */
+.dh-toast-wrap{position:fixed;top:80px;right:18px;display:flex;flex-direction:column;
+  gap:10px;z-index:900;pointer-events:none}
+.dh-toast{background:#fff;border-left:4px solid #c9964a;border-radius:8px;padding:11px 16px;
+  box-shadow:0 4px 14px rgba(15,31,61,0.13);min-width:260px;max-width:360px;
+  animation:slideIn .25s ease;pointer-events:auto;font-size:13px}
+.dh-toast.lightning{border-left-color:#c9964a}
+.dh-toast.excellent{border-left-color:#2d6a4f}
+.dh-toast.slow{border-left-color:#b7791f}
+.dh-toast.late{border-left-color:#c0392b}
+.dh-toast-title{font-weight:700;font-size:13px;margin-bottom:2px}
+.dh-toast-msg{font-size:12px;color:#4a5568}
+@keyframes slideIn{from{transform:translateX(20px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* SCOREBOARD */
+.dh-scoreboard{background:#fff;border:1px solid #e2e0d8;border-radius:12px;padding:14px 16px;
+  margin-bottom:14px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;width:100%}
+.dh-sb-block{flex:1;min-width:110px}
+.dh-sb-label{font-size:10px;font-weight:700;color:#718096;text-transform:uppercase;letter-spacing:.05em}
+.dh-sb-value{font-size:22px;font-weight:700;color:#0f1f3d;line-height:1.1;margin-top:2px;
+  font-family:'Playfair Display',Georgia,serif}
+.dh-sb-detail{font-size:11px;color:#718096;margin-top:2px}
+.dh-sb-grade{font-size:11px;font-weight:700;padding:3px 10px;border-radius:11px;text-transform:uppercase}
+.dh-sb-g-excellent{background:#e8f3ee;color:#2d6a4f}
+.dh-sb-g-good{background:#eef2f6;color:#3a5a78}
+.dh-sb-g-slow{background:#fdeede;color:#b7791f}
 </style>
 </head>
 <body>
+<div class="dh-toast-wrap" id="toastWrap"></div>
 
 <div class="dh-top">
   <div class="dh-logo">&#127976;</div>
@@ -165,6 +211,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
     <h1>Front Desk Console</h1>
     <p>Quality Inn &amp; Suites McAlester on Hwy 69</p>
   </div>
+  <button class="dh-agent-tag" id="agentTag" onclick="changeAgent()">&#128100; Not signed in</button>
   <div class="dh-nav">
     <button class="dh-nav-btn active" data-view="inbox" onclick="nav(this)">&#128172; Inbox</button>
     <button class="dh-nav-btn" data-view="cases" onclick="nav(this)">&#128221; Cases</button>
@@ -181,7 +228,159 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
    Inbox + Cases + Maintenance Log
    Set WORKER_URL to your deployed Cloudflare Worker.
    ============================================================ */
-var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";   /* e.g. https://qi-concierge.yourname.workers.dev */
+var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+/* ============================================================
+   AGENT MANAGEMENT — who is at the front desk right now
+   Persists in window memory for 12 hours.
+   ============================================================ */
+var AGENT_SHIFT_HOURS = 12;
+function loadAgent(){
+  var raw = window.__qiAgent;
+  if(!raw) return null;
+  if(Date.now() - raw.signedInAt > AGENT_SHIFT_HOURS*3600*1000) return null;
+  return raw;
+}
+function saveAgent(name){
+  window.__qiAgent = {name:name, signedInAt:Date.now()};
+  updateAgentTag();
+}
+function clearAgent(){ window.__qiAgent = null; updateAgentTag(); }
+function getAgentName(){ var a = loadAgent(); return a ? a.name : null; }
+function updateAgentTag(){
+  var tag = document.getElementById('agentTag');
+  if(!tag) return;
+  var a = loadAgent();
+  tag.innerHTML = a ? '&#128100; ' + esc(a.name) : '&#128100; Not signed in';
+}
+function promptAgentName(reason){
+  return new Promise(function(resolve){
+    var bg = document.createElement('div');
+    bg.className = 'dh-modal-bg';
+    bg.innerHTML = '<div class="dh-modal">' +
+      '<h3>Sign in to the front desk</h3>' +
+      '<p>' + (reason || 'Your name will be shown to guests when you join their chat.') + '</p>' +
+      '<input id="agentNameInput" placeholder="First name" autofocus>' +
+      '<button class="dh-modal-btn" id="agentNameBtn">Start shift</button></div>';
+    document.body.appendChild(bg);
+    var input = document.getElementById('agentNameInput');
+    var btn = document.getElementById('agentNameBtn');
+    function submit(){
+      var n = input.value.trim();
+      if(!n){ input.focus(); return; }
+      saveAgent(n);
+      bg.remove();
+      resolve(n);
+    }
+    btn.onclick = submit;
+    input.addEventListener('keydown', function(e){ if(e.key === 'Enter') submit(); });
+    setTimeout(function(){ input.focus(); }, 60);
+  });
+}
+function changeAgent(){
+  clearAgent();
+  promptAgentName('Signing in a different agent.');
+}
+
+/* ============================================================
+   RESPONSE-TIME GRADING + TOASTS + SCOREBOARD
+   ============================================================ */
+var GRADE_TIERS = [
+  {max: 60000, key:'lightning', label:'&#9889; Lightning', toast:true,
+   praise:['Incredible &mdash; under a minute!','Lightning fast!','That is a {sec}-second reply &mdash; wow!']},
+  {max: 180000, key:'excellent', label:'&#10003; Excellent', toast:true,
+   praise:['Nice work &mdash; {min}-minute reply.','Great &mdash; under 3 minutes!','Excellent response time, {min} min.']},
+  {max: 600000, key:'good', label:'Good', toast:false, praise:['']},
+  {max: 1200000, key:'slow', label:'Slow', toast:true,
+   nudge:['{min}-min reply &mdash; try to get under 10 next time.','A bit slow at {min} min &mdash; aim for under 10.']},
+  {max: Infinity, key:'late', label:'Late', toast:true,
+   nudge:['{min}-min response &mdash; this guest waited a long time.','Late reply ({min} min). Please prioritize chat next time.']}
+];
+function gradeFor(ms){
+  for(var i=0;i<GRADE_TIERS.length;i++){ if(ms <= GRADE_TIERS[i].max) return GRADE_TIERS[i]; }
+  return GRADE_TIERS[GRADE_TIERS.length-1];
+}
+function showToast(grade, ms){
+  var sec = Math.round(ms/1000);
+  var min = Math.max(1, Math.round(ms/60000));
+  var pool = grade.praise || grade.nudge || [''];
+  var msg = pool[Math.floor(Math.random()*pool.length)]
+              .replace('{sec}', sec).replace('{min}', min);
+  var wrap = document.getElementById('toastWrap');
+  if(!wrap) return;
+  var t = document.createElement('div');
+  t.className = 'dh-toast ' + grade.key;
+  t.innerHTML = '<div class="dh-toast-title">' + grade.label + '</div>' +
+                '<div class="dh-toast-msg">' + esc(msg) + '</div>';
+  wrap.appendChild(t);
+  setTimeout(function(){
+    t.style.transition = 'opacity .3s';
+    t.style.opacity = '0';
+    setTimeout(function(){ t.remove(); }, 350);
+  }, 4500);
+}
+function recordGrade(grade, ms){
+  if(!window.__qiGrades) window.__qiGrades = {date:new Date().toDateString(), entries:[]};
+  if(window.__qiGrades.date !== new Date().toDateString()){
+    window.__qiGrades = {date:new Date().toDateString(), entries:[]};
+  }
+  window.__qiGrades.entries.push({grade:grade.key, ms:ms, at:Date.now()});
+}
+function todaysStats(){
+  var g = window.__qiGrades;
+  if(!g || g.date !== new Date().toDateString() || g.entries.length === 0)
+    return {count:0, avg:0, fastCount:0, slowCount:0, lateCount:0};
+  var total = 0, fast = 0, slow = 0, late = 0;
+  g.entries.forEach(function(e){
+    total += e.ms;
+    if(e.grade === 'lightning' || e.grade === 'excellent') fast++;
+    if(e.grade === 'slow') slow++;
+    if(e.grade === 'late') late++;
+  });
+  return {count:g.entries.length, avg:total/g.entries.length,
+          fastCount:fast, slowCount:slow, lateCount:late};
+}
+function overallGrade(stats){
+  if(stats.count === 0) return {label:'No data', cls:'dh-sb-g-good'};
+  if(stats.avg <= 180000 && stats.lateCount === 0) return {label:'Excellent', cls:'dh-sb-g-excellent'};
+  if(stats.avg <= 600000 && stats.lateCount <= 1) return {label:'Good', cls:'dh-sb-g-good'};
+  return {label:'Needs Speed', cls:'dh-sb-g-slow'};
+}
+function computeResponseMs(messages, staffIdx){
+  for(var i = staffIdx - 1; i >= 0; i--){
+    if(messages[i].from === 'guest'){
+      var gT = messages[i].atMs || Date.parse(messages[i].at) || null;
+      var sT = messages[staffIdx].atMs || Date.parse(messages[staffIdx].at) || null;
+      if(gT && sT) return sT - gT;
+    }
+  }
+  return null;
+}
+function renderScoreboard(){
+  var slot = document.getElementById('scoreboardSlot');
+  if(!slot) return;
+  var stats = todaysStats();
+  var grade = overallGrade(stats);
+  var avgText = stats.count === 0 ? '&mdash;' : (function(ms){
+    var s = Math.round(ms/1000); if(s<60) return s+'s'; return Math.round(s/60)+'m';
+  })(stats.avg);
+  slot.innerHTML =
+    '<div class="dh-scoreboard">' +
+      '<div class="dh-sb-block"><div class="dh-sb-label">Replies Today</div>' +
+        '<div class="dh-sb-value">' + stats.count + '</div></div>' +
+      '<div class="dh-sb-block"><div class="dh-sb-label">Avg Response</div>' +
+        '<div class="dh-sb-value">' + avgText + '</div></div>' +
+      '<div class="dh-sb-block"><div class="dh-sb-label">Fast Replies</div>' +
+        '<div class="dh-sb-value">' + stats.fastCount + '</div>' +
+        '<div class="dh-sb-detail">under 3 min</div></div>' +
+      '<div class="dh-sb-block"><div class="dh-sb-label">Slow / Late</div>' +
+        '<div class="dh-sb-value">' + (stats.slowCount + stats.lateCount) + '</div>' +
+        '<div class="dh-sb-detail">10+ min</div></div>' +
+      '<div class="dh-sb-block" style="text-align:right"><div class="dh-sb-label">Shift Grade</div>' +
+        '<div style="margin-top:6px"><span class="dh-sb-grade ' + grade.cls + '">' + grade.label + '</span></div></div>' +
+    '</div>';
+}
+   /* e.g. https://qi-concierge.yourname.workers.dev */
 
 function linkify(s){return s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
@@ -608,7 +807,28 @@ function sendReply(id){
   var input=document.getElementById('composer');
   var text=input.value.trim();
   if(!text)return;
-  c.messages.push({from:'hotel',text:text,at:timeNow()});
+  var nowMs = Date.now();
+  var agent = getAgentName() || 'Front Desk';
+  /* announce join the first time staff replies */
+  var staffAlready = c.messages.some(function(m){ return m.from === 'hotel'; });
+  if(!staffAlready){
+    c.messages.push({from:'system',text:agent + ' has joined the chat.', at:timeNow(), atMs:nowMs});
+  }
+  c.messages.push({from:'hotel',text:text,at:timeNow(), atMs:nowMs, agentName:agent});
+  /* response-time grade + toast */
+  var staffIdx = c.messages.length - 1;
+  var ms = computeResponseMs(c.messages, staffIdx);
+  if(ms !== null){
+    var grade = gradeFor(ms);
+    recordGrade(grade, ms);
+    if(grade.toast) showToast(grade, ms);
+    renderScoreboard();
+  }
+  /* persist to Worker */
+  if(WORKER_URL){
+    fetch(WORKER_URL+'/conversation',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(c)}).catch(function(){});
+  }
   input.value='';input.style.height='auto';
   renderThread(c);renderAI(c);
 }
