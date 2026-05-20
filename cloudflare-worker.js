@@ -281,6 +281,60 @@ function classifyIssue(text) {
 }
 
 /* ============================================================
+   CACHED INDEX — avoids KV.list() quota on free tier
+   Each kind (conv/case/maint) has a JSON-array index of IDs.
+   Reads go through the index (cheap GETs). Writes update it.
+   ============================================================ */
+const INDEX_KEYS = {
+  conv:  "index:conv",
+  case:  "index:case",
+  maint: "index:maint"
+};
+const PREFIXES = {
+  conv:  "conv:",
+  case:  "case:",
+  maint: "maint:"
+};
+
+async function readIndex(env, kind) {
+  if (!env.HOTEL_KV) return [];
+  const raw = await env.HOTEL_KV.get(INDEX_KEYS[kind]);
+  if (raw) {
+    try { return JSON.parse(raw); } catch (e) { /* fall through */ }
+  }
+  /* Index missing — try to rebuild ONCE via list(). If quota
+     exhausted, return [] gracefully; system recovers on next write. */
+  try {
+    const listed = await env.HOTEL_KV.list({ prefix: PREFIXES[kind] });
+    const ids = listed.keys.map(k => k.name.slice(PREFIXES[kind].length));
+    await env.HOTEL_KV.put(INDEX_KEYS[kind], JSON.stringify(ids));
+    return ids;
+  } catch (e) {
+    return [];
+  }
+}
+
+async function addToIndex(env, kind, id) {
+  if (!env.HOTEL_KV || !id) return;
+  const ids = await readIndex(env, kind);
+  if (!ids.includes(id)) {
+    ids.push(id);
+    await env.HOTEL_KV.put(INDEX_KEYS[kind], JSON.stringify(ids));
+  }
+}
+
+async function readAll(env, kind) {
+  const ids = await readIndex(env, kind);
+  if (!ids.length) return [];
+  const records = await Promise.all(ids.map(async id => {
+    const raw = await env.HOTEL_KV.get(PREFIXES[kind] + id);
+    if (!raw) return null;
+    try { return JSON.parse(raw); } catch (e) { return null; }
+  }));
+  return records.filter(r => r !== null);
+}
+
+/* ============================================================
    STORAGE — Cloudflare KV (free tier)
    Keys:  conv:<id>   case:<id>   maint:<id>
    ============================================================ */
@@ -289,16 +343,12 @@ async function saveConversation(request, env) {
   if (!conv.id) conv.id = "conv_" + Date.now();
   conv.updatedAt = new Date().toISOString();
   await env.HOTEL_KV.put("conv:" + conv.id, JSON.stringify(conv));
+  await addToIndex(env, "conv", conv.id);
   return json({ ok: true, id: conv.id });
 }
 
 async function listConversations(env) {
-  const list = await env.HOTEL_KV.list({ prefix: "conv:" });
-  const items = [];
-  for (const key of list.keys) {
-    const v = await env.HOTEL_KV.get(key.name);
-    if (v) items.push(JSON.parse(v));
-  }
+  const items = await readAll(env, "conv");
   return json({ conversations: items });
 }
 
@@ -308,6 +358,7 @@ async function saveCase(request, env) {
   c.updatedAt = new Date().toISOString();
   if (!c.createdAt) c.createdAt = c.updatedAt;
   await env.HOTEL_KV.put("case:" + c.id, JSON.stringify(c));
+  await addToIndex(env, "case", c.id);
 
   /* if it's a maintenance case, mirror a linked entry into the log */
   if (c.type === "maintenance") {
@@ -324,17 +375,13 @@ async function saveCase(request, env) {
       updatedAt: c.updatedAt
     };
     await env.HOTEL_KV.put("maint:" + m.id, JSON.stringify(m));
+    await addToIndex(env, "maint", m.id);
   }
   return json({ ok: true, id: c.id });
 }
 
 async function listCases(env) {
-  const list = await env.HOTEL_KV.list({ prefix: "case:" });
-  const items = [];
-  for (const key of list.keys) {
-    const v = await env.HOTEL_KV.get(key.name);
-    if (v) items.push(JSON.parse(v));
-  }
+  const items = await readAll(env, "case");
   return json({ cases: items });
 }
 
@@ -344,15 +391,11 @@ async function saveMaintenance(request, env) {
   m.updatedAt = new Date().toISOString();
   if (!m.createdAt) m.createdAt = m.updatedAt;
   await env.HOTEL_KV.put("maint:" + m.id, JSON.stringify(m));
+  await addToIndex(env, "maint", m.id);
   return json({ ok: true, id: m.id });
 }
 
 async function listMaintenance(env) {
-  const list = await env.HOTEL_KV.list({ prefix: "maint:" });
-  const items = [];
-  for (const key of list.keys) {
-    const v = await env.HOTEL_KV.get(key.name);
-    if (v) items.push(JSON.parse(v));
-  }
+  const items = await readAll(env, "maint");
   return json({ maintenance: items });
 }

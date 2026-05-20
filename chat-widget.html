@@ -109,6 +109,12 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 .cw-intro-skip{background:transparent;color:#718096;border:1.5px solid #e2e0d8;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
 .cw-intro-skip:hover{border-color:#9aa3b0;color:#0f1f3d}
 .cw-intro-note{font-size:10px;color:#9aa3b0;text-align:center;margin-top:10px}
+
+.cw-closed-banner{background:#eef2f6;color:#3a5a78;padding:14px 16px;
+  text-align:center;font-size:12px;line-height:1.5;border-top:1px solid #e2e0d8}
+.cw-closed-banner b{display:block;margin-bottom:3px;color:#0f1f3d;font-size:13px}
+.cw-closed-banner a{color:#c9964a;text-decoration:underline;cursor:pointer}
+.cw-input.disabled, .cw-send.disabled{opacity:.4;pointer-events:none}
 </style>
 </head>
 <body>
@@ -157,7 +163,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
   <textarea class="cw-input" id="input" rows="1" placeholder="Ask us anything about your stay..."></textarea>
   <button class="cw-send" id="send" aria-label="Send">&#10148;</button>
 </div>
-<div class="cw-foot">Quality Inn &amp; Suites McAlester on Hwy 69 &middot; Front desk 24/7 &middot; (918) 426-8091</div>
+<div class="cw-foot">Quality Inn &amp; Suites McAlester on Hwy 69 &middot; Front desk 24/7 &middot; <span id="cwFooterPhone">(918) 426-8091</span></div>
 
 <script>
 /* ============================================================
@@ -166,10 +172,28 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
    Set WORKER_URL to your deployed Cloudflare Worker.
    Until then it runs in local demo mode (keyword replies).
    ============================================================ */
-var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";   /* e.g. https://qi-concierge.yourname.workers.dev */
+var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+/* ── SMART PHONE ROUTING ──
+   In-house guests (room number known) get the direct in-house line.
+   Prospective bookers get the main reservation line. */
+var BOOKER_PHONE  = "(918) 426-8091";
+var INHOUSE_PHONE = "(918) 420-9537";
+function currentPhone(){
+  /* in-house if intro card captured a room, OR a case has been opened */
+  var hasRoom = session && session.guestInfo && session.guestInfo.room;
+  var hasCase = session && session.caseOpened;
+  return (hasRoom || hasCase) ? INHOUSE_PHONE : BOOKER_PHONE;
+}
+
+function updatePhoneDisplay(){
+  var el = document.getElementById('cwFooterPhone');
+  if(el) el.textContent = currentPhone();
+}
+   /* e.g. https://qi-concierge.yourname.workers.dev */
 
 var HOTEL = {
-  name:"Quality Inn & Suites McAlester on Hwy 69", phone:"(918) 426-8091",
+  name:"Quality Inn & Suites McAlester on Hwy 69", phone:"(918) 426-8091", inHousePhone:"(918) 420-9537",
   checkIn:"3:00 PM", checkOut:"11:00 AM",
   breakfast:"free full hot breakfast 6:00-9:00 AM daily",
   parking:"free, including McAlester's largest truck and RV lot",
@@ -219,6 +243,24 @@ document.addEventListener('click', function(e){
   }
 });
 
+
+/* Render a message that came from the Worker (staff or system) without re-pushing
+   it into session.messages (it's already in the synced session). Avoids dupes. */
+function renderRemoteMessage(text, sender, displayTime){
+  var msg=document.createElement('div');
+  msg.className='cw-msg cw-'+sender;
+  var label=sender==='ai'?'<div class="cw-label">&#129302; Ayri</div>'
+    :sender==='staff'?'<div class="cw-label">&#128100; Front Desk</div>':'';
+  var rendered = (sender==='ai' || sender==='staff') ? linkify(esc(text)) : esc(text);
+  if(sender==='system'){
+    msg.innerHTML='<div>'+rendered+'</div>';
+  }else{
+    msg.innerHTML=label+'<div>'+rendered+'</div><div class="cw-time">'+esc(displayTime||timeNow())+'</div>';
+  }
+  var chat = document.getElementById('chat');
+  if(chat){ chat.appendChild(msg); chat.scrollTop = chat.scrollHeight; }
+}
+
 function addMsg(text,sender){
   var msg=document.createElement('div');
   msg.className='cw-msg cw-'+sender;
@@ -257,15 +299,28 @@ function send(){
   if(!text)return;
   addMsg(text,'user');
   input.value='';input.style.height='auto';
-  sendBtn.disabled=true;
-  typing.classList.add('show');
+  sendBtn.disabled=false;
   chat.scrollTop=chat.scrollHeight;
 
+  /* If human has taken over, do NOT call Ayri. Just save the message
+     so the dashboard sees it. */
+  if(session && session.humanControlled){
+    /* persist immediately so staff sees the new guest message */
+    if(WORKER_URL){
+      fetch(WORKER_URL+'/conversation',{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(session)}).catch(function(){});
+    }
+    return;
+  }
+
+  /* otherwise Ayri responds as usual */
+  sendBtn.disabled=true;
+  typing.classList.add('show');
   getReply(text).then(function(result){
     typing.classList.remove('show');
     addMsg(result.reply,'ai');
     sendBtn.disabled=false;
-    /* if the AI flagged this as an issue -> offer to open a case */
     if(result.flagAsCase && !session.caseOpened){
       offerCase(result.issueType||'service');
     }
@@ -302,10 +357,10 @@ function localReply(text){
   else if(/park|rv|truck/.test(t))reply="Parking is "+HOTEL.parking+".";
   else if(/wi.?fi|internet|password/.test(t))reply="Our wi-fi is "+HOTEL.wifi+".";
   else if(/report a problem/.test(t))reply="I'm sorry to hear something's not right. Let's get this taken care of for you.";
-  else if(/help|human|front desk|staff|agent|person/.test(t))reply="Of course! I'm Ayri, the AI concierge \u2014 let me connect you with our front desk team. If they're with another guest right now, they'll be with you shortly. For anything urgent, you can also call "+HOTEL.phone+".";
+  else if(/help|human|front desk|staff|agent|person/.test(t))reply="Of course! I'm Ayri, the AI concierge \u2014 let me connect you with our front desk team. If they're with another guest right now, they'll be with you shortly. For anything urgent, you can also call "+currentPhone()+".";
   else if(issue)reply="I'm sorry to hear that. Let's get this taken care of — I'll open a case so our team follows up until it's resolved.";
   else if(/thank/.test(t))reply="You're very welcome! Enjoy your stay with us.";
-  else reply="Thanks for your message! For anything I can't answer, our front desk is available 24/7 at "+HOTEL.phone+".";
+  else reply="Thanks for your message! For anything I can't answer, our front desk is available 24/7 at "+currentPhone()+".";
 
   return {reply:reply,flagAsCase:issue,issueType:issue?issueType:null};
 }
@@ -353,6 +408,7 @@ function offerCase(issueType){
 
 function submitCase(data){
   session.caseOpened=true;
+  updatePhoneDisplay();
   session.guest={firstName:data.firstName,lastName:data.lastName,
     phone:data.phone,room:data.room};
 
@@ -420,6 +476,7 @@ sendBtn.addEventListener('click',send);
           headers:{'Content-Type':'application/json'},
           body:JSON.stringify(session)}).catch(function(){});
       }
+      updatePhoneDisplay();
     }
     overlay.style.display='none';
     var name = captured && captured.first ? captured.first : '';
@@ -444,6 +501,128 @@ sendBtn.addEventListener('click',send);
   });
   setTimeout(function(){ document.getElementById('introFirst').focus(); }, 100);
 })();
+
+
+/* ============================================================
+   POLLING — pull conversation from Worker every 8 sec
+   Picks up staff replies and system 'X has joined' messages.
+   ============================================================ */
+var POLL_INTERVAL = 8000;
+var pollTimer = null;
+var chatEnded = false;
+
+/* signature used to detect new messages we haven't yet rendered */
+function msgKey(m){
+  return (m.from||'') + '|' + (m.text||'') + '|' + (m.at||'') + '|' + (m.atMs||'');
+}
+
+function pollServerForNewMessages(){
+  if(chatEnded || !WORKER_URL || !session || !session.id) return;
+  fetch(WORKER_URL + '/conversations')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(!data || !data.conversations) return;
+      var server = data.conversations.find(function(x){ return x.id === session.id; });
+      if(!server || !server.messages) return;
+
+      /* mirror humanControlled state so send() knows whether Ayri should reply */
+      session.humanControlled = server.humanControlled === true;
+
+      /* build a set of message keys we ALREADY have locally */
+      var localKeys = {};
+      session.messages.forEach(function(m){ localKeys[msgKey(m)] = true; });
+
+      /* find server messages we haven't rendered, in order */
+      server.messages.forEach(function(m){
+        var key = msgKey(m);
+        if(!localKeys[key]){
+          /* this is a new inbound message we didn't generate locally */
+          var visualSender = m.from === 'hotel' ? 'staff'
+                           : m.from === 'system' ? 'system'
+                           : m.from === 'ai' ? 'ai'
+                           : m.from === 'guest' ? 'user' : m.from;
+          renderRemoteMessage(m.text, visualSender, m.at);
+          session.messages.push(m);
+          /* a staff message means a human is engaged — bump idle timer */
+          if(m.from === 'hotel') bumpActivity();
+        }
+      });
+    })
+    .catch(function(){ /* network blip, try again next tick */ });
+}
+
+function startPolling(){
+  if(pollTimer) clearInterval(pollTimer);
+  pollTimer = setInterval(pollServerForNewMessages, POLL_INTERVAL);
+}
+function stopPolling(){
+  if(pollTimer){ clearInterval(pollTimer); pollTimer = null; }
+}
+
+/* ============================================================
+   IDLE TIMEOUT — soft warn at 10 min, hard close at 30 min
+   ============================================================ */
+var WARN_AT_MS  = 10 * 60 * 1000;
+var CLOSE_AT_MS = 30 * 60 * 1000;
+var lastActivity = Date.now();
+var warnedAlready = false;
+var idleTimer = null;
+
+function bumpActivity(){
+  lastActivity = Date.now();
+  warnedAlready = false;
+}
+
+function checkIdle(){
+  if(chatEnded) return;
+  var idle = Date.now() - lastActivity;
+  if(idle >= CLOSE_AT_MS){
+    closeChat();
+  } else if(idle >= WARN_AT_MS && !warnedAlready){
+    renderRemoteMessage("Still there? Reply to keep the chat going \u2014 the session will close in 20 minutes of inactivity.", 'system');
+    warnedAlready = true;
+  }
+}
+
+function closeChat(){
+  chatEnded = true;
+  stopPolling();
+  /* disable input + send button */
+  var input = document.getElementById('input');
+  var sendBtn = document.getElementById('send');
+  if(input){ input.disabled = true; input.classList.add('disabled'); input.placeholder = 'Chat ended'; }
+  if(sendBtn){ sendBtn.disabled = true; sendBtn.classList.add('disabled'); }
+  /* show closed banner */
+  var banner = document.createElement('div');
+  banner.className = 'cw-closed-banner';
+  banner.innerHTML = '<b>Chat ended due to inactivity</b>' +
+    'Need anything else? <a onclick="location.reload()">Start a new chat</a> or call us at ' +
+    currentPhone() + '.';
+  document.body.appendChild(banner);
+  /* persist the closed state to the Worker */
+  if(WORKER_URL && session && session.id){
+    session.closed = true;
+    session.closedAt = new Date().toISOString();
+    fetch(WORKER_URL + '/conversation', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(session)
+    }).catch(function(){});
+  }
+}
+
+/* any guest action resets the idle clock */
+['mousemove','keydown','click','touchstart','scroll'].forEach(function(ev){
+  document.addEventListener(ev, function(){ bumpActivity(); }, {passive:true});
+});
+
+/* check idle state every 30 sec */
+setInterval(checkIdle, 30000);
+
+/* start polling once the page is loaded */
+window.addEventListener('load', function(){
+  startPolling();
+});
+
 </script>
 </body>
 </html>

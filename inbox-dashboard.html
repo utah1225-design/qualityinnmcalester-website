@@ -5,159 +5,749 @@
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Front Desk — Quality Inn &amp; Suites McAlester on Hwy 69</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%}
-body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
-  background:#faf7f2;color:#0f1f3d;height:100vh;overflow:hidden;display:flex;flex-direction:column}
-.dh-top{background:#0f1f3d;border-bottom:3px solid #c9964a;padding:11px 20px;
-  display:flex;align-items:center;gap:14px;flex-shrink:0}
-.dh-logo{width:36px;height:36px;border-radius:8px;background:#c9964a;display:flex;
-  align-items:center;justify-content:center;font-size:18px}
-.dh-title{flex:1}
-.dh-title h1{font-size:15px;color:#fff;font-weight:700;font-family:'Playfair Display',Georgia,serif}
-.dh-title p{font-size:11px;color:rgba(255,255,255,0.5)}
-.dh-nav{display:flex;gap:4px}
-.dh-nav-btn{padding:7px 14px;border-radius:7px;font-size:12px;font-weight:600;
-  color:rgba(255,255,255,0.6);cursor:pointer;border:none;background:transparent;font-family:inherit}
-.dh-nav-btn.active{background:#c9964a;color:#0f1f3d}
+/* ════════════════════════════════════════════════════════════════
+   DESIGN TOKENS — change once, propagate everywhere
+   ════════════════════════════════════════════════════════════════ */
+:root {
+  /* Color — calm, muted, hotel-professional */
+  --ink:        #1a2233;   /* primary text, deep ink */
+  --ink-soft:   #4a5468;   /* secondary text */
+  --ink-mute:   #8a93a6;   /* tertiary / hints */
+  --line:       #e7e3da;   /* borders, dividers */
+  --line-soft:  #f0ece2;   /* subtle separators */
+  --paper:      #faf8f3;   /* page background, warm cream */
+  --paper-card: #ffffff;   /* card / panel background */
+  --brand:      #0f1f3d;   /* navy — for primary actions, topbar */
+  --brand-soft: #243454;   /* slightly lighter navy */
+  --accent:     #b88947;   /* muted gold (calmer than #c9964a) */
+  --accent-soft:#d4ad6f;
+  --good:       #2d6a4f;
+  --good-soft:  #e8f1ec;
+  --warn:       #b7791f;
+  --warn-soft:  #fbeed7;
+  --alert:      #b03a3a;
+  --alert-soft: #f6e3e0;
+  --neutral:    #6b7280;
+  --neutral-soft:#eef0f3;
 
-.dh-body{flex:1;overflow:hidden;display:flex}
+  /* Spacing scale */
+  --s-1: 4px; --s-2: 8px; --s-3: 12px; --s-4: 16px;
+  --s-5: 20px; --s-6: 24px; --s-8: 32px; --s-10: 40px;
 
-/* ===== INBOX VIEW ===== */
-.dh-list{width:290px;flex-shrink:0;background:#fff;border-right:1px solid #e2e0d8;overflow-y:auto}
-.dh-list-h{padding:11px 15px;font-size:10px;font-weight:700;letter-spacing:.06em;
-  text-transform:uppercase;color:#718096;border-bottom:1px solid #e2e0d8;position:sticky;top:0;background:#fff}
-.dh-conv{padding:12px 15px;border-bottom:1px solid #f0eee6;cursor:pointer;position:relative}
-.dh-conv:hover{background:#faf7f2}
-.dh-conv.active{background:#f5efe4;border-left:3px solid #c9964a;padding-left:12px}
-.dh-conv-top{display:flex;justify-content:space-between;margin-bottom:3px}
-.dh-conv-name{font-size:14px;font-weight:700}
-.dh-conv-time{font-size:10px;color:#718096}
-.dh-conv-prev{font-size:12px;color:#4a5568;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.dh-badge{font-size:9px;font-weight:700;padding:2px 8px;border-radius:10px;
-  text-transform:uppercase;letter-spacing:.04em;margin-top:5px;display:inline-block}
-.dh-b-web{background:#e3f0ff;color:#1a5ec4}
-.dh-b-attn{background:#fbe9e7;color:#c0392b}
-.dh-b-case{background:#fdeede;color:#b7791f}
-.dh-attn-dot{position:absolute;top:13px;right:13px;width:8px;height:8px;border-radius:50%;background:#c53030}
+  /* Type ramp */
+  --t-xs: 11px; --t-sm: 12px; --t-md: 13px; --t-lg: 15px;
+  --t-xl: 18px; --t-2xl: 22px; --t-3xl: 28px;
 
-.dh-view{flex:1;display:flex;flex-direction:column;overflow:hidden;background:#faf7f2}
-.dh-view-h{background:#fff;border-bottom:1px solid #e2e0d8;padding:12px 18px;
-  display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.dh-view-h h2{font-size:15px;font-weight:700}
-.dh-view-h p{font-size:11px;color:#718096}
-.dh-btn{border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:700;
-  cursor:pointer;font-family:inherit}
-.dh-btn-case{background:#c9964a;color:#0f1f3d}
-.dh-btn-takeover{background:#0f1f3d;color:#fff}
-.dh-thread{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:10px}
-.dh-bub{max-width:72%;padding:9px 13px;border-radius:13px;font-size:13px;line-height:1.5}
-.dh-bub-guest{background:#fff;border:1px solid #e2e0d8;align-self:flex-start;border-bottom-left-radius:3px}
-.dh-bub-hotel{background:#0f1f3d;color:#fff;align-self:flex-end;border-bottom-right-radius:3px}
-.dh-bub-ai{background:#c9964a;color:#0f1f3d;align-self:flex-end;border-bottom-right-radius:3px}
-.dh-bub-system{background:#eef2f6;color:#3a5a78;align-self:center;font-size:11px;text-align:center;border-radius:9px}
-.dh-bub-l{font-size:9px;font-weight:700;text-transform:uppercase;opacity:.7;margin-bottom:2px}
-.dh-bub-t{font-size:9px;opacity:.55;margin-top:3px}
-.dh-ai-panel{background:#fff;border-top:1px solid #e2e0d8;padding:9px 18px;flex-shrink:0}
-.dh-ai-head{font-size:10px;font-weight:700;color:#c9964a;text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.dh-ai-chips{display:flex;gap:6px;flex-wrap:wrap}
-.dh-ai-chip{font-size:12px;background:#f5efe4;border:1.5px solid #e6d3ad;border-radius:13px;
-  padding:6px 11px;cursor:pointer;color:#0f1f3d;text-align:left;line-height:1.4}
-.dh-ai-chip:hover{background:#c9964a;color:#fff}
-.dh-composer{background:#fff;border-top:1px solid #e2e0d8;padding:11px 18px;display:flex;
-  gap:9px;align-items:flex-end;flex-shrink:0}
-.dh-input{flex:1;border:1.5px solid #e2e0d8;border-radius:20px;padding:10px 15px;font-size:13px;
-  font-family:inherit;resize:none;outline:none;max-height:80px;line-height:1.4}
-.dh-input:focus{border-color:#c9964a}
-.dh-send{background:#c9964a;border:none;border-radius:50%;width:40px;height:40px;
-  color:#0f1f3d;font-size:16px;cursor:pointer;flex-shrink:0}
+  /* Radius */
+  --r-sm: 6px; --r-md: 10px; --r-lg: 14px; --r-pill: 999px;
 
-/* ===== CASES + MAINTENANCE TABLE VIEWS ===== */
-.dh-panel{flex:1;overflow-y:auto;padding:22px}
-.dh-panel-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
-.dh-panel-h h2{font-size:18px;font-weight:700;font-family:'Playfair Display',Georgia,serif}
-.dh-filter{display:flex;gap:6px}
-.dh-fbtn{padding:6px 12px;border-radius:16px;font-size:11px;font-weight:600;
-  border:1.5px solid #e2e0d8;background:#fff;color:#4a5568;cursor:pointer;font-family:inherit}
-.dh-fbtn.active{background:#0f1f3d;color:#fff;border-color:#0f1f3d}
-.dh-card{background:#fff;border:1px solid #e2e0d8;border-radius:12px;padding:16px 18px;margin-bottom:12px}
-.dh-card-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px}
-.dh-case-id{font-size:11px;font-weight:700;color:#718096;font-family:monospace}
-.dh-case-guest{font-size:15px;font-weight:700;margin-top:2px}
-.dh-case-meta{font-size:12px;color:#718096;margin-top:3px}
-.dh-status{font-size:10px;font-weight:700;padding:3px 10px;border-radius:11px;text-transform:uppercase}
-.dh-s-open{background:#fbe9e7;color:#c0392b}
-.dh-s-resolved{background:#fdeede;color:#b7791f}
-.dh-s-closed{background:#e8f3ee;color:#2d6a4f}
-.dh-case-summary{font-size:13px;color:#0f1f3d;margin:8px 0;line-height:1.5}
-.dh-case-type{font-size:10px;font-weight:700;padding:2px 8px;border-radius:9px;
-  background:#eef2f6;color:#3a5a78;text-transform:uppercase}
-.dh-case-actions{display:flex;gap:7px;margin-top:10px;flex-wrap:wrap}
-.dh-ca-btn{font-size:11px;font-weight:600;padding:7px 12px;border-radius:7px;
-  border:1.5px solid #e2e0d8;background:#fff;cursor:pointer;font-family:inherit;color:#0f1f3d}
-.dh-ca-btn:hover{border-color:#c9964a}
-.dh-ca-resolve{background:#fdeede;border-color:#e6d3ad}
-.dh-ca-close{background:#e8f3ee;border-color:#bfe3cf}
-.dh-empty{text-align:center;padding:50px;color:#718096}
-.dh-empty-icon{font-size:42px;opacity:.4;margin-bottom:10px}
+  /* Shadows — soft, professional */
+  --shadow-sm: 0 1px 2px rgba(15,31,61,0.04);
+  --shadow-md: 0 2px 8px rgba(15,31,61,0.06);
+  --shadow-lg: 0 8px 28px rgba(15,31,61,0.10);
+}
 
-/* maintenance table */
-.dh-mtable{width:100%;background:#fff;border:1px solid #e2e0d8;border-radius:12px;
-  border-collapse:collapse;overflow:hidden}
-.dh-mtable th{background:#0f1f3d;color:#fff;font-size:10px;text-transform:uppercase;
-  letter-spacing:.05em;padding:10px 12px;text-align:left;font-weight:700}
-.dh-mtable td{padding:11px 12px;font-size:13px;border-bottom:1px solid #f0eee6}
-.dh-mtable tr:last-child td{border-bottom:none}
-.dh-mt-input{width:100%;border:1px solid #e2e0d8;border-radius:6px;padding:6px 8px;
-  font-size:12px;font-family:inherit}
+/* ════════════════════════════════════════════════════════════════
+   BASE
+   ════════════════════════════════════════════════════════════════ */
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: var(--t-md);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3 {
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+button { font-family: inherit; cursor: pointer; }
+input, textarea { font-family: inherit; }
+.dh-empty { padding: var(--s-6); text-align: center; color: var(--ink-mute); font-size: var(--t-sm); }
 
-.dh-empty-main{flex:1;display:flex;flex-direction:column;align-items:center;
-  justify-content:center;color:#718096;text-align:center}
+/* ════════════════════════════════════════════════════════════════
+   TOP BAR
+   ════════════════════════════════════════════════════════════════ */
+.dh-top {
+  background: var(--brand);
+  color: #fff;
+  padding: var(--s-3) var(--s-6);
+  display: flex; align-items: center; gap: var(--s-4);
+  box-shadow: var(--shadow-md);
+  position: relative; z-index: 10;
+}
+.dh-logo { font-size: 22px; opacity: 0.9; }
+.dh-title h1 {
+  font-size: var(--t-lg);
+  color: #fff;
+  font-weight: 600;
+}
+.dh-title p {
+  font-size: var(--t-xs);
+  color: rgba(255,255,255,0.6);
+  margin: 2px 0 0;
+  letter-spacing: 0.02em;
+}
+.dh-agent-tag {
+  background: rgba(255,255,255,0.08);
+  color: rgba(255,255,255,0.85);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: var(--r-pill);
+  padding: 6px var(--s-3);
+  font-size: var(--t-xs);
+  font-weight: 500;
+  margin-left: auto;
+  transition: all 0.15s;
+}
+.dh-agent-tag:hover {
+  background: rgba(255,255,255,0.14);
+  color: #fff;
+  border-color: rgba(255,255,255,0.2);
+}
+.dh-nav {
+  display: flex; gap: var(--s-1);
+  margin-left: var(--s-3);
+}
+.dh-nav-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255,255,255,0.65);
+  padding: 8px var(--s-3);
+  font-size: var(--t-sm);
+  font-weight: 500;
+  border-radius: var(--r-sm);
+  transition: all 0.15s;
+}
+.dh-nav-btn:hover { background: rgba(255,255,255,0.06); color: #fff; }
+.dh-nav-btn.active { background: rgba(255,255,255,0.12); color: #fff; }
 
-.dh-bub-ai a, .dh-bub-staff a, .dh-bub-hotel a{color:#fdd28a;text-decoration:underline;word-break:break-all}
-.dh-bub-guest a{color:#c9964a;text-decoration:underline;word-break:break-all}
+/* ════════════════════════════════════════════════════════════════
+   MAIN LAYOUT — list | thread | guest panel (right rail, collapsible)
+   ════════════════════════════════════════════════════════════════ */
+.dh-body {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: calc(100vh - 62px);
+  background: var(--paper);
+  overflow: hidden;
+}
 
-/* GUEST DETAILS PANEL */
-.dh-guest-panel{background:#fff;border-bottom:1px solid #e2e0d8;padding:11px 18px;
-  display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap;flex-shrink:0}
-.dh-gp-field{display:flex;flex-direction:column;min-width:0}
-.dh-gp-field label{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
-  color:#718096;margin-bottom:3px}
-.dh-gp-input{border:1.5px solid #e2e0d8;border-radius:6px;padding:6px 9px;font-size:12px;
-  font-family:inherit;outline:none}
-.dh-gp-input:focus{border-color:#c9964a}
-.dh-gp-w-name{width:90px}
-.dh-gp-w-room{width:62px}
-.dh-gp-w-phone{width:120px}
-.dh-gp-w-date{width:115px}
-.dh-gp-save{background:#2d6a4f;color:#fff;border:none;border-radius:6px;padding:7px 14px;
-  font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;height:30px}
-.dh-gp-save:hover{background:#235740}
-.dh-gp-saved{color:#2d6a4f;font-size:11px;font-weight:600;margin-left:6px;align-self:center}
-.dh-gp-archive{background:#fff;color:#6b7280;border:1.5px solid #e2e0d8;border-radius:6px;
-  padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;height:30px}
-.dh-gp-archive:hover{border-color:#c0392b;color:#c0392b}
+/* When a conversation is open AND guest panel expanded → 3 columns */
+.dh-body.with-panel {
+  grid-template-columns: 320px 1fr 300px;
+}
 
-/* STATUS BADGES — green/yellow/orange/red */
-.dh-status-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
-  padding:3px 9px;border-radius:11px;text-transform:uppercase;letter-spacing:.04em}
-.dh-sb-replied{background:#e8f3ee;color:#2d6a4f}
-.dh-sb-ai{background:#eef2f6;color:#6b7280}
-.dh-sb-waiting-low{background:#fff7e0;color:#a17600}
-.dh-sb-waiting-mid{background:#ffe3c4;color:#9a4d00}
-.dh-sb-waiting-high{background:#fbd8d4;color:#a72020;animation:pulseRed 1.6s infinite}
-@keyframes pulseRed{0%,100%{opacity:1}50%{opacity:.55}}
-.dh-sb-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
-.dh-sb-replied .dh-sb-dot{background:#2d6a4f}
-.dh-sb-ai .dh-sb-dot{background:#9aa3b0}
-.dh-sb-waiting-low .dh-sb-dot{background:#e0a900}
-.dh-sb-waiting-mid .dh-sb-dot{background:#d97a00}
-.dh-sb-waiting-high .dh-sb-dot{background:#c53030}
+/* LIST RAIL */
+.dh-list {
+  background: var(--paper-card);
+  border-right: 1px solid var(--line);
+  overflow-y: auto;
+  display: flex; flex-direction: column;
+}
+.dh-list-h {
+  padding: var(--s-4) var(--s-5);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  border-bottom: 1px solid var(--line-soft);
+  background: var(--paper-card);
+  position: sticky; top: 0; z-index: 1;
+}
+.dh-conv {
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--line-soft);
+  cursor: pointer;
+  transition: background 0.12s;
+  position: relative;
+}
+.dh-conv:hover { background: var(--paper); }
+.dh-conv.active {
+  background: var(--paper);
+  border-left: 3px solid var(--accent);
+  padding-left: calc(var(--s-5) - 3px);
+}
+.dh-conv-top {
+  display: flex; justify-content: space-between; align-items: baseline;
+  margin-bottom: 4px;
+}
+.dh-conv-name {
+  font-weight: 600;
+  font-size: var(--t-md);
+  color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  max-width: 170px;
+}
+.dh-conv-time {
+  font-size: var(--t-xs);
+  color: var(--ink-mute);
+  flex-shrink: 0; margin-left: var(--s-2);
+}
+.dh-conv-prev {
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  margin-bottom: var(--s-2);
+  display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
-/* ARCHIVE TAB BUTTON */
+/* STATUS BADGES — refined */
+.dh-status-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700;
+  padding: 3px 9px;
+  border-radius: var(--r-pill);
+  text-transform: uppercase; letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+.dh-sb-replied      { background: var(--good-soft);    color: var(--good); }
+.dh-sb-ai           { background: var(--neutral-soft); color: var(--neutral); }
+.dh-sb-waiting-low  { background: #fcf4d6; color: #8a6a14; }
+.dh-sb-waiting-mid  { background: var(--warn-soft);    color: var(--warn); }
+.dh-sb-waiting-high { background: var(--alert-soft);   color: var(--alert); animation: pulseRed 1.8s infinite; }
+@keyframes pulseRed { 0%,100% { opacity: 1 } 50% { opacity: 0.5 } }
+.dh-sb-dot {
+  width: 6px; height: 6px; border-radius: 50%; display: inline-block;
+}
+.dh-sb-replied .dh-sb-dot      { background: var(--good); }
+.dh-sb-ai .dh-sb-dot           { background: var(--neutral); }
+.dh-sb-waiting-low .dh-sb-dot  { background: #d4a514; }
+.dh-sb-waiting-mid .dh-sb-dot  { background: var(--warn); }
+.dh-sb-waiting-high .dh-sb-dot { background: var(--alert); }
+
+/* CONVERSATION VIEW (middle column) */
+.dh-view {
+  background: var(--paper);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+.dh-view-h {
+  background: var(--paper-card);
+  border-bottom: 1px solid var(--line);
+  padding: var(--s-4) var(--s-6);
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: var(--s-4);
+}
+.dh-view-h h2 {
+  font-size: var(--t-xl);
+  color: var(--ink);
+  font-weight: 600;
+}
+.dh-view-h p {
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  margin: 4px 0 0;
+  display: flex; align-items: center; gap: var(--s-2);
+}
+
+/* Header actions cluster */
+.dh-view-actions { display: flex; gap: var(--s-2); align-items: center; }
+
+/* Buttons — unified */
+.dh-btn {
+  background: var(--paper-card);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px var(--s-4);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.dh-btn:hover { background: var(--paper); border-color: var(--ink-mute); }
+
+.dh-btn-primary {
+  background: var(--brand);
+  color: #fff;
+  border-color: var(--brand);
+}
+.dh-btn-primary:hover { background: var(--brand-soft); border-color: var(--brand-soft); }
+
+.dh-btn-accent {
+  background: var(--accent);
+  color: var(--brand);
+  border-color: var(--accent);
+}
+.dh-btn-accent:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+
+.dh-btn-good {
+  background: var(--good);
+  color: #fff;
+  border-color: var(--good);
+}
+.dh-btn-good:hover { opacity: 0.92; }
+
+.dh-btn-ghost {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ink-soft);
+}
+.dh-btn-ghost:hover { background: var(--neutral-soft); color: var(--ink); }
+
+/* Legacy compatibility — map old btn classes to new */
+.dh-btn-case { background: var(--accent); color: var(--brand); border-color: var(--accent); }
+.dh-btn-case:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+
+/* Take Over button */
+.dh-takeover-btn {
+  background: var(--accent);
+  color: var(--brand);
+  border: 1px solid var(--accent);
+  border-radius: var(--r-pill);
+  padding: 7px var(--s-4);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  transition: all 0.15s;
+}
+.dh-takeover-btn:hover { background: var(--accent-soft); border-color: var(--accent-soft); }
+.dh-takeover-btn.active { background: var(--good); color: #fff; border-color: var(--good); }
+.dh-takeover-btn.active:hover { opacity: 0.92; }
+
+/* Toggle for guest panel */
+.dh-toggle-panel {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 6px 10px;
+  font-size: var(--t-xs);
+  color: var(--ink-soft);
+}
+.dh-toggle-panel:hover { background: var(--neutral-soft); }
+
+/* ════════════════════════════════════════════════════════════════
+   THREAD (middle column body)
+   ════════════════════════════════════════════════════════════════ */
+.dh-thread {
+  flex: 1; overflow-y: auto;
+  padding: var(--s-6) var(--s-6) var(--s-3);
+  display: flex; flex-direction: column; gap: var(--s-3);
+}
+.dh-bub {
+  max-width: 70%;
+  padding: 10px var(--s-4);
+  border-radius: var(--r-md);
+  font-size: var(--t-md);
+  line-height: 1.5;
+  word-wrap: break-word;
+  box-shadow: var(--shadow-sm);
+}
+.dh-bub-guest {
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  align-self: flex-start;
+  border-top-left-radius: 3px;
+}
+.dh-bub-ai {
+  background: var(--neutral-soft);
+  color: var(--ink);
+  align-self: flex-start;
+  border-top-left-radius: 3px;
+}
+.dh-bub-hotel {
+  background: var(--brand);
+  color: #fff;
+  align-self: flex-end;
+  border-top-right-radius: 3px;
+}
+.dh-bub-hotel a { color: var(--accent-soft); }
+.dh-bub-system {
+  background: transparent;
+  color: var(--ink-mute);
+  font-size: var(--t-xs);
+  font-style: italic;
+  align-self: center;
+  padding: 4px var(--s-3);
+  text-align: center;
+  max-width: 100%;
+}
+.dh-bub-l {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  opacity: 0.7;
+  margin-bottom: 4px;
+}
+.dh-bub-t {
+  font-size: 10px;
+  opacity: 0.55;
+  margin-top: 4px;
+}
+.dh-bub-t.fast { color: var(--good); opacity: 0.95; font-weight: 600; }
+.dh-bub-t.slow { color: var(--warn); opacity: 0.95; font-weight: 600; }
+.dh-bub-t.late { color: var(--alert); opacity: 0.95; font-weight: 600; }
+
+/* AI suggestion panel */
+.dh-ai-panel {
+  padding: 0 var(--s-6) var(--s-3);
+  flex-shrink: 0;
+}
+.dh-ai-head {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+  margin-bottom: var(--s-2);
+}
+.dh-ai-chips { display: flex; flex-wrap: wrap; gap: var(--s-2); }
+.dh-ai-chip {
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  padding: 7px var(--s-3);
+  border-radius: var(--r-pill);
+  font-size: var(--t-sm);
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.dh-ai-chip:hover { background: var(--brand); color: #fff; border-color: var(--brand); }
+
+/* Composer */
+.dh-composer {
+  padding: var(--s-4) var(--s-6) var(--s-5);
+  background: var(--paper-card);
+  border-top: 1px solid var(--line);
+  display: flex; gap: var(--s-3); align-items: flex-end;
+  flex-shrink: 0;
+}
+.dh-input {
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 10px var(--s-4);
+  font-size: var(--t-md);
+  outline: none;
+  resize: none;
+  min-height: 40px; max-height: 100px;
+  transition: border-color 0.15s;
+  background: var(--paper);
+}
+.dh-input:focus { border-color: var(--accent); background: var(--paper-card); }
+.dh-send {
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-md);
+  width: 44px; height: 40px;
+  font-size: var(--t-lg);
+  transition: background 0.15s;
+}
+.dh-send:hover { background: var(--brand-soft); }
+
+/* Empty state */
+.dh-empty-main {
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: var(--s-8);
+  color: var(--ink-mute);
+}
+.dh-empty-icon { font-size: 38px; opacity: 0.35; margin-bottom: var(--s-4); }
+.dh-empty-main h3 {
+  font-size: var(--t-xl);
+  color: var(--ink-soft);
+  font-weight: 500;
+  margin-bottom: var(--s-2);
+}
+
+/* ════════════════════════════════════════════════════════════════
+   GUEST PANEL — right rail, collapsible
+   ════════════════════════════════════════════════════════════════ */
+.dh-guest-panel {
+  background: var(--paper-card);
+  border-left: 1px solid var(--line);
+  padding: var(--s-5) var(--s-5);
+  overflow-y: auto;
+  display: flex; flex-direction: column; gap: var(--s-3);
+}
+.dh-gp-header {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-mute);
+  margin-bottom: var(--s-2);
+  padding-bottom: var(--s-3);
+  border-bottom: 1px solid var(--line-soft);
+}
+.dh-gp-field {
+  display: flex; flex-direction: column; gap: 4px;
+}
+.dh-gp-field label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.dh-gp-input {
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 8px var(--s-3);
+  font-size: var(--t-sm);
+  outline: none;
+  background: var(--paper);
+  transition: all 0.15s;
+}
+.dh-gp-input:focus { border-color: var(--accent); background: var(--paper-card); }
+/* widths neutralized in sidebar — let them flex */
+.dh-gp-w-name, .dh-gp-w-room, .dh-gp-w-phone, .dh-gp-w-date {
+  width: 100%;
+}
+.dh-gp-actions {
+  display: flex; gap: var(--s-2); margin-top: var(--s-3);
+}
+.dh-gp-save {
+  background: var(--good); color: #fff; border: none;
+  border-radius: var(--r-sm); padding: 9px var(--s-4);
+  font-size: var(--t-sm); font-weight: 600;
+  flex: 1;
+}
+.dh-gp-save:hover { opacity: 0.92; }
+.dh-gp-archive {
+  background: var(--paper-card); color: var(--ink-soft);
+  border: 1px solid var(--line); border-radius: var(--r-sm);
+  padding: 9px var(--s-4); font-size: var(--t-sm); font-weight: 600;
+}
+.dh-gp-archive:hover { border-color: var(--alert); color: var(--alert); }
+.dh-gp-saved {
+  color: var(--good); font-size: var(--t-xs); font-weight: 600;
+  margin-top: var(--s-2); display: none;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   SCOREBOARD
+   ════════════════════════════════════════════════════════════════ */
+.dh-scoreboard {
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: var(--s-5) var(--s-6);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: var(--s-5);
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+}
+.dh-sb-block {
+  display: flex; flex-direction: column;
+}
+.dh-sb-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+}
+.dh-sb-value {
+  font-size: var(--t-3xl);
+  font-family: 'Playfair Display', Georgia, serif;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.05;
+  margin-top: 4px;
+}
+.dh-sb-detail {
+  font-size: var(--t-xs);
+  color: var(--ink-mute);
+  margin-top: 4px;
+}
+.dh-sb-grade {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  padding: 4px var(--s-3);
+  border-radius: var(--r-pill);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: inline-block;
+  margin-top: var(--s-2);
+}
+.dh-sb-g-excellent { background: var(--good-soft);    color: var(--good); }
+.dh-sb-g-good      { background: var(--neutral-soft); color: var(--ink-soft); }
+.dh-sb-g-slow      { background: var(--warn-soft);    color: var(--warn); }
+
+/* ════════════════════════════════════════════════════════════════
+   AGENT MODAL (sign-in)
+   ════════════════════════════════════════════════════════════════ */
+.dh-modal-bg {
+  position: fixed; inset: 0;
+  background: rgba(15,31,61,0.45);
+  backdrop-filter: blur(2px);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+}
+.dh-modal {
+  background: var(--paper-card);
+  border-radius: var(--r-lg);
+  padding: var(--s-6) var(--s-6) var(--s-5);
+  width: 360px; max-width: 92%;
+  box-shadow: var(--shadow-lg);
+}
+.dh-modal h3 {
+  font-size: var(--t-xl);
+  margin-bottom: var(--s-2);
+}
+.dh-modal p {
+  font-size: var(--t-sm);
+  color: var(--ink-soft);
+  margin: 0 0 var(--s-4);
+}
+.dh-modal input {
+  width: 100%;
+  padding: 11px var(--s-4);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: var(--t-md);
+  outline: none;
+  margin-bottom: var(--s-3);
+  transition: border-color 0.15s;
+}
+.dh-modal input:focus { border-color: var(--accent); }
+.dh-modal-btn {
+  width: 100%;
+  background: var(--brand);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-sm);
+  padding: 11px;
+  font-size: var(--t-md);
+  font-weight: 600;
+  transition: background 0.15s;
+}
+.dh-modal-btn:hover { background: var(--brand-soft); }
+
+/* ════════════════════════════════════════════════════════════════
+   TOAST NOTIFICATIONS
+   ════════════════════════════════════════════════════════════════ */
+.dh-toast-wrap {
+  position: fixed; top: 78px; right: var(--s-5);
+  display: flex; flex-direction: column; gap: var(--s-3);
+  z-index: 900; pointer-events: none;
+}
+.dh-toast {
+  background: var(--paper-card);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--r-md);
+  padding: var(--s-3) var(--s-5);
+  box-shadow: var(--shadow-lg);
+  min-width: 260px; max-width: 360px;
+  pointer-events: auto;
+  animation: toastIn 0.25s ease;
+}
+.dh-toast.lightning { border-left-color: var(--accent); }
+.dh-toast.excellent { border-left-color: var(--good); }
+.dh-toast.slow      { border-left-color: var(--warn); }
+.dh-toast.late      { border-left-color: var(--alert); }
+.dh-toast-title { font-weight: 700; font-size: var(--t-md); margin-bottom: 2px; }
+.dh-toast-msg   { font-size: var(--t-sm); color: var(--ink-soft); }
+@keyframes toastIn {
+  from { transform: translateX(16px); opacity: 0; }
+  to   { transform: translateX(0); opacity: 1; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   CASES & MAINTENANCE — table views (existing logic, refreshed look)
+   ════════════════════════════════════════════════════════════════ */
+.dh-cases-h, .dh-maint-h {
+  padding: var(--s-5) var(--s-6);
+  display: flex; gap: var(--s-3); align-items: center;
+  background: var(--paper-card);
+  border-bottom: 1px solid var(--line);
+}
+.dh-cases-h h2, .dh-maint-h h2 {
+  font-size: var(--t-xl);
+  flex: 1;
+}
+.dh-filter {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: var(--r-pill);
+  padding: 5px var(--s-3);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: var(--ink-soft);
+  transition: all 0.15s;
+}
+.dh-filter:hover, .dh-filter.active {
+  background: var(--brand); color: #fff; border-color: var(--brand);
+}
+.dh-cases-body, .dh-maint-body {
+  padding: var(--s-5) var(--s-6);
+  overflow-y: auto;
+}
+.dh-case-card, .dh-maint-card {
+  background: var(--paper-card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: var(--s-4) var(--s-5);
+  margin-bottom: var(--s-3);
+  box-shadow: var(--shadow-sm);
+}
+.dh-case-top, .dh-maint-top {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: var(--s-2);
+}
+.dh-case-id, .dh-maint-id {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: var(--t-xs);
+  color: var(--ink-mute);
+  letter-spacing: 0.04em;
+}
+.dh-case-title, .dh-maint-title {
+  font-weight: 600; font-size: var(--t-md);
+  color: var(--ink); margin-top: 2px;
+}
+.dh-case-meta, .dh-maint-meta {
+  font-size: var(--t-sm); color: var(--ink-soft);
+  margin-top: var(--s-2); display: flex; gap: var(--s-3); flex-wrap: wrap;
+}
+.dh-case-actions {
+  margin-top: var(--s-3);
+  display: flex; gap: var(--s-2);
+}
+.dh-badge {
+  display: inline-block;
+  padding: 2px var(--s-3);
+  border-radius: var(--r-pill);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.dh-badge-open     { background: var(--alert-soft); color: var(--alert); }
+.dh-badge-resolved { background: var(--warn-soft);  color: var(--warn); }
+.dh-badge-closed   { background: var(--good-soft);  color: var(--good); }
+
+/* Maintenance log inline editing */
+.dh-maint-input {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 6px var(--s-3);
+  font-size: var(--t-sm);
+  outline: none;
+  background: var(--paper);
+  margin-top: var(--s-2);
+}
+.dh-maint-input:focus { border-color: var(--accent); background: var(--paper-card); }
+
+/* Live poll indicator (existing) */
+#pollIndicator {
+  background: rgba(255,255,255,0.92) !important;
+  border-color: var(--line) !important;
+}
 </style>
 </head>
 <body>
+<div class="dh-toast-wrap" id="toastWrap"></div>
 
 <div class="dh-top">
   <div class="dh-logo">&#127976;</div>
@@ -165,6 +755,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
     <h1>Front Desk Console</h1>
     <p>Quality Inn &amp; Suites McAlester on Hwy 69</p>
   </div>
+  <button class="dh-agent-tag" id="agentTag" onclick="changeAgent()">&#128100; Not signed in</button>
   <div class="dh-nav">
     <button class="dh-nav-btn active" data-view="inbox" onclick="nav(this)">&#128172; Inbox</button>
     <button class="dh-nav-btn" data-view="cases" onclick="nav(this)">&#128221; Cases</button>
@@ -181,7 +772,159 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
    Inbox + Cases + Maintenance Log
    Set WORKER_URL to your deployed Cloudflare Worker.
    ============================================================ */
-var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";   /* e.g. https://qi-concierge.yourname.workers.dev */
+var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+/* ============================================================
+   AGENT MANAGEMENT — who is at the front desk right now
+   Persists in window memory for 12 hours.
+   ============================================================ */
+var AGENT_SHIFT_HOURS = 12;
+function loadAgent(){
+  var raw = window.__qiAgent;
+  if(!raw) return null;
+  if(Date.now() - raw.signedInAt > AGENT_SHIFT_HOURS*3600*1000) return null;
+  return raw;
+}
+function saveAgent(name){
+  window.__qiAgent = {name:name, signedInAt:Date.now()};
+  updateAgentTag();
+}
+function clearAgent(){ window.__qiAgent = null; updateAgentTag(); }
+function getAgentName(){ var a = loadAgent(); return a ? a.name : null; }
+function updateAgentTag(){
+  var tag = document.getElementById('agentTag');
+  if(!tag) return;
+  var a = loadAgent();
+  tag.innerHTML = a ? '&#128100; ' + esc(a.name) : '&#128100; Not signed in';
+}
+function promptAgentName(reason){
+  return new Promise(function(resolve){
+    var bg = document.createElement('div');
+    bg.className = 'dh-modal-bg';
+    bg.innerHTML = '<div class="dh-modal">' +
+      '<h3>Sign in to the front desk</h3>' +
+      '<p>' + (reason || 'Your name will be shown to guests when you join their chat.') + '</p>' +
+      '<input id="agentNameInput" placeholder="First name" autofocus>' +
+      '<button class="dh-modal-btn" id="agentNameBtn">Start shift</button></div>';
+    document.body.appendChild(bg);
+    var input = document.getElementById('agentNameInput');
+    var btn = document.getElementById('agentNameBtn');
+    function submit(){
+      var n = input.value.trim();
+      if(!n){ input.focus(); return; }
+      saveAgent(n);
+      bg.remove();
+      resolve(n);
+    }
+    btn.onclick = submit;
+    input.addEventListener('keydown', function(e){ if(e.key === 'Enter') submit(); });
+    setTimeout(function(){ input.focus(); }, 60);
+  });
+}
+function changeAgent(){
+  clearAgent();
+  promptAgentName('Signing in a different agent.');
+}
+
+/* ============================================================
+   RESPONSE-TIME GRADING + TOASTS + SCOREBOARD
+   ============================================================ */
+var GRADE_TIERS = [
+  {max: 60000, key:'lightning', label:'&#9889; Lightning', toast:true,
+   praise:['Incredible &mdash; under a minute!','Lightning fast!','That is a {sec}-second reply &mdash; wow!']},
+  {max: 180000, key:'excellent', label:'&#10003; Excellent', toast:true,
+   praise:['Nice work &mdash; {min}-minute reply.','Great &mdash; under 3 minutes!','Excellent response time, {min} min.']},
+  {max: 600000, key:'good', label:'Good', toast:false, praise:['']},
+  {max: 1200000, key:'slow', label:'Slow', toast:true,
+   nudge:['{min}-min reply &mdash; try to get under 10 next time.','A bit slow at {min} min &mdash; aim for under 10.']},
+  {max: Infinity, key:'late', label:'Late', toast:true,
+   nudge:['{min}-min response &mdash; this guest waited a long time.','Late reply ({min} min). Please prioritize chat next time.']}
+];
+function gradeFor(ms){
+  for(var i=0;i<GRADE_TIERS.length;i++){ if(ms <= GRADE_TIERS[i].max) return GRADE_TIERS[i]; }
+  return GRADE_TIERS[GRADE_TIERS.length-1];
+}
+function showToast(grade, ms){
+  var sec = Math.round(ms/1000);
+  var min = Math.max(1, Math.round(ms/60000));
+  var pool = grade.praise || grade.nudge || [''];
+  var msg = pool[Math.floor(Math.random()*pool.length)]
+              .replace('{sec}', sec).replace('{min}', min);
+  var wrap = document.getElementById('toastWrap');
+  if(!wrap) return;
+  var t = document.createElement('div');
+  t.className = 'dh-toast ' + grade.key;
+  t.innerHTML = '<div class="dh-toast-title">' + grade.label + '</div>' +
+                '<div class="dh-toast-msg">' + esc(msg) + '</div>';
+  wrap.appendChild(t);
+  setTimeout(function(){
+    t.style.transition = 'opacity .3s';
+    t.style.opacity = '0';
+    setTimeout(function(){ t.remove(); }, 350);
+  }, 4500);
+}
+function recordGrade(grade, ms){
+  if(!window.__qiGrades) window.__qiGrades = {date:new Date().toDateString(), entries:[]};
+  if(window.__qiGrades.date !== new Date().toDateString()){
+    window.__qiGrades = {date:new Date().toDateString(), entries:[]};
+  }
+  window.__qiGrades.entries.push({grade:grade.key, ms:ms, at:Date.now()});
+}
+function todaysStats(){
+  var g = window.__qiGrades;
+  if(!g || g.date !== new Date().toDateString() || g.entries.length === 0)
+    return {count:0, avg:0, fastCount:0, slowCount:0, lateCount:0};
+  var total = 0, fast = 0, slow = 0, late = 0;
+  g.entries.forEach(function(e){
+    total += e.ms;
+    if(e.grade === 'lightning' || e.grade === 'excellent') fast++;
+    if(e.grade === 'slow') slow++;
+    if(e.grade === 'late') late++;
+  });
+  return {count:g.entries.length, avg:total/g.entries.length,
+          fastCount:fast, slowCount:slow, lateCount:late};
+}
+function overallGrade(stats){
+  if(stats.count === 0) return {label:'No data', cls:'dh-sb-g-good'};
+  if(stats.avg <= 180000 && stats.lateCount === 0) return {label:'Excellent', cls:'dh-sb-g-excellent'};
+  if(stats.avg <= 600000 && stats.lateCount <= 1) return {label:'Good', cls:'dh-sb-g-good'};
+  return {label:'Needs Speed', cls:'dh-sb-g-slow'};
+}
+function computeResponseMs(messages, staffIdx){
+  for(var i = staffIdx - 1; i >= 0; i--){
+    if(messages[i].from === 'guest'){
+      var gT = messages[i].atMs || Date.parse(messages[i].at) || null;
+      var sT = messages[staffIdx].atMs || Date.parse(messages[staffIdx].at) || null;
+      if(gT && sT) return sT - gT;
+    }
+  }
+  return null;
+}
+function renderScoreboard(){
+  var slot = document.getElementById('scoreboardSlot');
+  if(!slot) return;
+  var stats = todaysStats();
+  var grade = overallGrade(stats);
+  var avgText = stats.count === 0 ? '&mdash;' : (function(ms){
+    var s = Math.round(ms/1000); if(s<60) return s+'s'; return Math.round(s/60)+'m';
+  })(stats.avg);
+  slot.innerHTML =
+    '<div class="dh-scoreboard">' +
+      '<div class="dh-sb-block"><div class="dh-sb-label">Replies Today</div>' +
+        '<div class="dh-sb-value">' + stats.count + '</div></div>' +
+      '<div class="dh-sb-block"><div class="dh-sb-label">Avg Response</div>' +
+        '<div class="dh-sb-value">' + avgText + '</div></div>' +
+      '<div class="dh-sb-block"><div class="dh-sb-label">Fast Replies</div>' +
+        '<div class="dh-sb-value">' + stats.fastCount + '</div>' +
+        '<div class="dh-sb-detail">under 3 min</div></div>' +
+      '<div class="dh-sb-block"><div class="dh-sb-label">Slow / Late</div>' +
+        '<div class="dh-sb-value">' + (stats.slowCount + stats.lateCount) + '</div>' +
+        '<div class="dh-sb-detail">10+ min</div></div>' +
+      '<div class="dh-sb-block" style="text-align:right"><div class="dh-sb-label">Shift Grade</div>' +
+        '<div style="margin-top:6px"><span class="dh-sb-grade ' + grade.cls + '">' + grade.label + '</span></div></div>' +
+    '</div>';
+}
+   /* e.g. https://qi-concierge.yourname.workers.dev */
 
 function linkify(s){return s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
@@ -241,6 +984,30 @@ function lastStaffMsgAt(c){
   }
   return null;
 }
+
+/* Most recent activity timestamp for sorting — falls back through possible fields */
+function lastActivityMs(c){
+  if(!c) return 0;
+  if(c.messages && c.messages.length){
+    var last = c.messages[c.messages.length-1];
+    var t = last.atMs || Date.parse(last.at);
+    if(t && !isNaN(t)) return t;
+  }
+  if(c.updatedAt){
+    var u = Date.parse(c.updatedAt);
+    if(u && !isNaN(u)) return u;
+  }
+  if(c.startedAt){
+    var s = Date.parse(c.startedAt);
+    if(s && !isNaN(s)) return s;
+  }
+  if(c.archivedAt){
+    var a = Date.parse(c.archivedAt);
+    if(a && !isNaN(a)) return a;
+  }
+  return 0;
+}
+
 function formatDur(ms){
   var s = Math.round(ms/1000);
   if(s<60) return s+'s';
@@ -273,6 +1040,41 @@ function badgeHtml(c){
   return '<span class="dh-status-badge '+cls+'"><span class="dh-sb-dot"></span>'
        + icon + ' ' + esc(s.label) + '</span>';
 }
+
+/* Take Over button — explicit control of AI vs human */
+function takeoverButtonHtml(c){
+  var isHuman = c.humanControlled === true;
+  return '<button class="dh-takeover-btn'+(isHuman?' active':'')+'" '+
+    'onclick="toggleTakeover(\''+c.id+'\')">'+
+    (isHuman ? '&#10003; You have the chat' : '&#9889; Take Over from Ayri') +
+  '</button>';
+}
+function toggleTakeover(id){
+  var c = conversations.find(function(x){return x.id===id;});
+  if(!c) return;
+  c.humanControlled = !c.humanControlled;
+  c.updatedAt = new Date().toISOString();
+  /* drop a system message into the conversation so the guest sees the state change */
+  var who = getAgentName() || 'Front desk';
+  var note = c.humanControlled
+    ? who + ' has taken over the chat. Ayri is standing by.'
+    : 'Ayri (AI concierge) is back online.';
+  c.messages = c.messages || [];
+  c.messages.push({
+    from:'system', text:note,
+    at: new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),
+    atMs: Date.now()
+  });
+  /* persist to Worker */
+  if(WORKER_URL){
+    fetch(WORKER_URL+'/conversation',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(c)}).catch(function(){});
+  }
+  /* re-render the open conversation */
+  openConv(id);
+}
+
 
 /* archive logic */
 function isArchived(c){ return c && c.archived === true; }
@@ -373,6 +1175,23 @@ function wireGuestPanel(c){
   };
 }
 
+/* Toggle guest panel visibility on right rail */
+function toggleGuestPanel(){
+  var body = document.getElementById('body');
+  var btn  = document.getElementById('toggleGuestBtn');
+  var rail = document.getElementById('guestRail');
+  if(body.classList.contains('with-panel')){
+    body.classList.remove('with-panel');
+    if(rail) rail.style.display = 'none';
+    if(btn)  btn.textContent = 'Show details';
+  } else {
+    body.classList.add('with-panel');
+    if(rail) rail.style.display = 'block';
+    if(btn)  btn.textContent = 'Hide details';
+  }
+}
+
+
 
 /* ---- DEMO DATA (used when no Worker connected) ---- */
 var DEMO_CONVS=[
@@ -472,6 +1291,10 @@ function renderInbox(){
   /* run archive sweep once per render */
   runArchiveSweep();
   var showArchived = (currentView === 'archive');
+  /* Ensure body returns to 2-column layout when no conv is open */
+  body.classList.remove('with-panel');
+  var existingRail = document.getElementById('guestRail');
+  if(existingRail) existingRail.remove();
   body.innerHTML=
     '<div class="dh-list"><div class="dh-list-h">' +
       (showArchived ? 'Archived Conversations' : 'Guest Conversations') +
@@ -480,11 +1303,14 @@ function renderInbox(){
     '<div class="dh-view" id="convView">'+
       '<div class="dh-empty-main"><div class="dh-empty-icon">&#128172;</div>'+
       '<h3>Select a conversation</h3>'+
-      '<div style="margin-top:18px;width:100%;max-width:540px;padding:0 20px"><div id="scoreboardSlot"></div></div>'+
+      '<p style="font-size:13px;margin-top:4px">Daily performance at a glance</p>'+
+      '<div style="margin-top:28px;width:100%;max-width:620px;padding:0 24px"><div id="scoreboardSlot"></div></div>'+
       '</div></div>';
   renderScoreboard();
   var list=document.getElementById('convList');
   var filtered = conversations.filter(function(c){ return showArchived ? isArchived(c) : !isArchived(c); });
+  /* newest activity first */
+  filtered.sort(function(a,b){ return lastActivityMs(b) - lastActivityMs(a); });
   if(filtered.length===0){
     list.innerHTML='<div class="dh-empty">'+ (showArchived ? 'No archived conversations.' : 'No conversations yet.') +'</div>';
     return;
@@ -509,17 +1335,36 @@ function openConv(id){
   if(!c)return;
   var view=document.getElementById('convView');
   var caseBtn=c.caseId
-    ?'<button class="dh-btn dh-btn-case" onclick="goCases()">View Case '+esc(c.caseId)+'</button>'
-    :'<button class="dh-btn dh-btn-case" onclick="openCaseFromConv(\''+c.id+'\')">+ Open a Case</button>';
+    ?'<button class="dh-btn" onclick="goCases()">View Case '+esc(c.caseId)+'</button>'
+    :'<button class="dh-btn dh-btn-accent" onclick="openCaseFromConv(\''+c.id+'\')">+ Open a Case</button>';
+  /* Add the with-panel class so layout becomes 3-column */
+  body.classList.add('with-panel');
   view.innerHTML=
-    '<div class="dh-view-h"><div><h2>'+esc(guestDisplay(c))+'</h2>'+
-      '<p>'+ badgeHtml(c) +' &middot; Room '+esc(roomDisplay(c))+'</p></div>'+caseBtn+'</div>'+
-    guestPanelHtml(c) +
+    '<div class="dh-view-h">'+
+      '<div><h2>'+esc(guestDisplay(c))+'</h2>'+
+        '<p>'+ badgeHtml(c) +' &middot; Room '+esc(roomDisplay(c))+'</p></div>'+
+      '<div class="dh-view-actions">'+
+        takeoverButtonHtml(c) +
+        caseBtn +
+        '<button class="dh-toggle-panel" onclick="toggleGuestPanel()" id="toggleGuestBtn">Hide details</button>'+
+      '</div>'+
+    '</div>'+
     '<div class="dh-thread" id="thread"></div>'+
     '<div class="dh-ai-panel" id="aiPanel"></div>'+
     '<div class="dh-composer">'+
       '<textarea class="dh-input" id="composer" rows="1" placeholder="Reply to guest..."></textarea>'+
       '<button class="dh-send" id="sendBtn">&#10148;</button></div>';
+  /* Inject the guest panel as a sibling, in the 3rd grid column */
+  var guestRail = document.getElementById('guestRail');
+  if(!guestRail){
+    guestRail = document.createElement('div');
+    guestRail.id = 'guestRail';
+    document.getElementById('body').appendChild(guestRail);
+  }
+  guestRail.innerHTML = '<div class="dh-guest-panel">'+
+    '<div class="dh-gp-header">Guest Details</div>'+
+    guestPanelHtml(c).replace('<div class="dh-guest-panel">','').replace(/<\/div>\s*$/, '')+
+    '</div>';
   renderThread(c);
   renderAI(c);
   var input=document.getElementById('composer');
@@ -608,7 +1453,28 @@ function sendReply(id){
   var input=document.getElementById('composer');
   var text=input.value.trim();
   if(!text)return;
-  c.messages.push({from:'hotel',text:text,at:timeNow()});
+  var nowMs = Date.now();
+  var agent = getAgentName() || 'Front Desk';
+  /* announce join the first time staff replies */
+  var staffAlready = c.messages.some(function(m){ return m.from === 'hotel'; });
+  if(!staffAlready){
+    c.messages.push({from:'system',text:agent + ' has joined the chat.', at:timeNow(), atMs:nowMs});
+  }
+  c.messages.push({from:'hotel',text:text,at:timeNow(), atMs:nowMs, agentName:agent});
+  /* response-time grade + toast */
+  var staffIdx = c.messages.length - 1;
+  var ms = computeResponseMs(c.messages, staffIdx);
+  if(ms !== null){
+    var grade = gradeFor(ms);
+    recordGrade(grade, ms);
+    if(grade.toast) showToast(grade, ms);
+    renderScoreboard();
+  }
+  /* persist to Worker */
+  if(WORKER_URL){
+    fetch(WORKER_URL+'/conversation',{method:'POST',
+      headers:{'Content-Type':'application/json'},body:JSON.stringify(c)}).catch(function(){});
+  }
   input.value='';input.style.height='auto';
   renderThread(c);renderAI(c);
 }
@@ -815,27 +1681,30 @@ function doRefresh(){
       if(!list)return;
       var savedActive=activeConvId;
       list.innerHTML='';
-      if(conversations.length===0){
-        list.innerHTML='<div class="dh-empty">No conversations yet.</div>';
+      /* honor the current view filter (active vs archived) */
+      var showArchived = (currentView === 'archive');
+      var filtered = conversations.filter(function(c){
+        return showArchived ? isArchived(c) : !isArchived(c);
+      });
+      /* newest activity first */
+      filtered.sort(function(a,b){ return lastActivityMs(b) - lastActivityMs(a); });
+      if(filtered.length===0){
+        list.innerHTML='<div class="dh-empty">'+
+          (showArchived ? 'No archived conversations.' : 'No conversations yet.')+
+          '</div>';
         return;
       }
-      conversations.forEach(function(c){
+      filtered.forEach(function(c){
         var last=c.messages[c.messages.length-1];
         var div=document.createElement('div');
         div.className='dh-conv'+(c.id===savedActive?' active':'');
         div.setAttribute('data-conv-id', c.id);
         div.onclick=function(){openConv(c.id);};
-        var badge=c.caseId
-          ?'<span class="dh-badge dh-b-case">Case '+esc(c.caseId)+'</span>'
-          :c.status==='attention'
-          ?'<span class="dh-badge dh-b-attn">Needs Help</span>'
-          :'<span class="dh-badge dh-b-web">Web Chat</span>';
         div.innerHTML=
-          (c.status==='attention'?'<div class="dh-attn-dot"></div>':'')+
           '<div class="dh-conv-top"><span class="dh-conv-name">'+esc(guestDisplay(c))+'</span>'+
             '<span class="dh-conv-time">'+esc(timeDisplay(c))+'</span></div>'+
           '<div class="dh-conv-prev">Room '+esc(roomDisplay(c))+' &middot; '+esc(last?last.text:'')+'</div>'+
-          badge;
+          '<div style="margin-top:6px">' + badgeHtml(c) + '</div>';
         list.appendChild(div);
       });
       /* if the OPEN conversation got new messages, append seamlessly */
