@@ -1443,8 +1443,9 @@ function renderInbox(){
   var existingRail = document.getElementById('guestRail');
   if(existingRail) existingRail.remove();
   body.innerHTML=
-    '<div class="dh-list"><div class="dh-list-h">' +
-      (showArchived ? 'Archived Conversations' : 'Guest Conversations') +
+    '<div class="dh-list"><div class="dh-list-h" style="display:flex;align-items:center;justify-content:space-between">' +
+      '<span>' + (showArchived ? 'Archived Conversations' : 'Guest Conversations') + '</span>' +
+      '<button onclick="inboxRefresh()" title="Refresh now" style="background:none;border:none;color:var(--ink-mute);cursor:pointer;font-size:14px;padding:2px 6px">&#8635;</button>' +
     '</div>'+
       '<div id="convList"></div></div>'+
     '<div class="dh-view" id="convView">'+
@@ -1513,6 +1514,8 @@ function openConv(id){
     guestPanelHtml(c).replace('<div class="dh-guest-panel">','').replace(/<\/div>\s*$/, '')+
     '</div>';
   renderThread(c);
+  var __t = document.getElementById('thread');
+  if(__t) __t.setAttribute('data-msg-count', String((c.messages||[]).length));
   renderAI(c);
   var input=document.getElementById('composer');
   input.addEventListener('input',function(){this.style.height='auto';
@@ -1995,7 +1998,7 @@ function currentPollState(){
 
 function doRefresh(){
   if(currentView==='inbox'){
-    loadData().then(function(){
+    return loadData().then(function(){
       var list=document.getElementById('convList');
       if(!list)return;
       var savedActive=activeConvId;
@@ -2026,15 +2029,19 @@ function doRefresh(){
           '<div style="margin-top:6px">' + badgeHtml(c) + '</div>';
         list.appendChild(div);
       });
-      /* if the OPEN conversation got new messages, append seamlessly */
+      /* if the OPEN conversation got new messages, re-render reliably */
       if(savedActive){
         var c=conversations.find(function(x){return x.id===savedActive;});
         var threadEl=document.getElementById('thread');
         if(c && threadEl){
-          var renderedCount=threadEl.querySelectorAll('.dh-bub').length;
-          if(c.messages.length>renderedCount){
+          var lastRendered = parseInt(threadEl.getAttribute('data-msg-count') || '0', 10);
+          var currentLen = (c.messages || []).length;
+          if(currentLen !== lastRendered){
             renderThread(c);
             renderAI(c);
+            threadEl.setAttribute('data-msg-count', String(currentLen));
+            var nearBottom = (threadEl.scrollHeight - threadEl.scrollTop - threadEl.clientHeight) < 120;
+            if(nearBottom) threadEl.scrollTop = threadEl.scrollHeight;
           }
         }
       }
@@ -2065,10 +2072,14 @@ function isComposerFocused(){
   return el && el.id === 'composer';
 }
 function effectivePollMs(){
-  if(document.hidden) return -1;   /* -1 = stop */
-  /* Only poll on inbox view — cases/archive/maint use manual refresh */
+  if(document.hidden) return -1;
   if(typeof currentView !== 'undefined' && currentView !== 'inbox') return -1;
   if(isComposerFocused()) return getPollComposer();
+  /* Active human-controlled conversation = fast poll until handed back */
+  if(typeof activeConvId !== 'undefined' && activeConvId && typeof conversations !== 'undefined'){
+    var ac = conversations.find(function(x){ return x.id === activeConvId; });
+    if(ac && ac.humanControlled === true) return getPollComposer();
+  }
   return getPollActive();
 }
 function onVisibilityChange(){
@@ -2082,6 +2093,16 @@ document.addEventListener('visibilitychange', onVisibilityChange);
 
 
 /* Global manual Refresh button — sits in the topbar to the right of nav */
+
+function inboxRefresh(){
+  if(typeof doRefresh === 'function'){
+    var p = doRefresh();
+    if(p && typeof p.then === 'function'){
+      p.then(function(){ if(typeof updateLastUpdated === 'function') updateLastUpdated(); });
+    }
+  }
+}
+
 function ensureRefreshButton(){
   if(document.getElementById('manualRefreshBtn')) return;
   var nav = document.querySelector('.dh-nav');

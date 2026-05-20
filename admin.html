@@ -214,11 +214,13 @@ input { font-family: inherit; font-size: 14px; }
         <label>Inbox refresh interval (seconds)</label>
         <input class="ad-input ad-input-sm" id="fldInboxPoll" type="number" min="5" max="60">
         <div class="ad-hint">Range: 5–60s. Lower = faster guest reply detection, higher quota use.</div>
+        <div class="ad-hint" id="inboxReadsHint" style="font-weight:600;color:var(--brand)">≈ calculating…</div>
       </div>
       <div class="ad-field">
         <label>Composer focus refresh (seconds)</label>
         <input class="ad-input ad-input-sm" id="fldComposerPoll" type="number" min="3" max="10">
         <div class="ad-hint">When agent is typing a reply, polls faster. Range: 3–10s.</div>
+        <div class="ad-hint" id="composerReadsHint" style="font-weight:600;color:var(--brand)">≈ calculating…</div>
       </div>
     </div>
     <div id="quotaSummary" style="margin-top:14px;padding:10px 14px;background:var(--paper);border-radius:8px;font-size:13px;color:var(--ink-soft)">Estimating…</div>
@@ -495,20 +497,24 @@ function updateQuotaSummary(){
   var composerSec = parseInt(document.getElementById('fldComposerPoll').value, 10);
   if(!inboxSec || inboxSec < 5) inboxSec = 15;
   if(!composerSec || composerSec < 3) composerSec = 5;
-  /* assumptions: 1 agent on duty, 10 active hours, 6 idle hours (no poll), 4 hours tab hidden (no poll).
-     Composer focus assumed ~30 min/day. */
   var activeSeconds   = 9.5 * 3600;
   var composerSeconds = 0.5 * 3600;
-  var reads = (activeSeconds / inboxSec) + (composerSeconds / composerSec);
-  /* each poll triggers ~7 KV reads (settings + conv index + ~4 conv gets + case index + few case gets) */
-  reads = Math.round(reads * 7);
-  /* maintenance + admin overhead — small constant */
+  var inboxReads    = (activeSeconds / inboxSec) * 7;
+  var composerReads = (composerSeconds / composerSec) * 7;
   var overhead = 200;
-  var total = reads + overhead;
+  var total = Math.round(inboxReads + composerReads + overhead);
   var pct = Math.round((total / 100000) * 100);
   var cls = pct < 50 ? 'var(--good)' : (pct < 80 ? 'var(--warn)' : 'var(--alert)');
   box.innerHTML = '<b style="color:'+cls+'">Estimated daily KV reads: '+total.toLocaleString()+' / 100,000 ('+pct+'%)</b>' +
-    '<div style="margin-top:4px;font-size:11px;color:var(--ink-mute)">Assumes 1 agent, ~10 hrs active screen time, ~30 min composer-focused. Real usage may vary &plusmn;20%.</div>';
+    '<div style="margin-top:4px;font-size:11px;color:var(--ink-mute)">Assumes 1 agent on shift, ~9.5 hrs active, ~30 min in active chat. Real usage may vary &plusmn;20%.</div>';
+  var inboxHint = document.getElementById('inboxReadsHint');
+  if(inboxHint){
+    inboxHint.textContent = '≈ ' + Math.round(inboxReads).toLocaleString() + ' reads/day at ' + inboxSec + 's (1 agent, 9.5 hrs active monitoring)';
+  }
+  var compHint = document.getElementById('composerReadsHint');
+  if(compHint){
+    compHint.textContent = '≈ ' + Math.round(composerReads).toLocaleString() + ' reads/day at ' + composerSec + 's (~30 min/day in active chat)';
+  }
 }
 
 var DEFAULTS = {
