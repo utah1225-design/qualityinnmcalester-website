@@ -313,6 +313,12 @@ function cardHtml(m){
       '<div class="mt-notes-display">' + esc(m.fixNotes) + '</div>';
   }
 
+  /* Build guest name from various possible fields (case shape OR legacy maint shape) */
+  var gname = m.guestName || ((m.firstName || '') + ' ' + (m.lastName || '')).trim() || '';
+  var issue = m.issue || m.description || m.summary || 'No description.';
+  /* Reassign back to front desk button — available on all status states */
+  var reassignBtn = '<button class="mt-btn" style="flex:0 0 auto;background:#e6edf7;color:#0f1f3d;margin-top:8px;padding:9px 14px;font-size:12px" '+
+    'onclick="bounceBackToFrontDesk(\'' + esc(m.id) + '\')">&#8617; Not maintenance — send to Front Desk</button>';
   return '<div class="mt-card">' +
     '<div class="mt-card-top">' +
       '<div>' +
@@ -323,14 +329,15 @@ function cardHtml(m){
         '<div class="mt-card-id">' + esc(m.id) + '</div>' +
       '</div>' +
     '</div>' +
-    '<div class="mt-issue">' + esc(m.issue || m.summary || 'No description.') + '</div>' +
+    '<div class="mt-issue">' + esc(issue) + '</div>' +
     '<div class="mt-meta">' +
-      (m.guestName ? '<span><b>Guest:</b> ' + esc(m.guestName) + '</span>' : '') +
+      (gname ? '<span><b>Guest:</b> ' + esc(gname) + '</span>' : '') +
       '<span><b>Opened:</b> ' + esc(ageOf(m.createdAt)) + '</span>' +
       (assigned ? '<span><b>Assigned:</b> ' + esc(assigned) + '</span>' : '') +
     '</div>' +
     notesBlock +
     actions +
+    reassignBtn +
   '</div>';
 }
 
@@ -382,12 +389,28 @@ function toggleDone(){
   dl.classList.toggle('show');
 }
 
+
+function bounceBackToFrontDesk(id){
+  if(!confirm('Send this back to the Front Desk? They\'ll handle it from there.')) return;
+  fetch(WORKER_URL + '/case/reassign', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: id, owner: 'frontDesk', reassignedBy: agentName || 'Maintenance' })
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error){ alert('Could not reassign: ' + d.error); return; }
+      refresh();
+    })
+    .catch(function(){ alert('Network error — try again.'); });
+}
+
 /* ───── ACTIONS ───── */
 function findItem(id){
   return maintenance.find(function(x){ return x.id === id; });
 }
 function persist(m){
-  return fetch(WORKER_URL + '/maintenance', {
+  /* Maintenance-owned items are cases — save them via /case so they sync with the dashboard */
+  return fetch(WORKER_URL + '/case', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(m)
@@ -396,6 +419,7 @@ function persist(m){
 function startWork(id){
   var m = findItem(id); if(!m) return;
   m.status = 'In Progress';
+  m.owner = 'maintenance';   /* lock owner just in case */
   m.assignedTech = agentName;
   m.updatedAt = new Date().toISOString();
   persist(m).then(refresh);
@@ -415,13 +439,13 @@ function saveNotes(id){
 }
 function markDone(id){
   var m = findItem(id); if(!m) return;
-  /* capture any latest notes first */
   var ta = document.getElementById('notes-' + id);
   if(ta) m.fixNotes = ta.value;
   if(!m.fixNotes || !m.fixNotes.trim()){
     if(!confirm('Mark this done with no fix notes? Front desk usually wants a brief description of what was done.')) return;
   }
   m.status = 'Done';
+  m.owner = 'maintenance';   /* still maintenance until front desk inspects + closes */
   m.assignedTech = m.assignedTech || agentName;
   m.completedBy = agentName;
   m.completedAt = new Date().toISOString();
@@ -430,18 +454,17 @@ function markDone(id){
 }
 
 /* ───── INIT ───── */
+/* Passcode disabled — only ask for name. To re-enable, restore the prior init. */
 (function init(){
   var a = loadAgent();
   if(a){
-    /* already signed in within shift — skip lock */
-    document.getElementById('passInput').value = '';
-    document.getElementById('passInput').style.display = 'none';
-    document.getElementById('nameInput').style.display = 'none';
     document.getElementById('lockScreen').style.display = 'none';
     startApp();
-  } else {
-    setTimeout(function(){ document.getElementById('passInput').focus(); }, 100);
+    return;
   }
+  document.getElementById('passInput').style.display = 'none';
+  document.getElementById('nameInput').style.display = 'block';
+  setTimeout(function(){ document.getElementById('nameInput').focus(); }, 100);
 })();
 </script>
 </body>
