@@ -1424,7 +1424,9 @@ function render(){
     if(currentView==='inbox' || currentView==='archive') renderInbox();
     else if(currentView==='cases') renderCases();
     else renderMaint();
-  });
+  
+  if(typeof scheduleNextPoll === "function") scheduleNextPoll();
+});
 }
 
 /* ============================================================
@@ -1964,9 +1966,22 @@ function saveMaintToWorker(m){
    immediately catches up.
    ============================================================ */
 
-var POLL_ACTIVE    = 15000;    /* 15 seconds when actively used (was 5s) */
-var POLL_BACKGROUND= -1;       /* -1 = stop polling when tab hidden (was 60000) */
-var POLL_IDLE      = -1;       /* -1 = stop polling when idle in tab (was 300s) */
+/* POLL intervals — defaults; runtime values come from settings via getPollActive() etc. */
+var POLL_ACTIVE_DEFAULT    = 15000;
+var POLL_COMPOSER_DEFAULT  = 5000;
+var POLL_BACKGROUND= -1;       /* always stop when tab hidden */
+var POLL_IDLE      = -1;       /* always stop when idle in tab */
+function getPollActive(){
+  if(SETTINGS_CACHE && typeof SETTINGS_CACHE.inboxPollActiveMs === 'number') return SETTINGS_CACHE.inboxPollActiveMs;
+  return POLL_ACTIVE_DEFAULT;
+}
+function getPollComposer(){
+  if(SETTINGS_CACHE && typeof SETTINGS_CACHE.inboxPollComposerMs === 'number') return SETTINGS_CACHE.inboxPollComposerMs;
+  return POLL_COMPOSER_DEFAULT;
+}
+/* alias for legacy code paths */
+var POLL_ACTIVE    = POLL_ACTIVE_DEFAULT;
+var POLL_COMPOSER  = POLL_COMPOSER_DEFAULT;
 var IDLE_THRESHOLD = 60000;    /* 60s of no activity = idle */
 
 var lastActivity = Date.now();
@@ -2028,6 +2043,18 @@ function doRefresh(){
     render();
   }
 }
+/* Hook doRefresh to bump the last-updated label */
+var _origDoRefresh = doRefresh;
+doRefresh = function(){
+  var p = _origDoRefresh.apply(this, arguments);
+  if(p && typeof p.then === 'function'){
+    p.then(function(){ if(typeof updateLastUpdated === 'function') updateLastUpdated(); });
+  } else {
+    if(typeof updateLastUpdated === 'function') updateLastUpdated();
+  }
+  return p;
+};
+
 
 
 /* When composer is focused, poll fast (5s). When tab is hidden, stop entirely.
@@ -2039,8 +2066,10 @@ function isComposerFocused(){
 }
 function effectivePollMs(){
   if(document.hidden) return -1;   /* -1 = stop */
-  if(isComposerFocused()) return POLL_COMPOSER;
-  return POLL_ACTIVE;
+  /* Only poll on inbox view — cases/archive/maint use manual refresh */
+  if(typeof currentView !== 'undefined' && currentView !== 'inbox') return -1;
+  if(isComposerFocused()) return getPollComposer();
+  return getPollActive();
 }
 function onVisibilityChange(){
   if(!document.hidden){
@@ -2050,6 +2079,53 @@ function onVisibilityChange(){
   }
 }
 document.addEventListener('visibilitychange', onVisibilityChange);
+
+
+/* Global manual Refresh button — sits in the topbar to the right of nav */
+function ensureRefreshButton(){
+  if(document.getElementById('manualRefreshBtn')) return;
+  var nav = document.querySelector('.dh-nav');
+  if(!nav) return;
+  var btn = document.createElement('button');
+  btn.id = 'manualRefreshBtn';
+  btn.className = 'dh-nav-btn';
+  btn.title = 'Refresh now';
+  btn.innerHTML = '<span style="font-size:14px">&#8635;</span>';
+  btn.style.marginLeft = '12px';
+  btn.onclick = function(){
+    var orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span style="font-size:14px;opacity:0.4">&#8635;</span>';
+    if(typeof doRefresh === 'function'){
+      doRefresh().finally(function(){
+        btn.disabled = false;
+        btn.innerHTML = orig;
+        updateLastUpdated();
+      });
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = orig;
+    }
+  };
+  nav.appendChild(btn);
+  /* last-updated label */
+  var lbl = document.createElement('span');
+  lbl.id = 'lastUpdatedLabel';
+  lbl.style.cssText = 'color:rgba(255,255,255,0.5);font-size:10px;margin-left:8px;align-self:center';
+  lbl.textContent = '';
+  nav.appendChild(lbl);
+}
+function updateLastUpdated(){
+  var el = document.getElementById('lastUpdatedLabel');
+  if(!el) return;
+  var t = new Date();
+  var h = t.getHours();
+  var m = t.getMinutes();
+  var ap = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if(h===0) h = 12;
+  if(m < 10) m = '0' + m;
+  el.textContent = 'Updated ' + h + ':' + m + ' ' + ap;
+}
 
 function scheduleNextPoll(){
   if(window.__pollTimer){ clearTimeout(window.__pollTimer); window.__pollTimer = null; }
@@ -2430,6 +2506,7 @@ setInterval(function(){
 
 function bootApp(){
   loadSettings().then(function(){
+    ensureRefreshButton();
     updateAgentTag();
     if(!loadAgent()){
       promptAgentName().then(function(){ render(); scheduleNextPoll(); });

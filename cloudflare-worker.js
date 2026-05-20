@@ -492,6 +492,9 @@ const DEFAULT_SETTINGS = {
   frontDeskStaff:   ["Front Desk 1","Front Desk 2","Front Desk 3"],
   maintenanceStaff: ["Maintenance 1","Maintenance 2","Maintenance 3"],
   staffMaxPerTeam:  5,
+  /* inbox polling — tunable from admin to balance quota vs responsiveness */
+  inboxPollActiveMs:   15000,
+  inboxPollComposerMs: 5000,
   /* response time tiers — milliseconds */
   excellentMs:          180000,   /* 3 min */
   slowMs:               600000,   /* 10 min */
