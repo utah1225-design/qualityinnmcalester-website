@@ -143,6 +143,36 @@ var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";   /* e.g. https://
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
 function timeNow(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
 
+/* ---- robust display helpers — work for live AND demo conversation shapes ---- */
+function guestDisplay(c){
+  if(!c) return 'Guest';
+  if(c.guest && typeof c.guest === 'object'){
+    var n = ((c.guest.firstName||'') + ' ' + (c.guest.lastName||'')).trim();
+    return n || 'Web Guest';
+  }
+  if(typeof c.guest === 'string' && c.guest) return c.guest;
+  return 'Web Guest';
+}
+function roomDisplay(c){
+  if(!c) return '—';
+  if(c.room) return c.room;
+  if(c.guest && typeof c.guest === 'object' && c.guest.room) return c.guest.room;
+  return '—';
+}
+function timeDisplay(c){
+  if(!c) return '';
+  if(c.time) return c.time;
+  if(c.startedAt){
+    try{ return new Date(c.startedAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+    catch(e){ return ''; }
+  }
+  if(c.updatedAt){
+    try{ return new Date(c.updatedAt).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}); }
+    catch(e){ return ''; }
+  }
+  return '';
+}
+
 /* ---- DEMO DATA (used when no Worker connected) ---- */
 var DEMO_CONVS=[
   {id:"c1",guest:"Guest 4821",room:"214",channel:"web",status:"attention",
@@ -261,9 +291,9 @@ function renderInbox(){
       :'<span class="dh-badge dh-b-web">Web Chat</span>';
     div.innerHTML=
       (c.status==='attention'?'<div class="dh-attn-dot"></div>':'')+
-      '<div class="dh-conv-top"><span class="dh-conv-name">'+esc(c.guest)+'</span>'+
-        '<span class="dh-conv-time">'+esc(c.time||'')+'</span></div>'+
-      '<div class="dh-conv-prev">Room '+esc(c.room)+' &middot; '+esc(last?last.text:'')+'</div>'+
+      '<div class="dh-conv-top"><span class="dh-conv-name">'+esc(guestDisplay(c))+'</span>'+
+        '<span class="dh-conv-time">'+esc(timeDisplay(c))+'</span></div>'+
+      '<div class="dh-conv-prev">Room '+esc(roomDisplay(c))+' &middot; '+esc(last?last.text:'')+'</div>'+
       badge;
     list.appendChild(div);
   });
@@ -277,8 +307,8 @@ function openConv(id){
     ?'<button class="dh-btn dh-btn-case" onclick="goCases()">View Case '+esc(c.caseId)+'</button>'
     :'<button class="dh-btn dh-btn-case" onclick="openCaseFromConv(\''+c.id+'\')">+ Open a Case</button>';
   view.innerHTML=
-    '<div class="dh-view-h"><div><h2>'+esc(c.guest)+'</h2>'+
-      '<p>Room '+esc(c.room)+' &middot; Web Chat</p></div>'+caseBtn+'</div>'+
+    '<div class="dh-view-h"><div><h2>'+esc(guestDisplay(c))+'</h2>'+
+      '<p>Room '+esc(roomDisplay(c))+' &middot; Web Chat</p></div>'+caseBtn+'</div>'+
     '<div class="dh-thread" id="thread"></div>'+
     '<div class="dh-ai-panel" id="aiPanel"></div>'+
     '<div class="dh-composer">'+
@@ -385,7 +415,7 @@ function openCaseFromConv(convId){
   var first=prompt("Guest first name:");if(first===null)return;
   var last=prompt("Guest last name:");if(last===null)return;
   var phone=prompt("Guest phone number:");if(phone===null)return;
-  var room=prompt("Room number:",c.room||"");if(room===null)return;
+  var room=prompt("Room number:",roomDisplay(c)==="—"?"":roomDisplay(c));if(room===null)return;
   var type=prompt("Case type — type 'maintenance', 'housekeeping', or 'service':","service");
   var summary=prompt("Brief description of the issue:");
   var caseObj={
@@ -595,9 +625,9 @@ function doRefresh(){
           :'<span class="dh-badge dh-b-web">Web Chat</span>';
         div.innerHTML=
           (c.status==='attention'?'<div class="dh-attn-dot"></div>':'')+
-          '<div class="dh-conv-top"><span class="dh-conv-name">'+esc(c.guest)+'</span>'+
-            '<span class="dh-conv-time">'+esc(c.time||'')+'</span></div>'+
-          '<div class="dh-conv-prev">Room '+esc(c.room)+' &middot; '+esc(last?last.text:'')+'</div>'+
+          '<div class="dh-conv-top"><span class="dh-conv-name">'+esc(guestDisplay(c))+'</span>'+
+            '<span class="dh-conv-time">'+esc(timeDisplay(c))+'</span></div>'+
+          '<div class="dh-conv-prev">Room '+esc(roomDisplay(c))+' &middot; '+esc(last?last.text:'')+'</div>'+
           badge;
         list.appendChild(div);
       });
