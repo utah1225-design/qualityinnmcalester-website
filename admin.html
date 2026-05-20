@@ -139,20 +139,31 @@ input { font-family: inherit; font-size: 14px; }
       <div class="ad-hint">If unchecked, the dashboard opens without prompting.</div>
     </div>
 
-    <div class="ad-field">
-      <label>Maintenance passcode</label>
-      <input class="ad-input" id="fldMaintPass">
-      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft)">
-        <input type="checkbox" id="fldMaintRequire" style="width:auto;margin:0">
-        <label for="fldMaintRequire" style="margin:0;text-transform:none;letter-spacing:0;font-size:13px;font-weight:500;cursor:pointer">Require passcode to open maintenance.html</label>
-      </div>
-      <div class="ad-hint">If unchecked, maintenance.html opens without prompting.</div>
-    </div>
+
 
     <div class="ad-field">
       <label>Admin passcode (this page)</label>
       <input class="ad-input" id="fldAdminPass" type="password" placeholder="Leave blank to keep unchanged">
       <div class="ad-hint">Type a new admin passcode here to rotate yours. Minimum 6 characters.</div>
+    </div>
+  </div>
+
+  <!-- STAFF ROSTER -->
+  <div class="ad-section">
+    <h3>Staff Roster</h3>
+    <div class="ad-section-desc">These names show up as the assigned-person dropdown on each case. Max 5 per team. Edit, add, or remove anytime.</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:10px">Front Desk</div>
+        <div id="fdList"></div>
+        <button class="ad-input" id="fdAdd" style="background:var(--paper);border-style:dashed;cursor:pointer;width:100%;text-align:left;color:var(--accent);font-weight:600;margin-top:6px">+ Add front-desk member</button>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:10px">Maintenance</div>
+        <div id="mtList"></div>
+        <button class="ad-input" id="mtAdd" style="background:var(--paper);border-style:dashed;cursor:pointer;width:100%;text-align:left;color:var(--accent);font-weight:600;margin-top:6px">+ Add maintenance member</button>
+      </div>
     </div>
   </div>
 
@@ -304,12 +315,69 @@ function loadSettings(){
     });
 }
 
+var rosterFD = [];
+var rosterMT = [];
+var MAX_STAFF = 5;
+
+function renderRoster(){
+  var fdList = document.getElementById('fdList');
+  var mtList = document.getElementById('mtList');
+  function rowHtml(name, kind, idx){
+    return '<div style="display:flex;gap:6px;margin-bottom:6px">'+
+      '<input class="ad-input" data-kind="'+kind+'" data-idx="'+idx+'" value="'+escAttr(name)+'" placeholder="(name)" style="flex:1">'+
+      '<button class="ad-input" style="width:auto;padding:0 10px;background:var(--paper);cursor:pointer;color:var(--alert)" onclick="removeStaff(\''+kind+'\','+idx+')">&times;</button>'+
+    '</div>';
+  }
+  fdList.innerHTML = rosterFD.map(function(n,i){ return rowHtml(n,'fd',i); }).join('');
+  mtList.innerHTML = rosterMT.map(function(n,i){ return rowHtml(n,'mt',i); }).join('');
+  document.getElementById('fdAdd').disabled = rosterFD.length >= MAX_STAFF;
+  document.getElementById('mtAdd').disabled = rosterMT.length >= MAX_STAFF;
+  if(rosterFD.length >= MAX_STAFF) document.getElementById('fdAdd').textContent = 'Max 5 reached';
+  else document.getElementById('fdAdd').textContent = '+ Add front-desk member';
+  if(rosterMT.length >= MAX_STAFF) document.getElementById('mtAdd').textContent = 'Max 5 reached';
+  else document.getElementById('mtAdd').textContent = '+ Add maintenance member';
+  /* wire inputs to update arrays on edit */
+  document.querySelectorAll('[data-kind][data-idx]').forEach(function(el){
+    el.oninput = function(){
+      var kind = this.getAttribute('data-kind');
+      var idx = parseInt(this.getAttribute('data-idx'), 10);
+      if(kind === 'fd') rosterFD[idx] = this.value;
+      else rosterMT[idx] = this.value;
+    };
+  });
+}
+function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
+function removeStaff(kind, idx){
+  var name = kind === 'fd' ? rosterFD[idx] : rosterMT[idx];
+  if(!confirm('Remove "' + (name||'(unnamed)') + '" from the roster?')) return;
+  if(kind === 'fd') rosterFD.splice(idx, 1);
+  else rosterMT.splice(idx, 1);
+  renderRoster();
+}
+document.getElementById('fdAdd').onclick = function(){
+  if(rosterFD.length >= MAX_STAFF) return;
+  rosterFD.push('');
+  renderRoster();
+  /* focus the new field */
+  var inputs = document.querySelectorAll('[data-kind="fd"]');
+  if(inputs.length) inputs[inputs.length-1].focus();
+};
+document.getElementById('mtAdd').onclick = function(){
+  if(rosterMT.length >= MAX_STAFF) return;
+  rosterMT.push('');
+  renderRoster();
+  var inputs = document.querySelectorAll('[data-kind="mt"]');
+  if(inputs.length) inputs[inputs.length-1].focus();
+};
+
 function populateFields(){
   document.getElementById('fldDashPass').value     = settings.dashboardPasscode || '';
   document.getElementById('fldDashRequire').checked  = settings.requireDashboardPasscode !== false;
-  document.getElementById('fldMaintPass').value    = settings.maintenancePasscode || '';
-  document.getElementById('fldMaintRequire').checked = settings.requireMaintenancePasscode !== false;
   document.getElementById('fldAdminPass').value    = '';  /* blank = keep */
+  /* staff rosters */
+  rosterFD = (settings.frontDeskStaff   || ['Front Desk 1','Front Desk 2','Front Desk 3']).slice(0, MAX_STAFF);
+  rosterMT = (settings.maintenanceStaff || ['Maintenance 1','Maintenance 2','Maintenance 3']).slice(0, MAX_STAFF);
+  renderRoster();
   document.getElementById('fldExcellent').value    = Math.round((settings.excellentMs || 180000) / 60000);
   document.getElementById('fldSlow').value         = Math.round((settings.slowMs      || 600000) / 60000);
   document.getElementById('fldLate').value         = Math.round((settings.lateMs      || 1200000)/ 60000);
@@ -326,11 +394,14 @@ function saveAll(){
   btn.disabled = true;
   msg.className = 'ad-save-msg'; msg.textContent = 'Saving…';
 
+  /* trim + filter empty names from rosters before saving */
+  var cleanFD = rosterFD.map(function(n){ return (n||'').trim(); }).filter(function(n){ return n.length > 0; });
+  var cleanMT = rosterMT.map(function(n){ return (n||'').trim(); }).filter(function(n){ return n.length > 0; });
   var payload = {
-    dashboardPasscode:          document.getElementById('fldDashPass').value.trim() || settings.dashboardPasscode,
-    requireDashboardPasscode:   document.getElementById('fldDashRequire').checked,
-    maintenancePasscode:        document.getElementById('fldMaintPass').value.trim() || settings.maintenancePasscode,
-    requireMaintenancePasscode: document.getElementById('fldMaintRequire').checked,
+    dashboardPasscode:        document.getElementById('fldDashPass').value.trim() || settings.dashboardPasscode,
+    requireDashboardPasscode: document.getElementById('fldDashRequire').checked,
+    frontDeskStaff:           cleanFD,
+    maintenanceStaff:         cleanMT,
     excellentMs:         Math.max(60000, parseInt(document.getElementById('fldExcellent').value, 10) * 60000) || settings.excellentMs,
     slowMs:              Math.max(60000, parseInt(document.getElementById('fldSlow').value, 10) * 60000) || settings.slowMs,
     lateMs:              Math.max(60000, parseInt(document.getElementById('fldLate').value, 10) * 60000) || settings.lateMs,

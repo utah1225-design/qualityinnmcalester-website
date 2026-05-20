@@ -179,6 +179,17 @@ export default {
         return await listAllMaintenance(env);
       }
 
+      /* ---- reassign a case between front desk and maintenance ---- */
+      if (path === "/case/reassign" && request.method === "POST") {
+        return await reassignCase(request, env);
+      }
+      if (path === "/case/note" && request.method === "POST") {
+        return await addCaseNote(request, env);
+      }
+      if (path === "/case/assign" && request.method === "POST") {
+        return await assignCaseToPerson(request, env);
+      }
+
       /* ---- unified settings (admin + readers) ---- */
       if (path === "/settings" && request.method === "GET") {
         return await getSettings(env);
@@ -385,9 +396,28 @@ async function listConversations(env) {
 
 async function saveCase(request, env) {
   const c = await request.json();
+  const isNew = !c.id;
   if (!c.id) c.id = "CASE-" + Date.now().toString().slice(-6);
   c.updatedAt = new Date().toISOString();
   if (!c.createdAt) c.createdAt = c.updatedAt;
+  /* case-management defaults */
+  if (!c.owner) c.owner = "frontDesk";
+  if (!c.assignedTo || typeof c.assignedTo !== "object") {
+    c.assignedTo = { team: c.owner, person: null };
+  }
+  if (!Array.isArray(c.notes)) c.notes = [];
+  if (typeof c.currentNote !== "string") c.currentNote = "";
+  /* on first save, seed an opening note from the description */
+  if (isNew && (c.description || c.summary)) {
+    c.notes.push({
+      author: c.openedBy || "System",
+      team: "frontDesk",
+      text: c.description || c.summary,
+      type: "open",
+      at: c.createdAt
+    });
+    if (!c.currentNote) c.currentNote = (c.description || c.summary).slice(0, 140);
+  }
   await env.HOTEL_KV.put("case:" + c.id, JSON.stringify(c));
   await addToIndex(env, "case", c.id);
 
@@ -427,10 +457,14 @@ async function saveMaintenance(request, env) {
 }
 
 async function listMaintenance(env) {
-  const items = await readAll(env, "maint");
-  /* hide formally closed items — they live in KV for history but aren't shown */
-  const active = items.filter(function(m){ return m.closed !== true; });
-  return json({ maintenance: active });
+  /* maintenance log is now: all cases where owner is 'maintenance' AND not closed.
+     We pull cases (not maint: keys) so reassignment between front desk and
+     maintenance just flips the owner field — no data duplication. */
+  const cases = await readAll(env, "case");
+  const items = cases.filter(function(c){
+    return c.owner === "maintenance" && c.closed !== true && (c.status || "").toLowerCase() !== "closed";
+  });
+  return json({ maintenance: items });
 }
 
 async function listAllMaintenance(env) {
@@ -444,10 +478,17 @@ async function listAllMaintenance(env) {
    ============================================================ */
 const SETTINGS_KEY  = "settings";
 const DEFAULT_SETTINGS = {
-  /* passcodes */
+  /* passcodes (admin is always required) */
   adminPasscode:        "McAlesterAdmin2026",
   dashboardPasscode:    "frontdesk2026",
   maintenancePasscode:  "iwillfixit",
+  /* whether each gate is enforced */
+  requireDashboardPasscode:   true,
+  requireMaintenancePasscode: true,
+  /* staff rosters — admin types these once, dropdown choices */
+  frontDeskStaff:   ["Front Desk 1","Front Desk 2","Front Desk 3"],
+  maintenanceStaff: ["Maintenance 1","Maintenance 2","Maintenance 3"],
+  staffMaxPerTeam:  5,
   /* response time tiers — milliseconds */
   excellentMs:          180000,   /* 3 min */
   slowMs:               600000,   /* 10 min */
@@ -513,12 +554,104 @@ async function verifyAdmin(request, env) {
 async function verifyMaintenance(request, env) {
   const body = await request.json();
   const s = await readSettings(env);
+  if (s.requireMaintenancePasscode === false) return json({ ok: true, skipped: true });
   return json({ ok: (body.passcode || "") === s.maintenancePasscode });
 }
 
 async function verifyDashboard(request, env) {
   const body = await request.json();
   const s = await readSettings(env);
+  if (s.requireDashboardPasscode === false) return json({ ok: true, skipped: true });
   return json({ ok: (body.passcode || "") === s.dashboardPasscode });
+}
+
+async function reassignCase(request, env) {
+  const body = await request.json();
+  const id = body.id;
+  const newOwner = body.owner; /* 'frontDesk' or 'maintenance' */
+  const reassignedBy = body.reassignedBy || "Front Desk";
+  if (!id || (newOwner !== "frontDesk" && newOwner !== "maintenance")) {
+    return json({ error: "id and owner ('frontDesk'|'maintenance') required" }, 400);
+  }
+  const raw = await env.HOTEL_KV.get("case:" + id);
+  if (!raw) return json({ error: "Case not found" }, 404);
+  const c = JSON.parse(raw);
+  const previousOwner = c.owner || "frontDesk";
+  c.owner = newOwner;
+  c.updatedAt = new Date().toISOString();
+  c.reassignHistory = c.reassignHistory || [];
+  c.reassignHistory.push({
+    from: previousOwner, to: newOwner, by: reassignedBy, at: c.updatedAt
+  });
+  /* timeline note */
+  c.notes = c.notes || [];
+  c.notes.push({
+    author: reassignedBy,
+    team: previousOwner,
+    text: "Reassigned from " + previousOwner + " to " + newOwner,
+    type: "reassign",
+    at: c.updatedAt
+  });
+  /* clear assigned person on team change — new team picks their own */
+  c.assignedTo = { team: newOwner, person: null };
+  /* reset to 'Open' on reassignment so it's actionable for the new owner */
+  if (newOwner === "maintenance" && (c.status || "").toLowerCase() === "resolved") {
+    c.status = "Open";
+  }
+  await env.HOTEL_KV.put("case:" + c.id, JSON.stringify(c));
+  return json({ ok: true, case: c });
+}
+
+async function addCaseNote(request, env) {
+  const body = await request.json();
+  if (!body.id || !body.text || !body.author) {
+    return json({ error: "id, text, author required" }, 400);
+  }
+  const raw = await env.HOTEL_KV.get("case:" + body.id);
+  if (!raw) return json({ error: "Case not found" }, 404);
+  const c = JSON.parse(raw);
+  c.notes = c.notes || [];
+  c.notes.push({
+    author: body.author,
+    team: body.team || c.owner || "frontDesk",
+    text: body.text,
+    type: body.type || "note",
+    at: new Date().toISOString()
+  });
+  /* if this note is also a status summary update, replace currentNote */
+  if (body.updateCurrentNote === true) {
+    c.currentNote = body.text.slice(0, 140);
+  }
+  c.updatedAt = new Date().toISOString();
+  await env.HOTEL_KV.put("case:" + c.id, JSON.stringify(c));
+  return json({ ok: true, case: c });
+}
+
+async function assignCaseToPerson(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("case:" + body.id);
+  if (!raw) return json({ error: "Case not found" }, 404);
+  const c = JSON.parse(raw);
+  const prevPerson = (c.assignedTo && c.assignedTo.person) || null;
+  c.assignedTo = {
+    team: body.team || c.owner || "frontDesk",
+    person: body.person || null
+  };
+  c.notes = c.notes || [];
+  if (prevPerson !== c.assignedTo.person) {
+    c.notes.push({
+      author: body.assignedBy || "System",
+      team: c.assignedTo.team,
+      text: prevPerson
+        ? ("Reassigned from " + prevPerson + " to " + (c.assignedTo.person || "unassigned"))
+        : ("Assigned to " + (c.assignedTo.person || "unassigned")),
+      type: "assign",
+      at: new Date().toISOString()
+    });
+  }
+  c.updatedAt = new Date().toISOString();
+  await env.HOTEL_KV.put("case:" + c.id, JSON.stringify(c));
+  return json({ ok: true, case: c });
 }
 

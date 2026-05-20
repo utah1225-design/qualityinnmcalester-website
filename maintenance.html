@@ -122,6 +122,37 @@ input, textarea { font-family: inherit; font-size: 16px; }
 
 .mt-refresh-note { text-align: center; font-size: 10px;
   color: var(--ink-mute); padding: 8px; }
+
+/* Case management on maintenance cards */
+.mt-cn-label { font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-mute); margin-top: 12px; margin-bottom: 4px; }
+.mt-cn-current { background: var(--paper); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 10px; font-size: 13px;
+  color: var(--ink); font-style: italic; }
+.mt-cn-current.empty { color: var(--ink-mute); }
+.mt-cn-assign { width: 100%; padding: 8px 10px; border: 1px solid var(--line);
+  border-radius: 6px; font-size: 14px; background: var(--paper); outline: none;
+  font-family: inherit; }
+.mt-cn-assign:focus { border-color: var(--accent); }
+.mt-cn-timeline { max-height: 180px; overflow-y: auto; background: var(--paper);
+  border: 1px solid var(--line-soft); border-radius: 6px; padding: 6px 10px; }
+.mt-cn-tl-item { padding: 6px 0; border-bottom: 1px solid var(--line-soft); font-size: 12px; }
+.mt-cn-tl-item:last-child { border-bottom: none; }
+.mt-cn-tl-meta { font-size: 10px; color: var(--ink-mute); margin-bottom: 2px; }
+.mt-cn-tl-author { font-weight: 700; color: var(--ink-soft); }
+.mt-cn-tl-text { color: var(--ink); white-space: pre-wrap; }
+.mt-cn-note-input { width: 100%; padding: 8px 10px; border: 1px solid var(--line);
+  border-radius: 6px; font-size: 14px; outline: none; resize: vertical;
+  min-height: 50px; font-family: inherit; background: var(--paper); }
+.mt-cn-note-input:focus { border-color: var(--accent); background: var(--paper-card); }
+.mt-cn-note-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.mt-cn-note-row label { font-size: 11px; color: var(--ink-soft); cursor: pointer;
+  display: flex; align-items: center; gap: 4px; }
+.mt-cn-collapse { background: none; border: none; color: var(--accent);
+  font-size: 11px; font-weight: 600; padding: 0; margin-top: 8px; cursor: pointer; }
+.mt-cn-collapse:hover { text-decoration: underline; }
+.mt-cn-block { display: none; }
+.mt-cn-block.show { display: block; }
 </style>
 </head>
 <body>
@@ -264,14 +295,26 @@ function startApp(){
 }
 
 /* ───── DATA ───── */
-function refresh(){
-  fetch(WORKER_URL + '/maintenance-log')
+var STAFF_MT = [];
+function loadStaffList(){
+  return fetch(WORKER_URL + '/settings')
     .then(function(r){ return r.json(); })
-    .then(function(data){
-      maintenance = (data && data.maintenance) || [];
-      render();
+    .then(function(d){
+      var s = (d && d.settings) || {};
+      STAFF_MT = (s.maintenanceStaff || []).slice();
     })
-    .catch(function(){});
+    .catch(function(){ STAFF_MT = []; });
+}
+function refresh(){
+  loadStaffList().then(function(){
+    fetch(WORKER_URL + '/maintenance-log')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        maintenance = (data && data.maintenance) || [];
+        render();
+      })
+      .catch(function(){});
+  });
 }
 
 function statusBadge(m){
@@ -338,6 +381,7 @@ function cardHtml(m){
     notesBlock +
     actions +
     reassignBtn +
+    caseMgmtBlockHtml(m) +
   '</div>';
 }
 
@@ -404,6 +448,104 @@ function bounceBackToFrontDesk(id){
     .catch(function(){ alert('Network error — try again.'); });
 }
 
+
+function escAttr(s){ return String(s||'').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function fmtAgeShort(iso){
+  if(!iso) return '';
+  var t = Date.parse(iso); if(!t || isNaN(t)) return '';
+  var diff = Date.now() - t;
+  if(diff < 60000) return 'just now';
+  var min = Math.round(diff/60000);
+  if(min < 60) return min + 'm ago';
+  var h = Math.round(diff/3600000);
+  if(h < 24) return h + 'h ago';
+  return Math.round(diff/86400000) + 'd ago';
+}
+function staffOptionsMT(selected){
+  var opts = '<option value="">(unassigned)</option>';
+  STAFF_MT.forEach(function(n){
+    var sel = (n === selected) ? ' selected' : '';
+    opts += '<option value="' + escAttr(n) + '"' + sel + '>' + esc(n) + '</option>';
+  });
+  return opts;
+}
+function timelineMTHtml(c){
+  var notes = (c.notes || []).slice().reverse();
+  if(notes.length === 0){
+    return '<div class="mt-cn-timeline"><div style="font-size:11px;color:var(--ink-mute);padding:4px 0">No timeline yet.</div></div>';
+  }
+  return '<div class="mt-cn-timeline">' +
+    notes.map(function(n){
+      return '<div class="mt-cn-tl-item">' +
+        '<div class="mt-cn-tl-meta"><span class="mt-cn-tl-author">' + esc(n.author||'Unknown') + '</span> &middot; ' + esc(fmtAgeShort(n.at)) + '</div>' +
+        '<div class="mt-cn-tl-text">' + esc(n.text) + '</div>' +
+      '</div>';
+    }).join('') +
+    '</div>';
+}
+
+function caseMgmtBlockHtml(c){
+  var id = esc(c.id);
+  var assigned = (c.assignedTo && c.assignedTo.person) || '';
+  var curNote = c.currentNote || '';
+  return '<button class="mt-cn-collapse" onclick="toggleCnBlock(\''+id+'\')">&#9656; Notes &amp; assignment</button>' +
+    '<div class="mt-cn-block" id="cn-' + id + '">' +
+      '<div class="mt-cn-label">Current Status</div>' +
+      '<div class="mt-cn-current ' + (curNote ? '' : 'empty') + '">' +
+        esc(curNote || '(no current status — add a note below)') +
+      '</div>' +
+      '<div class="mt-cn-label">Assigned To</div>' +
+      '<select class="mt-cn-assign" onchange="assignMaint(\''+id+'\', this.value)">' +
+        staffOptionsMT(assigned) +
+      '</select>' +
+      '<div class="mt-cn-label">Timeline</div>' +
+      timelineMTHtml(c) +
+      '<div class="mt-cn-label">Add a Note</div>' +
+      '<textarea class="mt-cn-note-input" id="mtnote-' + id + '" placeholder="What did you find or do?"></textarea>' +
+      '<div class="mt-cn-note-row">' +
+        '<label><input type="checkbox" id="mtupdcur-' + id + '" checked> Set as current status</label>' +
+        '<button class="mt-btn mt-btn-save" style="flex:0 0 auto;padding:8px 14px;font-size:12px;margin-left:auto" onclick="addMaintNote(\''+id+'\')">Add Note</button>' +
+      '</div>' +
+    '</div>';
+}
+
+function toggleCnBlock(id){
+  var el = document.getElementById('cn-' + id);
+  if(el) el.classList.toggle('show');
+}
+
+function assignMaint(caseId, person){
+  fetch(WORKER_URL + '/case/assign', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: caseId, team: 'maintenance', person: person || null, assignedBy: agentName || 'Maintenance' })
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error){ alert('Could not assign: ' + d.error); return; }
+      refresh();
+    })
+    .catch(function(){ alert('Network error.'); });
+}
+
+function addMaintNote(caseId){
+  var ta = document.getElementById('mtnote-' + caseId);
+  var cb = document.getElementById('mtupdcur-' + caseId);
+  if(!ta) return;
+  var text = ta.value.trim();
+  if(!text){ ta.focus(); return; }
+  fetch(WORKER_URL + '/case/note', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: caseId, text: text, author: agentName || 'Maintenance',
+      team: 'maintenance', type: 'note',
+      updateCurrentNote: cb ? cb.checked : false
+    })
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error){ alert('Could not save note: ' + d.error); return; }
+      ta.value = '';
+      refresh();
+    });
+}
 /* ───── ACTIONS ───── */
 function findItem(id){
   return maintenance.find(function(x){ return x.id === id; });

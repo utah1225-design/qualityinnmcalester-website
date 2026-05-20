@@ -801,6 +801,58 @@ input, textarea { font-family: inherit; }
   border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 700;
   cursor: pointer; font-family: inherit; }
 .dh-btn-close-maint:hover { opacity: 0.92; }
+
+/* CASE EXPANDED PANEL */
+.dh-case-panel { background: var(--paper-card); border: 1px solid var(--line);
+  border-radius: 10px; padding: 14px 16px; margin-top: 10px; }
+.dh-case-section { margin-bottom: 14px; }
+.dh-case-label { font-size: 10px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-mute); margin-bottom: 5px; }
+.dh-case-select { width: 100%; max-width: 240px; padding: 7px 9px;
+  border: 1px solid var(--line); border-radius: 6px; font-size: 13px;
+  background: var(--paper); outline: none; font-family: inherit; }
+.dh-case-select:focus { border-color: var(--accent); }
+.dh-case-current { background: var(--paper); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 10px; font-size: 13px;
+  color: var(--ink); font-style: italic; }
+.dh-case-current.empty { color: var(--ink-mute); font-style: italic; }
+.dh-case-note-input { width: 100%; padding: 8px 10px; border: 1px solid var(--line);
+  border-radius: 6px; font-size: 13px; outline: none; resize: vertical;
+  min-height: 56px; font-family: inherit; background: var(--paper); }
+.dh-case-note-input:focus { border-color: var(--accent); background: var(--paper-card); }
+.dh-case-note-row { display: flex; gap: 8px; align-items: center;
+  margin-top: 8px; flex-wrap: wrap; }
+.dh-case-note-row label { display: flex; gap: 4px; align-items: center;
+  font-size: 11px; color: var(--ink-soft); cursor: pointer; }
+.dh-case-note-row input[type=checkbox] { margin: 0; }
+.dh-case-note-btn { background: var(--brand); color: #fff; border: none;
+  border-radius: 6px; padding: 8px 14px; font-size: 12px; font-weight: 600;
+  cursor: pointer; margin-left: auto; }
+.dh-case-note-btn:hover { background: #1a2f52; }
+.dh-case-timeline { max-height: 260px; overflow-y: auto;
+  background: var(--paper); border: 1px solid var(--line-soft);
+  border-radius: 6px; padding: 8px 10px; }
+.dh-case-tl-item { padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+.dh-case-tl-item:last-child { border-bottom: none; }
+.dh-case-tl-meta { font-size: 10px; color: var(--ink-mute);
+  display: flex; gap: 6px; align-items: center; margin-bottom: 3px; }
+.dh-case-tl-author { font-weight: 700; color: var(--ink-soft); }
+.dh-case-tl-team-fd { color: var(--brand); }
+.dh-case-tl-team-mt { color: var(--warn); }
+.dh-case-tl-text { font-size: 13px; color: var(--ink); white-space: pre-wrap; }
+.dh-case-tl-type-reassign .dh-case-tl-text { color: var(--warn); font-style: italic; }
+.dh-case-tl-type-assign .dh-case-tl-text   { color: var(--brand); font-style: italic; }
+.dh-case-tl-type-open .dh-case-tl-text     { font-weight: 500; }
+
+/* Case card additions */
+.dh-case-card-meta { font-size: 11px; color: var(--ink-soft); margin-top: 6px;
+  display: flex; gap: 8px; flex-wrap: wrap; }
+.dh-case-current-inline { font-size: 12px; color: var(--ink-soft);
+  font-style: italic; margin-top: 6px; padding-left: 8px;
+  border-left: 2px solid var(--line); }
+.dh-case-expand-btn { background: none; border: none; color: var(--accent);
+  font-size: 11px; font-weight: 600; cursor: pointer; margin-top: 8px; padding: 0; }
+.dh-case-expand-btn:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
@@ -2006,6 +2058,145 @@ function ownerBadgeHtml(c){
   return '<span class="dh-badge" style="background:#e6edf7;color:var(--brand)">&#128100; Front Desk</span>';
 }
 
+/* ============================================================
+   CASE MANAGEMENT — notes timeline, person assignment, currentNote
+   ============================================================ */
+var STAFF_FD = [];
+var STAFF_MT = [];
+var EXPANDED_CASE_ID = null;
+
+function refreshStaffFromSettings(){
+  if(!SETTINGS_CACHE) return;
+  STAFF_FD = (SETTINGS_CACHE.frontDeskStaff || []).slice();
+  STAFF_MT = (SETTINGS_CACHE.maintenanceStaff || []).slice();
+}
+
+function staffOptionsHtml(team, selected){
+  var roster = team === 'maintenance' ? STAFF_MT : STAFF_FD;
+  var opts = '<option value="">(unassigned)</option>';
+  roster.forEach(function(name){
+    var sel = (name === selected) ? ' selected' : '';
+    opts += '<option value="' + esc(name) + '"' + sel + '>' + esc(name) + '</option>';
+  });
+  return opts;
+}
+
+function fmtTimeShort(iso){
+  if(!iso) return '';
+  var t = Date.parse(iso);
+  if(!t || isNaN(t)) return '';
+  var diff = Date.now() - t;
+  if(diff < 60000) return 'just now';
+  var m = Math.round(diff/60000);
+  if(m < 60) return m + 'm ago';
+  var h = Math.round(diff/3600000);
+  if(h < 24) return h + 'h ago';
+  var d = Math.round(diff/86400000);
+  return d + 'd ago';
+}
+
+function timelineHtml(c){
+  var notes = (c.notes || []).slice().reverse();
+  if(notes.length === 0){
+    return '<div class="dh-case-timeline"><div style="font-size:12px;color:var(--ink-mute);padding:6px 0">No timeline yet.</div></div>';
+  }
+  return '<div class="dh-case-timeline">' +
+    notes.map(function(n){
+      var teamCls = n.team === 'maintenance' ? 'dh-case-tl-team-mt' : 'dh-case-tl-team-fd';
+      var typeCls = 'dh-case-tl-type-' + (n.type || 'note');
+      return '<div class="dh-case-tl-item ' + typeCls + '">' +
+        '<div class="dh-case-tl-meta">' +
+          '<span class="dh-case-tl-author">' + esc(n.author || 'Unknown') + '</span>' +
+          '<span class="' + teamCls + '">(' + esc(n.team || 'frontDesk') + ')</span>' +
+          '<span>&middot; ' + esc(fmtTimeShort(n.at)) + '</span>' +
+        '</div>' +
+        '<div class="dh-case-tl-text">' + esc(n.text) + '</div>' +
+      '</div>';
+    }).join('') +
+    '</div>';
+}
+
+function expandedCasePanelHtml(c){
+  var owner = c.owner || 'frontDesk';
+  var assigned = (c.assignedTo && c.assignedTo.person) || '';
+  var currentNote = c.currentNote || '';
+  return '<div class="dh-case-panel">' +
+    '<div class="dh-case-section">' +
+      '<div class="dh-case-label">Current Status Note</div>' +
+      '<div class="dh-case-current' + (currentNote ? '' : ' empty') + '" id="curNote-' + esc(c.id) + '">' +
+        esc(currentNote || '(no current status — add a note below to set one)') +
+      '</div>' +
+    '</div>' +
+    '<div class="dh-case-section">' +
+      '<div class="dh-case-label">Assigned To (' + esc(owner === 'maintenance' ? 'Maintenance' : 'Front Desk') + ')</div>' +
+      '<select class="dh-case-select" id="assign-' + esc(c.id) + '" onchange="changeAssign(\''+esc(c.id)+'\', this.value)">' +
+        staffOptionsHtml(owner, assigned) +
+      '</select>' +
+    '</div>' +
+    '<div class="dh-case-section">' +
+      '<div class="dh-case-label">Timeline</div>' +
+      timelineHtml(c) +
+    '</div>' +
+    '<div class="dh-case-section">' +
+      '<div class="dh-case-label">Add a Note</div>' +
+      '<textarea class="dh-case-note-input" id="newNote-' + esc(c.id) + '" placeholder="What happened? What\'s the next step?"></textarea>' +
+      '<div class="dh-case-note-row">' +
+        '<label><input type="checkbox" id="updateCur-' + esc(c.id) + '" checked> Update Current Status Note</label>' +
+        '<button class="dh-case-note-btn" onclick="submitNote(\''+esc(c.id)+'\')">Add Note</button>' +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function changeAssign(caseId, personName){
+  var c = cases.find(function(x){ return x.id === caseId; });
+  if(!c) return;
+  var team = c.owner || 'frontDesk';
+  var who = (typeof getAgentName === 'function' ? getAgentName() : null) || 'Front Desk';
+  fetch(WORKER_URL + '/case/assign', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: caseId, team: team, person: personName || null, assignedBy: who })
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error){ alert('Could not assign: ' + d.error); return; }
+      if(typeof render === 'function') render();
+    });
+}
+
+function submitNote(caseId){
+  var ta = document.getElementById('newNote-' + caseId);
+  var cb = document.getElementById('updateCur-' + caseId);
+  if(!ta) return;
+  var text = ta.value.trim();
+  if(!text){ ta.focus(); return; }
+  var c = cases.find(function(x){ return x.id === caseId; });
+  if(!c) return;
+  var author = (typeof getAgentName === 'function' ? getAgentName() : null) || 'Front Desk';
+  var team = c.owner || 'frontDesk';
+  fetch(WORKER_URL + '/case/note', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: caseId,
+      text: text,
+      author: author,
+      team: team,
+      type: 'note',
+      updateCurrentNote: cb ? cb.checked : false
+    })
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error){ alert('Could not save note: ' + d.error); return; }
+      ta.value = '';
+      if(typeof render === 'function') render();
+    });
+}
+
+function toggleCaseExpanded(caseId){
+  EXPANDED_CASE_ID = (EXPANDED_CASE_ID === caseId) ? null : caseId;
+  if(typeof render === 'function') render();
+}
+
+
 
 
 /* ============================================================
@@ -2051,41 +2242,70 @@ function injectMaintExtras(){
 /* ── Cases view post-render: inject owner badge + reassign buttons ── */
 function injectCaseExtras(){
   if(typeof currentView === 'undefined' || currentView !== 'cases') return;
+  refreshStaffFromSettings();
   document.querySelectorAll('[data-case-id]').forEach(function(el){
-    if(el.querySelector('.dh-case-owner-injected')) return;
+    if(el.querySelector('.dh-case-injected')) return;
     var id = el.getAttribute('data-case-id');
-    /* find the case object */
     var c = (typeof cases !== 'undefined' && cases.find) ?
             cases.find(function(x){ return x.id === id; }) : null;
     if(!c) return;
     var owner = c.owner || 'frontDesk';
-    /* Add owner badge near the top */
-    var ownerWrap = document.createElement('div');
-    ownerWrap.className = 'dh-case-owner-injected';
-    ownerWrap.style.cssText = 'margin-top:6px';
-    ownerWrap.innerHTML = ownerBadgeHtml(c);
-    el.appendChild(ownerWrap);
-    /* Add reassignment button (opposite direction) */
+    var injectWrap = document.createElement('div');
+    injectWrap.className = 'dh-case-injected';
+
+    /* Top row: owner chip + assigned person */
+    var topRow = document.createElement('div');
+    topRow.className = 'dh-case-card-meta';
+    var assigned = (c.assignedTo && c.assignedTo.person) || 'unassigned';
+    topRow.innerHTML = ownerBadgeHtml(c) +
+      '<span style="color:var(--ink-soft)">&#128100; ' + esc(assigned) + '</span>';
+    injectWrap.appendChild(topRow);
+
+    /* Current status note inline */
+    if(c.currentNote){
+      var cn = document.createElement('div');
+      cn.className = 'dh-case-current-inline';
+      cn.textContent = c.currentNote;
+      injectWrap.appendChild(cn);
+    }
+
+    /* Expand button */
+    var expandBtn = document.createElement('button');
+    expandBtn.className = 'dh-case-expand-btn';
+    expandBtn.textContent = EXPANDED_CASE_ID === id ? '▼ Hide details' : '▶ Show details, notes & assignment';
+    expandBtn.onclick = function(ev){ ev.stopPropagation(); toggleCaseExpanded(id); };
+    injectWrap.appendChild(expandBtn);
+
+    /* Reassignment button row */
     if((c.status || '').toLowerCase() !== 'closed'){
       var btnWrap = document.createElement('div');
-      btnWrap.style.cssText = 'margin-top:10px;display:flex;gap:8px;flex-wrap:wrap';
+      btnWrap.style.cssText = 'margin-top:8px;display:flex;gap:8px;flex-wrap:wrap';
       if(owner === 'frontDesk'){
         var b = document.createElement('button');
         b.className = 'dh-btn';
-        b.style.cssText = 'background:var(--warn-soft);color:var(--warn);border-color:var(--warn-soft)';
+        b.style.cssText = 'background:var(--warn-soft);color:var(--warn);border-color:var(--warn-soft);font-size:12px';
         b.innerHTML = '&#128295; Reassign to Maintenance';
         b.onclick = function(){ reassignCase(id, 'maintenance'); };
         btnWrap.appendChild(b);
       } else {
         var b2 = document.createElement('button');
         b2.className = 'dh-btn';
-        b2.style.cssText = 'background:#e6edf7;color:var(--brand);border-color:#e6edf7';
+        b2.style.cssText = 'background:#e6edf7;color:var(--brand);border-color:#e6edf7;font-size:12px';
         b2.innerHTML = '&#8617; Pull back to Front Desk';
         b2.onclick = function(){ reassignCase(id, 'frontDesk'); };
         btnWrap.appendChild(b2);
       }
-      el.appendChild(btnWrap);
+      injectWrap.appendChild(btnWrap);
     }
+
+    /* Expanded panel */
+    if(EXPANDED_CASE_ID === id){
+      var panel = document.createElement('div');
+      panel.innerHTML = expandedCasePanelHtml(c);
+      injectWrap.appendChild(panel.firstChild);
+    }
+
+    el.appendChild(injectWrap);
   });
 }
 setInterval(function(){
