@@ -200,6 +200,13 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 .dh-sb-g-excellent{background:#e8f3ee;color:#2d6a4f}
 .dh-sb-g-good{background:#eef2f6;color:#3a5a78}
 .dh-sb-g-slow{background:#fdeede;color:#b7791f}
+
+.dh-takeover-btn{background:#c9964a;color:#0f1f3d;border:none;border-radius:22px;
+  padding:9px 18px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  margin-right:8px;transition:background .15s}
+.dh-takeover-btn:hover{background:#dbb069}
+.dh-takeover-btn.active{background:#2d6a4f;color:#fff}
+.dh-takeover-btn.active:hover{background:#235740}
 </style>
 </head>
 <body>
@@ -440,6 +447,30 @@ function lastStaffMsgAt(c){
   }
   return null;
 }
+
+/* Most recent activity timestamp for sorting — falls back through possible fields */
+function lastActivityMs(c){
+  if(!c) return 0;
+  if(c.messages && c.messages.length){
+    var last = c.messages[c.messages.length-1];
+    var t = last.atMs || Date.parse(last.at);
+    if(t && !isNaN(t)) return t;
+  }
+  if(c.updatedAt){
+    var u = Date.parse(c.updatedAt);
+    if(u && !isNaN(u)) return u;
+  }
+  if(c.startedAt){
+    var s = Date.parse(c.startedAt);
+    if(s && !isNaN(s)) return s;
+  }
+  if(c.archivedAt){
+    var a = Date.parse(c.archivedAt);
+    if(a && !isNaN(a)) return a;
+  }
+  return 0;
+}
+
 function formatDur(ms){
   var s = Math.round(ms/1000);
   if(s<60) return s+'s';
@@ -472,6 +503,41 @@ function badgeHtml(c){
   return '<span class="dh-status-badge '+cls+'"><span class="dh-sb-dot"></span>'
        + icon + ' ' + esc(s.label) + '</span>';
 }
+
+/* Take Over button — explicit control of AI vs human */
+function takeoverButtonHtml(c){
+  var isHuman = c.humanControlled === true;
+  return '<button class="dh-takeover-btn'+(isHuman?' active':'')+'" '+
+    'onclick="toggleTakeover(\''+c.id+'\')">'+
+    (isHuman ? '&#10003; You have the chat' : '&#9889; Take Over from Ayri') +
+  '</button>';
+}
+function toggleTakeover(id){
+  var c = conversations.find(function(x){return x.id===id;});
+  if(!c) return;
+  c.humanControlled = !c.humanControlled;
+  c.updatedAt = new Date().toISOString();
+  /* drop a system message into the conversation so the guest sees the state change */
+  var who = getAgentName() || 'Front desk';
+  var note = c.humanControlled
+    ? who + ' has taken over the chat. Ayri is standing by.'
+    : 'Ayri (AI concierge) is back online.';
+  c.messages = c.messages || [];
+  c.messages.push({
+    from:'system', text:note,
+    at: new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}),
+    atMs: Date.now()
+  });
+  /* persist to Worker */
+  if(WORKER_URL){
+    fetch(WORKER_URL+'/conversation',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(c)}).catch(function(){});
+  }
+  /* re-render the open conversation */
+  openConv(id);
+}
+
 
 /* archive logic */
 function isArchived(c){ return c && c.archived === true; }
@@ -684,6 +750,8 @@ function renderInbox(){
   renderScoreboard();
   var list=document.getElementById('convList');
   var filtered = conversations.filter(function(c){ return showArchived ? isArchived(c) : !isArchived(c); });
+  /* newest activity first */
+  filtered.sort(function(a,b){ return lastActivityMs(b) - lastActivityMs(a); });
   if(filtered.length===0){
     list.innerHTML='<div class="dh-empty">'+ (showArchived ? 'No archived conversations.' : 'No conversations yet.') +'</div>';
     return;
@@ -712,7 +780,10 @@ function openConv(id){
     :'<button class="dh-btn dh-btn-case" onclick="openCaseFromConv(\''+c.id+'\')">+ Open a Case</button>';
   view.innerHTML=
     '<div class="dh-view-h"><div><h2>'+esc(guestDisplay(c))+'</h2>'+
-      '<p>'+ badgeHtml(c) +' &middot; Room '+esc(roomDisplay(c))+'</p></div>'+caseBtn+'</div>'+
+      '<p>'+ badgeHtml(c) +' &middot; Room '+esc(roomDisplay(c))+'</p></div>'+
+      '<div style="display:flex;align-items:center">'+
+        takeoverButtonHtml(c) + caseBtn +
+      '</div></div>'+
     guestPanelHtml(c) +
     '<div class="dh-thread" id="thread"></div>'+
     '<div class="dh-ai-panel" id="aiPanel"></div>'+
@@ -1040,6 +1111,8 @@ function doRefresh(){
       var filtered = conversations.filter(function(c){
         return showArchived ? isArchived(c) : !isArchived(c);
       });
+      /* newest activity first */
+      filtered.sort(function(a,b){ return lastActivityMs(b) - lastActivityMs(a); });
       if(filtered.length===0){
         list.innerHTML='<div class="dh-empty">'+
           (showArchived ? 'No archived conversations.' : 'No conversations yet.')+

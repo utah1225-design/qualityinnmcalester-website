@@ -299,15 +299,28 @@ function send(){
   if(!text)return;
   addMsg(text,'user');
   input.value='';input.style.height='auto';
-  sendBtn.disabled=true;
-  typing.classList.add('show');
+  sendBtn.disabled=false;
   chat.scrollTop=chat.scrollHeight;
 
+  /* If human has taken over, do NOT call Ayri. Just save the message
+     so the dashboard sees it. */
+  if(session && session.humanControlled){
+    /* persist immediately so staff sees the new guest message */
+    if(WORKER_URL){
+      fetch(WORKER_URL+'/conversation',{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(session)}).catch(function(){});
+    }
+    return;
+  }
+
+  /* otherwise Ayri responds as usual */
+  sendBtn.disabled=true;
+  typing.classList.add('show');
   getReply(text).then(function(result){
     typing.classList.remove('show');
     addMsg(result.reply,'ai');
     sendBtn.disabled=false;
-    /* if the AI flagged this as an issue -> offer to open a case */
     if(result.flagAsCase && !session.caseOpened){
       offerCase(result.issueType||'service');
     }
@@ -511,6 +524,9 @@ function pollServerForNewMessages(){
       if(!data || !data.conversations) return;
       var server = data.conversations.find(function(x){ return x.id === session.id; });
       if(!server || !server.messages) return;
+
+      /* mirror humanControlled state so send() knows whether Ayri should reply */
+      session.humanControlled = server.humanControlled === true;
 
       /* build a set of message keys we ALREADY have locally */
       var localKeys = {};
