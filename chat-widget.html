@@ -174,16 +174,35 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
    ============================================================ */
 var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
 
-/* ── SMART PHONE ROUTING ──
-   In-house guests (room number known) get the direct in-house line.
-   Prospective bookers get the main reservation line. */
-var BOOKER_PHONE  = "(918) 426-8091";
-var INHOUSE_PHONE = "(918) 420-9537";
+/* ── SMART PHONE ROUTING — three lines, contextually picked ──
+   Reservations:   918-426-8091  (default — prospective bookers)
+   Group sales:    918-420-9126  (only when guest's last message implies a group inquiry)
+   Front desk:     918-420-9537  (when room# provided OR case opened) */
+var RESERVATION_PHONE = "(918) 426-8091";
+var GROUP_PHONE       = "(918) 420-9126";
+var FRONTDESK_PHONE   = "(918) 420-9537";
+
+function lastGuestText(){
+  if(!session || !session.messages) return '';
+  for(var i = session.messages.length - 1; i >= 0; i--){
+    if(session.messages[i].from === 'guest') return (session.messages[i].text || '').toLowerCase();
+  }
+  return '';
+}
+function looksLikeGroupInquiry(text){
+  if(!text) return false;
+  /* obvious group / event keywords */
+  return /\bgroup\b|\bwedding|\bblock of room|\b(corporate|company) (rate|block|booking)|\breception\b|\bconference\b|\bevent\b|\b(banquet|reunion)\b|\b(team|sports) (rate|block|booking)|\bmultiple rooms?\b|\b\d{1,2}\s*rooms?\b/.test(text);
+}
 function currentPhone(){
-  /* in-house if intro card captured a room, OR a case has been opened */
+  /* PRIORITY 1: in-house (room or case) -> front desk direct */
   var hasRoom = session && session.guestInfo && session.guestInfo.room;
   var hasCase = session && session.caseOpened;
-  return (hasRoom || hasCase) ? INHOUSE_PHONE : BOOKER_PHONE;
+  if(hasRoom || hasCase) return FRONTDESK_PHONE;
+  /* PRIORITY 2: detect group inquiry from the most recent guest message */
+  if(looksLikeGroupInquiry(lastGuestText())) return GROUP_PHONE;
+  /* DEFAULT: reservation line */
+  return RESERVATION_PHONE;
 }
 
 function updatePhoneDisplay(){
@@ -317,6 +336,8 @@ function send(){
   /* otherwise Ayri responds as usual */
   sendBtn.disabled=true;
   typing.classList.add('show');
+  /* refresh phone display in case this message implied a group inquiry */
+  updatePhoneDisplay();
   getReply(text).then(function(result){
     typing.classList.remove('show');
     addMsg(result.reply,'ai');
@@ -622,6 +643,24 @@ setInterval(checkIdle, 30000);
 window.addEventListener('load', function(){
   startPolling();
 });
+
+
+/* ── Pull idle/phone settings from Worker on page load (override defaults) ── */
+function applyRemoteSettings(){
+  if(!WORKER_URL) return;
+  fetch(WORKER_URL + '/settings').then(function(r){ return r.json(); })
+    .then(function(data){
+      var s = (data && data.settings) || {};
+      if(typeof s.idleWarnMs === 'number')  WARN_AT_MS  = s.idleWarnMs;
+      if(typeof s.idleCloseMs === 'number') CLOSE_AT_MS = s.idleCloseMs;
+      if(s.reservationPhone) RESERVATION_PHONE = s.reservationPhone;
+      if(s.groupPhone)       GROUP_PHONE       = s.groupPhone;
+      if(s.frontDeskPhone)   FRONTDESK_PHONE   = s.frontDeskPhone;
+      if(typeof updatePhoneDisplay === 'function') updatePhoneDisplay();
+    })
+    .catch(function(){ /* fall back to baked-in defaults */ });
+}
+applyRemoteSettings();
 
 </script>
 </body>

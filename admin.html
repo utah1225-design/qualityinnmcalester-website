@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="theme-color" content="#0f1f3d">
+<title>Admin Settings &mdash; Quality Inn McAlester</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #1a2233; --ink-soft: #4a5468; --ink-mute: #8a93a6;
+  --line: #e7e3da; --line-soft: #f0ece2;
+  --paper: #faf8f3; --paper-card: #ffffff;
+  --brand: #0f1f3d; --accent: #b88947;
+  --good: #2d6a4f; --good-soft: #e8f1ec;
+  --alert: #b03a3a; --alert-soft: #f6e3e0;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: 'Inter', -apple-system, sans-serif;
+  background: var(--paper); color: var(--ink);
+  font-size: 14px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+h1, h2, h3 { font-family: 'Playfair Display', Georgia, serif; font-weight: 600; margin: 0; }
+button { font-family: inherit; cursor: pointer; }
+input { font-family: inherit; font-size: 14px; }
+
+.ad-top { background: var(--brand); color: #fff; padding: 14px 24px;
+  display: flex; align-items: center; gap: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+.ad-logo { font-size: 22px; }
+.ad-title h1 { font-size: 17px; color: #fff; }
+.ad-title p { font-size: 11px; color: rgba(255,255,255,0.6); margin: 2px 0 0; }
+.ad-sign-out { margin-left: auto; background: rgba(255,255,255,0.1);
+  color: rgba(255,255,255,0.85); padding: 6px 12px; border-radius: 99px;
+  font-size: 11px; border: 1px solid rgba(255,255,255,0.15); }
+
+.ad-lock { position: fixed; inset: 0; background: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px; z-index: 200; }
+.ad-lock-card { background: var(--paper-card); border-radius: 16px;
+  padding: 32px 28px 26px; width: 100%; max-width: 380px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.25); }
+.ad-lock-icon { font-size: 32px; text-align: center; margin-bottom: 6px; opacity: 0.85; }
+.ad-lock-title { font-family: 'Playfair Display', Georgia, serif;
+  font-size: 22px; font-weight: 600; text-align: center; margin-bottom: 4px; }
+.ad-lock-sub { font-size: 12px; color: var(--ink-soft);
+  text-align: center; margin-bottom: 20px; }
+.ad-lock-input { width: 100%; padding: 13px; border: 1.5px solid var(--line);
+  border-radius: 8px; font-size: 15px; margin-bottom: 12px; outline: none; }
+.ad-lock-input:focus { border-color: var(--accent); }
+.ad-lock-btn { width: 100%; background: var(--brand); color: #fff; border: none;
+  border-radius: 8px; padding: 13px; font-size: 14px; font-weight: 600; }
+.ad-lock-err { color: var(--alert); font-size: 12px; margin-top: 8px;
+  text-align: center; min-height: 14px; }
+
+.ad-main { max-width: 740px; margin: 0 auto; padding: 28px 24px 60px; }
+.ad-page-h { margin-bottom: 28px; }
+.ad-page-h h2 { font-size: 24px; margin-bottom: 4px; }
+.ad-page-h p { color: var(--ink-soft); font-size: 13px; }
+
+.ad-section { background: var(--paper-card); border: 1px solid var(--line);
+  border-radius: 14px; padding: 22px 24px; margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(15,31,61,0.03); }
+.ad-section h3 { font-size: 16px; margin-bottom: 4px; color: var(--brand); }
+.ad-section-desc { font-size: 12px; color: var(--ink-mute); margin-bottom: 16px; }
+
+.ad-field { margin-bottom: 14px; }
+.ad-field label { display: block; font-size: 11px; font-weight: 700;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--ink-mute); margin-bottom: 5px; }
+.ad-input { width: 100%; max-width: 320px; padding: 9px 12px;
+  border: 1px solid var(--line); border-radius: 6px;
+  font-size: 14px; outline: none; background: var(--paper); }
+.ad-input:focus { border-color: var(--accent); background: var(--paper-card); }
+.ad-input-sm { max-width: 130px; }
+.ad-hint { font-size: 11px; color: var(--ink-mute); margin-top: 4px; }
+
+.ad-row { display: flex; gap: 14px; flex-wrap: wrap; }
+.ad-row .ad-field { flex: 1; min-width: 140px; margin-bottom: 0; }
+
+.ad-save-bar { position: sticky; bottom: 16px; background: var(--paper-card);
+  border: 1px solid var(--line); border-radius: 12px;
+  padding: 14px 18px; margin-top: 24px;
+  display: flex; align-items: center; gap: 12px;
+  box-shadow: 0 4px 14px rgba(15,31,61,0.08); }
+.ad-save-msg { flex: 1; font-size: 12px; color: var(--ink-mute); }
+.ad-save-msg.success { color: var(--good); font-weight: 600; }
+.ad-save-msg.error { color: var(--alert); font-weight: 600; }
+.ad-save-btn { background: var(--brand); color: #fff; border: none;
+  border-radius: 8px; padding: 10px 22px; font-size: 14px; font-weight: 600; }
+.ad-save-btn:hover { background: #1a2f52; }
+.ad-save-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ad-warning { background: var(--alert-soft); color: var(--alert);
+  border-radius: 8px; padding: 10px 14px; font-size: 12px;
+  margin-bottom: 14px; }
+</style>
+</head>
+<body>
+
+<div class="ad-lock" id="lockScreen">
+  <div class="ad-lock-card">
+    <div class="ad-lock-icon">&#128274;</div>
+    <div class="ad-lock-title">Admin Settings</div>
+    <div class="ad-lock-sub">Owner access only</div>
+    <input class="ad-lock-input" id="adminPassInput" type="password" placeholder="Admin passcode" autocomplete="off">
+    <button class="ad-lock-btn" id="adminUnlockBtn">Unlock</button>
+    <div class="ad-lock-err" id="adminLockErr"></div>
+  </div>
+</div>
+
+<div class="ad-top" id="topbar" style="display:none">
+  <div class="ad-logo">&#128274;</div>
+  <div class="ad-title">
+    <h1>Admin Settings</h1>
+    <p>Quality Inn &amp; Suites McAlester</p>
+  </div>
+  <button class="ad-sign-out" onclick="signOut()">Sign out</button>
+</div>
+
+<div class="ad-main" id="mainArea" style="display:none">
+  <div class="ad-page-h">
+    <h2>Configuration</h2>
+    <p>Changes save to all dashboards within seconds. Empty fields keep current values.</p>
+  </div>
+
+  <!-- PASSCODES -->
+  <div class="ad-section">
+    <h3>Passcodes</h3>
+    <div class="ad-section-desc">Change anytime — staff prompted to enter the new one on next sign-in.</div>
+
+    <div class="ad-field">
+      <label>Dashboard passcode (front desk)</label>
+      <input class="ad-input" id="fldDashPass">
+      <div class="ad-hint">Required to open the front desk console.</div>
+    </div>
+
+    <div class="ad-field">
+      <label>Maintenance passcode</label>
+      <input class="ad-input" id="fldMaintPass">
+      <div class="ad-hint">Required to open the maintenance log on a phone.</div>
+    </div>
+
+    <div class="ad-field">
+      <label>Admin passcode (this page)</label>
+      <input class="ad-input" id="fldAdminPass" type="password" placeholder="Leave blank to keep unchanged">
+      <div class="ad-hint">Type a new admin passcode here to rotate yours. Minimum 6 characters.</div>
+    </div>
+  </div>
+
+  <!-- RESPONSE TIERS -->
+  <div class="ad-section">
+    <h3>Response Time Tiers</h3>
+    <div class="ad-section-desc">Front desk reply speed grading shown as toasts and on the scoreboard.</div>
+    <div class="ad-row">
+      <div class="ad-field">
+        <label>Excellent (under min)</label>
+        <input class="ad-input ad-input-sm" id="fldExcellent" type="number" min="1" max="60">
+      </div>
+      <div class="ad-field">
+        <label>Slow (over min)</label>
+        <input class="ad-input ad-input-sm" id="fldSlow" type="number" min="1" max="60">
+      </div>
+      <div class="ad-field">
+        <label>Late (over min)</label>
+        <input class="ad-input ad-input-sm" id="fldLate" type="number" min="1" max="120">
+      </div>
+    </div>
+    <div class="ad-hint">Defaults: 3 / 10 / 20 minutes.</div>
+  </div>
+
+  <!-- IDLE TIMEOUT -->
+  <div class="ad-section">
+    <h3>Guest Chat Idle Timeout</h3>
+    <div class="ad-section-desc">When a guest stops typing for this long, the chat warns and then closes.</div>
+    <div class="ad-row">
+      <div class="ad-field">
+        <label>Warn after (min)</label>
+        <input class="ad-input ad-input-sm" id="fldIdleWarn" type="number" min="1" max="120">
+      </div>
+      <div class="ad-field">
+        <label>Close after (min)</label>
+        <input class="ad-input ad-input-sm" id="fldIdleClose" type="number" min="1" max="120">
+      </div>
+    </div>
+    <div class="ad-hint">Defaults: 10 min warn / 30 min close.</div>
+  </div>
+
+  <!-- PHONES -->
+  <div class="ad-section">
+    <h3>Phone Numbers</h3>
+    <div class="ad-section-desc">Ayri picks the right number based on the situation. Format: (XXX) XXX-XXXX.</div>
+
+    <div class="ad-field">
+      <label>Reservation line (default for bookers)</label>
+      <input class="ad-input" id="fldReservPhone">
+    </div>
+    <div class="ad-field">
+      <label>Group reservations (weddings, blocks, events)</label>
+      <input class="ad-input" id="fldGroupPhone">
+    </div>
+    <div class="ad-field">
+      <label>Front desk direct (in-house guests)</label>
+      <input class="ad-input" id="fldFrontPhone">
+    </div>
+  </div>
+
+  <div class="ad-save-bar">
+    <div class="ad-save-msg" id="saveMsg">Make any change above, then click Save.</div>
+    <button class="ad-save-btn" id="saveBtn" onclick="saveAll()">Save Changes</button>
+  </div>
+</div>
+
+<script>
+var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+var STORAGE_KEY = "qi_admin_session";
+var SESSION_HOURS = 30 * 24;  /* 30 days */
+
+var enteredPasscode = null;   /* held in window memory only */
+var settings = null;
+
+function loadSession(){
+  try {
+    var raw = sessionStorage.getItem(STORAGE_KEY);
+    if(!raw) return null;
+    var parsed = JSON.parse(raw);
+    if(Date.now() - parsed.at > SESSION_HOURS*3600*1000) return null;
+    return parsed.pass;
+  } catch(e){ return null; }
+}
+function saveSession(pass){
+  try {
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify({pass: pass, at: Date.now()}));
+  } catch(e){}
+}
+function clearSession(){
+  try { sessionStorage.removeItem(STORAGE_KEY); } catch(e){}
+}
+
+function signOut(){
+  clearSession();
+  enteredPasscode = null;
+  settings = null;
+  document.getElementById('topbar').style.display = 'none';
+  document.getElementById('mainArea').style.display = 'none';
+  document.getElementById('lockScreen').style.display = 'flex';
+  document.getElementById('adminPassInput').value = '';
+  document.getElementById('adminPassInput').focus();
+}
+
+document.getElementById('adminUnlockBtn').onclick = handleUnlock;
+document.getElementById('adminPassInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') handleUnlock();
+});
+
+function handleUnlock(){
+  var input = document.getElementById('adminPassInput');
+  var err = document.getElementById('adminLockErr');
+  var pass = input.value.trim();
+  if(!pass){ err.textContent = 'Enter the admin passcode.'; return; }
+  err.textContent = '';
+  fetch(WORKER_URL + '/admin-verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ passcode: pass })
+  }).then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.ok){
+        enteredPasscode = pass;
+        saveSession(pass);
+        startApp();
+      } else {
+        err.textContent = 'Incorrect admin passcode.';
+      }
+    })
+    .catch(function(){ err.textContent = 'Network error — try again.'; });
+}
+
+function startApp(){
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('topbar').style.display = 'flex';
+  document.getElementById('mainArea').style.display = 'block';
+  loadSettings();
+}
+
+function loadSettings(){
+  fetch(WORKER_URL + '/settings')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      settings = data.settings || {};
+      populateFields();
+    })
+    .catch(function(){
+      document.getElementById('saveMsg').textContent = 'Could not load settings.';
+      document.getElementById('saveMsg').className = 'ad-save-msg error';
+    });
+}
+
+function populateFields(){
+  document.getElementById('fldDashPass').value     = settings.dashboardPasscode || '';
+  document.getElementById('fldMaintPass').value    = settings.maintenancePasscode || '';
+  document.getElementById('fldAdminPass').value    = '';  /* blank = keep */
+  document.getElementById('fldExcellent').value    = Math.round((settings.excellentMs || 180000) / 60000);
+  document.getElementById('fldSlow').value         = Math.round((settings.slowMs      || 600000) / 60000);
+  document.getElementById('fldLate').value         = Math.round((settings.lateMs      || 1200000)/ 60000);
+  document.getElementById('fldIdleWarn').value     = Math.round((settings.idleWarnMs  || 600000) / 60000);
+  document.getElementById('fldIdleClose').value    = Math.round((settings.idleCloseMs || 1800000)/ 60000);
+  document.getElementById('fldReservPhone').value  = settings.reservationPhone || '';
+  document.getElementById('fldGroupPhone').value   = settings.groupPhone || '';
+  document.getElementById('fldFrontPhone').value   = settings.frontDeskPhone || '';
+}
+
+function saveAll(){
+  var btn = document.getElementById('saveBtn');
+  var msg = document.getElementById('saveMsg');
+  btn.disabled = true;
+  msg.className = 'ad-save-msg'; msg.textContent = 'Saving…';
+
+  var payload = {
+    dashboardPasscode:   document.getElementById('fldDashPass').value.trim() || settings.dashboardPasscode,
+    maintenancePasscode: document.getElementById('fldMaintPass').value.trim() || settings.maintenancePasscode,
+    excellentMs:         Math.max(60000, parseInt(document.getElementById('fldExcellent').value, 10) * 60000) || settings.excellentMs,
+    slowMs:              Math.max(60000, parseInt(document.getElementById('fldSlow').value, 10) * 60000) || settings.slowMs,
+    lateMs:              Math.max(60000, parseInt(document.getElementById('fldLate').value, 10) * 60000) || settings.lateMs,
+    idleWarnMs:          Math.max(60000, parseInt(document.getElementById('fldIdleWarn').value, 10) * 60000) || settings.idleWarnMs,
+    idleCloseMs:         Math.max(60000, parseInt(document.getElementById('fldIdleClose').value, 10) * 60000) || settings.idleCloseMs,
+    reservationPhone:    document.getElementById('fldReservPhone').value.trim() || settings.reservationPhone,
+    groupPhone:          document.getElementById('fldGroupPhone').value.trim() || settings.groupPhone,
+    frontDeskPhone:      document.getElementById('fldFrontPhone').value.trim() || settings.frontDeskPhone
+  };
+
+  var newAdmin = document.getElementById('fldAdminPass').value.trim();
+  if(newAdmin && newAdmin.length < 6){
+    msg.className = 'ad-save-msg error';
+    msg.textContent = 'New admin passcode must be at least 6 characters.';
+    btn.disabled = false;
+    return;
+  }
+
+  fetch(WORKER_URL + '/settings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      adminPasscode: enteredPasscode,
+      newAdminPasscode: newAdmin || undefined,
+      settings: payload
+    })
+  }).then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.error){
+        msg.className = 'ad-save-msg error';
+        msg.textContent = data.error;
+      } else {
+        settings = data.settings || settings;
+        if(newAdmin){
+          enteredPasscode = newAdmin;
+          saveSession(newAdmin);
+        }
+        document.getElementById('fldAdminPass').value = '';
+        msg.className = 'ad-save-msg success';
+        msg.textContent = 'Saved. Changes are live.';
+        setTimeout(function(){
+          msg.className = 'ad-save-msg';
+          msg.textContent = 'Make any change above, then click Save.';
+        }, 3500);
+      }
+    })
+    .catch(function(){
+      msg.className = 'ad-save-msg error';
+      msg.textContent = 'Network error — try again.';
+    })
+    .finally(function(){ btn.disabled = false; });
+}
+
+/* INIT */
+(function init(){
+  var saved = loadSession();
+  if(saved){
+    enteredPasscode = saved;
+    /* re-verify against the server in case admin passcode was changed elsewhere */
+    fetch(WORKER_URL + '/admin-verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ passcode: saved })
+    }).then(function(r){ return r.json(); })
+      .then(function(data){
+        if(data.ok) startApp();
+        else { clearSession(); document.getElementById('adminPassInput').focus(); }
+      })
+      .catch(function(){
+        document.getElementById('adminPassInput').focus();
+      });
+  } else {
+    setTimeout(function(){ document.getElementById('adminPassInput').focus(); }, 100);
+  }
+})();
+</script>
+</body>
+</html>

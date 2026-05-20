@@ -24,6 +24,8 @@ const HOTEL = {
   name: "Quality Inn & Suites McAlester on Hwy 69",
   shortName: "Quality Inn McAlester",
   phone: "(918) 426-8091",
+  groupPhone: "(918) 420-9126",
+  inHousePhone: "(918) 420-9537",
   address: "400 S George Nigh Expy, McAlester, OK 74501",
   checkIn: "3:00 PM",
   checkOut: "11:00 AM",
@@ -49,7 +51,10 @@ You are an AI assistant — never claim to be human. If asked, say you're Ayri, 
 HOTEL FACTS — use only these, never invent or guess:
 - Hotel: ${HOTEL.name}
 - Address: ${HOTEL.address}
-- Phone (front desk, 24/7): ${HOTEL.phone}
+- Phone numbers (pick the RIGHT one for each guest):
+    * Reservation line (default — new bookings, availability, rates): ${HOTEL.phone}
+    * Group reservations (weddings, room blocks, corporate groups, conferences, events, sports teams, multiple rooms): ${HOTEL.groupPhone}
+    * Front desk direct (in-house guests who provided a room number or are reporting an in-room issue): ${HOTEL.inHousePhone}
 - Check-in: ${HOTEL.checkIn} | Check-out: ${HOTEL.checkOut} | Front desk: ${HOTEL.frontDesk}
 - Breakfast: ${HOTEL.breakfast}
 - Parking: ${HOTEL.parking}
@@ -68,10 +73,16 @@ ABSOLUTE RULES:
 - Never discuss credit card numbers, CVV, or payment details over chat. Direct guests to the front desk.
 - Use the actual hotel name and facts above — they are accurate.
 
+PHONE NUMBER RULES — pick the right line for each scenario:
+- If the guest mentions a wedding, group, block of rooms, corporate booking, conference, sports team, event, reunion, or multiple rooms → give them the group reservations line: ${HOTEL.groupPhone}
+- If the guest has provided a room number, mentions their current stay, or is reporting an in-room problem → give them the front desk direct line: ${HOTEL.inHousePhone}
+- Otherwise (general questions, individual booking, rates, availability, walk-in style inquiries) → give them the reservation line: ${HOTEL.phone}
+- Give only ONE phone number per reply. Pick the right one for the situation.
+
 WHEN A GUEST REPORTS A PROBLEM (broken, maintenance, cleanliness, noise, safety):
 - Be empathetic. Acknowledge the issue.
 - Say you'll flag this for the front desk so a team member follows up.
-- Mention they can also call ${HOTEL.phone} for anything urgent.
+- Mention they can also call the front desk directly at ${HOTEL.inHousePhone} for anything urgent.
 
 WHEN A GUEST ASKS FOR A HUMAN / FRONT DESK / TO TALK TO SOMEONE:
 - Reply warmly and let them know you'll connect them. Example:
@@ -160,9 +171,29 @@ export default {
         return await saveMaintenance(request, env);
       }
 
-      /* ---- list maintenance log ---- */
+      /* ---- list maintenance log (open only) ---- */
       if (path === "/maintenance-log" && request.method === "GET") {
         return await listMaintenance(env);
+      }
+      if (path === "/maintenance-log-all" && request.method === "GET") {
+        return await listAllMaintenance(env);
+      }
+
+      /* ---- unified settings (admin + readers) ---- */
+      if (path === "/settings" && request.method === "GET") {
+        return await getSettings(env);
+      }
+      if (path === "/settings" && request.method === "POST") {
+        return await saveSettings(request, env);
+      }
+      if (path === "/admin-verify" && request.method === "POST") {
+        return await verifyAdmin(request, env);
+      }
+      if (path === "/maintenance-verify" && request.method === "POST") {
+        return await verifyMaintenance(request, env);
+      }
+      if (path === "/dashboard-verify" && request.method === "POST") {
+        return await verifyDashboard(request, env);
       }
 
       /* ---- health check ---- */
@@ -397,5 +428,97 @@ async function saveMaintenance(request, env) {
 
 async function listMaintenance(env) {
   const items = await readAll(env, "maint");
+  /* hide formally closed items — they live in KV for history but aren't shown */
+  const active = items.filter(function(m){ return m.closed !== true; });
+  return json({ maintenance: active });
+}
+
+async function listAllMaintenance(env) {
+  const items = await readAll(env, "maint");
   return json({ maintenance: items });
 }
+
+/* ============================================================
+   UNIFIED SETTINGS — front desk + maintenance + admin in one key.
+   Stored at KV key "settings".
+   ============================================================ */
+const SETTINGS_KEY  = "settings";
+const DEFAULT_SETTINGS = {
+  /* passcodes */
+  adminPasscode:        "McAlesterAdmin2026",
+  dashboardPasscode:    "frontdesk2026",
+  maintenancePasscode:  "iwillfixit",
+  /* response time tiers — milliseconds */
+  excellentMs:          180000,   /* 3 min */
+  slowMs:               600000,   /* 10 min */
+  lateMs:               1200000,  /* 20 min */
+  /* idle timeout — milliseconds */
+  idleWarnMs:           600000,   /* 10 min */
+  idleCloseMs:          1800000,  /* 30 min */
+  /* phone numbers */
+  reservationPhone:     "(918) 426-8091",
+  groupPhone:           "(918) 420-9126",
+  frontDeskPhone:       "(918) 420-9537"
+};
+
+async function readSettings(env) {
+  if (!env.HOTEL_KV) return DEFAULT_SETTINGS;
+  const raw = await env.HOTEL_KV.get(SETTINGS_KEY);
+  if (!raw) return DEFAULT_SETTINGS;
+  try {
+    const parsed = JSON.parse(raw);
+    return Object.assign({}, DEFAULT_SETTINGS, parsed);
+  } catch (e) {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+async function getSettings(env) {
+  const s = await readSettings(env);
+  /* return everything except the admin passcode — never expose it via GET */
+  const safe = Object.assign({}, s);
+  delete safe.adminPasscode;
+  return json({ settings: safe });
+}
+
+async function saveSettings(request, env) {
+  const body = await request.json();
+  /* require correct admin passcode in the request — server-side validated */
+  const current = await readSettings(env);
+  if ((body.adminPasscode || "") !== current.adminPasscode) {
+    return json({ error: "Admin passcode incorrect" }, 401);
+  }
+  const updated = body.settings || {};
+  /* allow rotating the admin passcode too if newAdminPasscode provided */
+  if (body.newAdminPasscode && body.newAdminPasscode.length >= 6) {
+    updated.adminPasscode = body.newAdminPasscode;
+  } else {
+    updated.adminPasscode = current.adminPasscode;
+  }
+  /* merge with defaults so missing fields keep current values */
+  const merged = Object.assign({}, current, updated);
+  await env.HOTEL_KV.put(SETTINGS_KEY, JSON.stringify(merged));
+  /* return the safe (no admin pass) version */
+  const safe = Object.assign({}, merged);
+  delete safe.adminPasscode;
+  return json({ ok: true, settings: safe });
+}
+
+async function verifyAdmin(request, env) {
+  const body = await request.json();
+  const s = await readSettings(env);
+  return json({ ok: (body.passcode || "") === s.adminPasscode });
+}
+
+async function verifyMaintenance(request, env) {
+  const body = await request.json();
+  const s = await readSettings(env);
+  return json({ ok: (body.passcode || "") === s.maintenancePasscode });
+}
+
+async function verifyDashboard(request, env) {
+  const body = await request.json();
+  const s = await readSettings(env);
+  return json({ ok: (body.passcode || "") === s.dashboardPasscode });
+}
+

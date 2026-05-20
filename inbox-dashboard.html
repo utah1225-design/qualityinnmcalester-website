@@ -744,9 +744,77 @@ input, textarea { font-family: inherit; }
   background: rgba(255,255,255,0.92) !important;
   border-color: var(--line) !important;
 }
+
+/* Take Over button — two-line label when active */
+.dh-takeover-btn.active {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 4px var(--s-4);
+  line-height: 1.15;
+  gap: 0;
+}
+.dh-tb-status {
+  font-size: 9px;
+  font-weight: 600;
+  opacity: 0.85;
+  letter-spacing: 0.03em;
+}
+.dh-tb-action {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  margin-top: 1px;
+}
+
+/* DASHBOARD PASSCODE GATE */
+.dh-dash-lock { position: fixed; inset: 0; background: var(--brand);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 2000; padding: 24px; }
+.dh-dash-lock-card { background: var(--paper-card); border-radius: 16px;
+  padding: 32px 28px 26px; width: 100%; max-width: 380px;
+  box-shadow: 0 10px 28px rgba(0,0,0,0.25); }
+.dh-dash-lock h3 { font-size: 22px; text-align: center; margin-bottom: 4px;
+  font-family: 'Playfair Display', Georgia, serif; }
+.dh-dash-lock p { font-size: 12px; color: var(--ink-soft);
+  text-align: center; margin-bottom: 20px; }
+.dh-dash-lock input { width: 100%; padding: 13px; border: 1.5px solid var(--line);
+  border-radius: 8px; font-size: 15px; margin-bottom: 12px; outline: none;
+  font-family: inherit; }
+.dh-dash-lock input:focus { border-color: var(--accent); }
+.dh-dash-lock-btn { width: 100%; background: var(--brand); color: #fff;
+  border: none; border-radius: 8px; padding: 13px; font-size: 14px;
+  font-weight: 600; cursor: pointer; font-family: inherit; }
+.dh-dash-lock-err { color: var(--alert); font-size: 12px; margin-top: 8px;
+  text-align: center; min-height: 14px; }
+
+/* MAINT PASSCODE BANNER */
+.dh-maint-pass-banner { background: var(--good-soft); color: var(--good);
+  border-radius: 8px; padding: 10px 14px; font-size: 13px;
+  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
+  border: 1px solid #c8e0d0; }
+.dh-maint-pass-banner code { background: rgba(45,106,79,0.1); padding: 3px 8px;
+  border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
+
+/* CLOSE button on Done maintenance */
+.dh-btn-close-maint { background: var(--good); color: #fff; border: none;
+  border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 700;
+  cursor: pointer; font-family: inherit; }
+.dh-btn-close-maint:hover { opacity: 0.92; }
 </style>
 </head>
 <body>
+<div class="dh-dash-lock" id="dashLockScreen" style="display:none">
+  <div class="dh-dash-lock-card">
+    <div style="font-size:32px;text-align:center;margin-bottom:6px;opacity:0.85">&#128274;</div>
+    <h3>Front Desk Console</h3>
+    <p>Enter the dashboard passcode to continue.</p>
+    <input id="dashPassInput" type="password" placeholder="Passcode" autocomplete="off">
+    <button class="dh-dash-lock-btn" id="dashUnlockBtn">Unlock</button>
+    <div class="dh-dash-lock-err" id="dashLockErr"></div>
+  </div>
+</div>
+
 <div class="dh-toast-wrap" id="toastWrap"></div>
 
 <div class="dh-top">
@@ -1044,9 +1112,14 @@ function badgeHtml(c){
 /* Take Over button — explicit control of AI vs human */
 function takeoverButtonHtml(c){
   var isHuman = c.humanControlled === true;
+  var label = isHuman
+    ? '<span class="dh-tb-status">&#10003; You have the chat</span>'+
+      '<span class="dh-tb-action">&#8617; Hand back to Ayri</span>'
+    : '&#9889; Take Over from Ayri';
   return '<button class="dh-takeover-btn'+(isHuman?' active':'')+'" '+
-    'onclick="toggleTakeover(\''+c.id+'\')">'+
-    (isHuman ? '&#10003; You have the chat' : '&#9889; Take Over from Ayri') +
+    'onclick="toggleTakeover(\''+c.id+'\')" '+
+    'title="'+(isHuman?'Click to give the chat back to Ayri':'Click to take over from Ayri')+'">'+
+    label +
   '</button>';
 }
 function toggleTakeover(id){
@@ -1808,15 +1881,180 @@ setInterval(function(){
   }
 }, 1000);
 
+
 /* ============================================================
-   INIT
+   SETTINGS — fetched from Worker once on load, cached in window
    ============================================================ */
-updateAgentTag();
-if(!loadAgent()){
-  promptAgentName().then(function(){ render(); scheduleNextPoll(); });
+var SETTINGS_CACHE = null;
+function loadSettings(){
+  return fetch(WORKER_URL + '/settings')
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      SETTINGS_CACHE = (data && data.settings) || {};
+      return SETTINGS_CACHE;
+    })
+    .catch(function(){ SETTINGS_CACHE = {}; return SETTINGS_CACHE; });
+}
+function settingMs(key, defMs){
+  if(SETTINGS_CACHE && typeof SETTINGS_CACHE[key] === 'number') return SETTINGS_CACHE[key];
+  return defMs;
+}
+function settingStr(key, def){
+  if(SETTINGS_CACHE && SETTINGS_CACHE[key]) return SETTINGS_CACHE[key];
+  return def;
+}
+
+/* ============================================================
+   DASHBOARD PASSCODE GATE — front desk console requires passcode
+   12-hour browser session keeps the door open across the shift
+   ============================================================ */
+var DASH_SESSION_HOURS = 12;
+function loadDashSession(){
+  try {
+    var raw = sessionStorage.getItem('qi_dash_session');
+    if(!raw) return false;
+    var p = JSON.parse(raw);
+    if(Date.now() - p.at > DASH_SESSION_HOURS*3600*1000) return false;
+    return true;
+  } catch(e){ return false; }
+}
+function saveDashSession(){
+  try { sessionStorage.setItem('qi_dash_session', JSON.stringify({at: Date.now()})); } catch(e){}
+}
+function clearDashSession(){
+  try { sessionStorage.removeItem('qi_dash_session'); } catch(e){}
+}
+function showDashLock(){
+  document.getElementById('dashLockScreen').style.display = 'flex';
+  setTimeout(function(){ document.getElementById('dashPassInput').focus(); }, 80);
+}
+function hideDashLock(){
+  document.getElementById('dashLockScreen').style.display = 'none';
+}
+function tryDashUnlock(){
+  var input = document.getElementById('dashPassInput');
+  var err = document.getElementById('dashLockErr');
+  var pass = input.value.trim();
+  if(!pass){ err.textContent = 'Enter the passcode.'; return; }
+  err.textContent = '';
+  fetch(WORKER_URL + '/dashboard-verify', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ passcode: pass })
+  }).then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data.ok){
+        saveDashSession();
+        hideDashLock();
+        bootApp();
+      } else {
+        err.textContent = 'Incorrect passcode.';
+      }
+    })
+    .catch(function(){ err.textContent = 'Network error.'; });
+}
+document.getElementById('dashUnlockBtn').onclick = tryDashUnlock;
+document.getElementById('dashPassInput').addEventListener('keydown', function(e){
+  if(e.key === 'Enter') tryDashUnlock();
+});
+
+/* ============================================================
+   MAINTENANCE — Inspect & Close (front desk action)
+   ============================================================ */
+function closeMaintItem(id){
+  var m = (typeof maintenance !== 'undefined' && maintenance.find) ?
+          maintenance.find(function(x){ return x.id === id; }) : null;
+  if(!m){
+    /* re-fetch and try again */
+    if(typeof loadData === 'function') loadData().then(function(){ closeMaintItem(id); });
+    return;
+  }
+  if(!confirm('Confirm the work is satisfactory and close this maintenance item?\n\nIt will be removed from the maintenance log.')) return;
+  m.closed = true;
+  m.closedAt = new Date().toISOString();
+  m.closedBy = (typeof getAgentName === 'function' ? getAgentName() : null) || 'Front Desk';
+  fetch(WORKER_URL + '/maintenance', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(m)
+  }).then(function(){ if(typeof render === 'function') render(); });
+}
+
+
+/* ============================================================
+   INIT — passcode gate first, then settings, then app
+   ============================================================ */
+
+/* ── Maintenance view post-render: inject passcode banner + Close buttons ── */
+function injectMaintExtras(){
+  if(typeof currentView === 'undefined' || currentView !== 'maint') return;
+  var body = document.getElementById('body');
+  if(!body) return;
+  /* find the maintenance list container — look for any element holding maint cards */
+  var existing = document.getElementById('maintPassBanner');
+  if(!existing){
+    var banner = document.createElement('div');
+    banner.id = 'maintPassBanner';
+    banner.className = 'dh-maint-pass-banner';
+    var pass = settingStr('maintenancePasscode', 'iwillfixit');
+    banner.innerHTML = '<span>&#128274;</span><span>Maintenance passcode (share with techs):</span>' +
+      '<code id="maintPassValue">' + esc(pass) + '</code>' +
+      '<button class="dh-btn" style="padding:4px 10px;font-size:11px;margin-left:auto" onclick="copyMaintPass()">Copy</button>';
+    var firstCard = body.querySelector('.dh-maint-card, .dh-case-card, .dh-empty');
+    if(firstCard && firstCard.parentNode){
+      firstCard.parentNode.insertBefore(banner, firstCard);
+    } else {
+      body.appendChild(banner);
+    }
+  }
+  /* Add Close buttons to Done items */
+  document.querySelectorAll('[data-maint-id]').forEach(function(el){
+    var id = el.getAttribute('data-maint-id');
+    var status = el.getAttribute('data-maint-status');
+    if(status && status.toLowerCase() === 'done' && !el.querySelector('.dh-btn-close-maint')){
+      var btn = document.createElement('button');
+      btn.className = 'dh-btn-close-maint';
+      btn.textContent = '✓ Inspect & Close';
+      btn.onclick = function(){ closeMaintItem(id); };
+      el.appendChild(btn);
+    }
+  });
+}
+function copyMaintPass(){
+  var v = document.getElementById('maintPassValue');
+  if(!v) return;
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(v.textContent).then(function(){
+      v.style.background = '#bce5cb';
+      setTimeout(function(){ v.style.background = ''; }, 800);
+    });
+  }
+}
+/* Hook injectMaintExtras after every render */
+setInterval(function(){
+  if(typeof currentView !== 'undefined' && currentView === 'maint'){
+    injectMaintExtras();
+  } else {
+    var b = document.getElementById('maintPassBanner');
+    if(b) b.remove();
+  }
+}, 600);
+
+function bootApp(){
+  loadSettings().then(function(){
+    updateAgentTag();
+    if(!loadAgent()){
+      promptAgentName().then(function(){ render(); scheduleNextPoll(); });
+    } else {
+      render();
+      scheduleNextPoll();
+    }
+  });
+}
+if(loadDashSession()){
+  bootApp();
 } else {
-  render();
-  scheduleNextPoll();
+  showDashLock();
 }
 </script>
 </body>
