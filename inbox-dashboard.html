@@ -223,6 +223,157 @@ function timeDisplay(c){
   return '';
 }
 
+/* ── v3 helpers: status badges, archive logic, guest details panel ── */
+
+function lastGuestMsgAt(c){
+  if(!c || !c.messages) return null;
+  for(var i=c.messages.length-1;i>=0;i--){
+    var m=c.messages[i];
+    if(m.from==='guest'){ return m.atMs || Date.parse(m.at) || null; }
+  }
+  return null;
+}
+function lastStaffMsgAt(c){
+  if(!c || !c.messages) return null;
+  for(var i=c.messages.length-1;i>=0;i--){
+    var m=c.messages[i];
+    if(m.from==='hotel'){ return m.atMs || Date.parse(m.at) || null; }
+  }
+  return null;
+}
+function formatDur(ms){
+  var s = Math.round(ms/1000);
+  if(s<60) return s+'s';
+  return Math.round(s/60)+'m';
+}
+function conversationStatus(c){
+  if(!c) return {state:'ai', label:'AI handling', waitMs:0};
+  var lastGuest = lastGuestMsgAt(c);
+  var lastStaff = lastStaffMsgAt(c);
+  if(!lastGuest) return {state:'ai', label:'AI handling', waitMs:0};
+  if(lastStaff && lastStaff > lastGuest){
+    var since = Date.now() - lastStaff;
+    return {state:'replied', label:'Replied ' + formatDur(since) + ' ago', waitMs:since};
+  }
+  var wait = Date.now() - lastGuest;
+  var min = Math.max(1, Math.round(wait/60000));
+  if(wait < 5*60*1000) return {state:'wait-low', label: min + ' min waiting', waitMs:wait};
+  if(wait < 10*60*1000) return {state:'wait-mid', label: min + ' min waiting', waitMs:wait};
+  return {state:'wait-high', label: min + ' min waiting', waitMs:wait};
+}
+function badgeHtml(c){
+  var s = conversationStatus(c);
+  var cls = s.state==='replied'   ? 'dh-sb-replied'
+          : s.state==='ai'        ? 'dh-sb-ai'
+          : s.state==='wait-low'  ? 'dh-sb-waiting-low'
+          : s.state==='wait-mid'  ? 'dh-sb-waiting-mid'
+          : 'dh-sb-waiting-high';
+  var icon = (s.state.indexOf('wait')===0) ? '&#9201;'
+           : s.state==='replied' ? '&#10003;' : '&#129302;';
+  return '<span class="dh-status-badge '+cls+'"><span class="dh-sb-dot"></span>'
+       + icon + ' ' + esc(s.label) + '</span>';
+}
+
+/* archive logic */
+function isArchived(c){ return c && c.archived === true; }
+function shouldAutoArchive(c){
+  if(!c || isArchived(c)) return false;
+  var info = c.guestInfo || {};
+  if(info.departureDate){
+    var dep = new Date(info.departureDate + 'T23:59:59');
+    if(!isNaN(dep) && Date.now() > dep.getTime()) return 'departure';
+  }
+  if(new Date().getDay() === 0){
+    var lastT = lastGuestMsgAt(c) || lastStaffMsgAt(c) || 0;
+    if(lastT && (Date.now() - lastT) > 7*24*3600*1000) return 'sunday-sweep';
+  }
+  return false;
+}
+function runArchiveSweep(){
+  if(!conversations || !conversations.forEach) return;
+  conversations.forEach(function(c){
+    var why = shouldAutoArchive(c);
+    if(why){
+      c.archived = true;
+      c.archivedAt = new Date().toISOString();
+      c.archivedReason = why;
+      if(WORKER_URL){
+        fetch(WORKER_URL+'/conversation',{method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(c)}).catch(function(){});
+      }
+    }
+  });
+}
+function archiveConversation(id){
+  var c = conversations.find(function(x){return x.id===id;});
+  if(!c) return;
+  if(!confirm('Archive this conversation? You can restore it from the Archive tab.')) return;
+  c.archived = true;
+  c.archivedAt = new Date().toISOString();
+  c.archivedReason = 'manual';
+  if(WORKER_URL){
+    fetch(WORKER_URL+'/conversation',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(c)}).catch(function(){});
+  }
+  activeConvId = null;
+  renderInbox();
+}
+function restoreConversation(id){
+  var c = conversations.find(function(x){return x.id===id;});
+  if(!c) return;
+  c.archived = false;
+  c.archivedAt = null;
+  if(WORKER_URL){
+    fetch(WORKER_URL+'/conversation',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(c)}).catch(function(){});
+  }
+  renderInbox();
+}
+
+/* guest details panel */
+function guestPanelHtml(c){
+  var info = c.guestInfo || {};
+  return '<div class="dh-guest-panel">'+
+    '<div class="dh-gp-field"><label>First name</label><input class="dh-gp-input dh-gp-w-name" id="gpFirst" value="'+esc(info.firstName||'')+'"></div>'+
+    '<div class="dh-gp-field"><label>Last name</label><input class="dh-gp-input dh-gp-w-name" id="gpLast" value="'+esc(info.lastName||'')+'"></div>'+
+    '<div class="dh-gp-field"><label>Room</label><input class="dh-gp-input dh-gp-w-room" id="gpRoom" value="'+esc(info.room||'')+'"></div>'+
+    '<div class="dh-gp-field"><label>Phone</label><input class="dh-gp-input dh-gp-w-phone" id="gpPhone" value="'+esc(info.phone||'')+'"></div>'+
+    '<div class="dh-gp-field"><label>Arrival</label><input type="date" class="dh-gp-input dh-gp-w-date" id="gpArr" value="'+esc(info.arrivalDate||'')+'"></div>'+
+    '<div class="dh-gp-field"><label>Departure</label><input type="date" class="dh-gp-input dh-gp-w-date" id="gpDep" value="'+esc(info.departureDate||'')+'"></div>'+
+    '<button class="dh-gp-save" id="gpSaveBtn">Save</button>'+
+    (isArchived(c)
+      ? '<button class="dh-gp-archive" onclick="restoreConversation(\''+c.id+'\')">Restore</button>'
+      : '<button class="dh-gp-archive" onclick="archiveConversation(\''+c.id+'\')">Archive</button>')+
+    '<span class="dh-gp-saved" id="gpSavedMsg" style="display:none">Saved</span>'+
+  '</div>';
+}
+function wireGuestPanel(c){
+  var btn = document.getElementById('gpSaveBtn');
+  if(!btn) return;
+  btn.onclick = function(){
+    c.guestInfo = c.guestInfo || {};
+    c.guestInfo.firstName     = document.getElementById('gpFirst').value.trim();
+    c.guestInfo.lastName      = document.getElementById('gpLast').value.trim();
+    c.guestInfo.room          = document.getElementById('gpRoom').value.trim();
+    c.guestInfo.phone         = document.getElementById('gpPhone').value.trim();
+    c.guestInfo.arrivalDate   = document.getElementById('gpArr').value;
+    c.guestInfo.departureDate = document.getElementById('gpDep').value;
+    if(WORKER_URL){
+      fetch(WORKER_URL+'/conversation',{method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(c)}).catch(function(){});
+    }
+    var saved = document.getElementById('gpSavedMsg');
+    if(saved){ saved.style.display='inline';
+      setTimeout(function(){ saved.style.display='none'; }, 1800); }
+    renderInbox();
+  };
+}
+
+
 /* ---- DEMO DATA (used when no Worker connected) ---- */
 var DEMO_CONVS=[
   {id:"c1",guest:"Guest 4821",room:"214",channel:"web",status:"attention",
