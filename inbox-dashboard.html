@@ -788,14 +788,6 @@ input, textarea { font-family: inherit; }
 .dh-dash-lock-err { color: var(--alert); font-size: 12px; margin-top: 8px;
   text-align: center; min-height: 14px; }
 
-/* MAINT PASSCODE BANNER */
-.dh-maint-pass-banner { background: var(--good-soft); color: var(--good);
-  border-radius: 8px; padding: 10px 14px; font-size: 13px;
-  margin-bottom: 14px; display: flex; align-items: center; gap: 10px;
-  border: 1px solid #c8e0d0; }
-.dh-maint-pass-banner code { background: rgba(45,106,79,0.1); padding: 3px 8px;
-  border-radius: 4px; font-family: 'JetBrains Mono', monospace; font-weight: 600; }
-
 /* CLOSE button on Done maintenance */
 .dh-btn-close-maint { background: var(--good); color: #fff; border: none;
   border-radius: 6px; padding: 7px 14px; font-size: 12px; font-weight: 700;
@@ -853,6 +845,34 @@ input, textarea { font-family: inherit; }
 .dh-case-expand-btn { background: none; border: none; color: var(--accent);
   font-size: 11px; font-weight: 600; cursor: pointer; margin-top: 8px; padding: 0; }
 .dh-case-expand-btn:hover { text-decoration: underline; }
+
+.dh-section-h-cases { font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--ink-mute); padding: 12px 4px 8px; }
+.dh-count { background: var(--neutral-soft); color: var(--ink-soft);
+  padding: 2px 8px; border-radius: 99px; font-size: 10px; margin-left: 4px; }
+
+/* Card aesthetic shared with maintenance.html */
+.mt-card { background: var(--paper-card); border: 1px solid var(--line);
+  border-radius: 12px; padding: 16px; margin-bottom: 10px;
+  box-shadow: 0 1px 3px rgba(15,31,61,0.04); }
+.mt-card-top { display: flex; justify-content: space-between; align-items: flex-start;
+  margin-bottom: 8px; gap: 10px; }
+.mt-room-l { font-size: 9px; font-weight: 700; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--ink-mute); margin-bottom: 2px; }
+.mt-room { font-family: 'Playfair Display', Georgia, serif; font-size: 26px;
+  font-weight: 600; color: var(--brand); line-height: 1; }
+.mt-card-id { font-family: 'JetBrains Mono', monospace; font-size: 10px;
+  color: var(--ink-mute); margin-top: 4px; }
+.mt-badge { font-size: 10px; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; padding: 4px 10px; border-radius: 99px;
+  display: inline-flex; align-items: center; gap: 4px; }
+.mt-b-open { background: var(--alert-soft); color: var(--alert); }
+.mt-b-progress { background: var(--warn-soft); color: var(--warn); }
+.mt-b-done { background: var(--good-soft); color: var(--good); }
+.mt-issue { font-size: 14px; line-height: 1.5; color: var(--ink); margin: 8px 0; }
+.mt-meta { font-size: 12px; color: var(--ink-soft);
+  display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.mt-meta b { color: var(--ink); font-weight: 600; }
 </style>
 </head>
 <body>
@@ -1635,47 +1655,206 @@ function openCaseFromConv(convId){
    ============================================================ */
 var caseFilter='all';
 function renderCases(){
-  var body=document.getElementById('body');
-  body.innerHTML='<div class="dh-panel">'+
-    '<div class="dh-panel-h"><h2>Guest Cases</h2>'+
-      '<div class="dh-filter">'+
-        '<button class="dh-fbtn'+(caseFilter==='all'?' active':'')+'" onclick="setCaseFilter(\'all\')">All</button>'+
-        '<button class="dh-fbtn'+(caseFilter==='Open'?' active':'')+'" onclick="setCaseFilter(\'Open\')">Open</button>'+
-        '<button class="dh-fbtn'+(caseFilter==='Resolved'?' active':'')+'" onclick="setCaseFilter(\'Resolved\')">Resolved</button>'+
-        '<button class="dh-fbtn'+(caseFilter==='Closed'?' active':'')+'" onclick="setCaseFilter(\'Closed\')">Closed</button>'+
-      '</div></div>'+
-    '<div id="caseList"></div></div>';
-  var list=document.getElementById('caseList');
-  var shown=cases.filter(function(c){return caseFilter==='all'||c.status===caseFilter;});
-  if(shown.length===0){
-    list.innerHTML='<div class="dh-empty"><div class="dh-empty-icon">&#128221;</div>'+
-      '<div>No cases in this category.</div></div>';return;
-  }
-  shown.forEach(function(c){
-    var sClass=c.status==='Open'?'dh-s-open':c.status==='Resolved'?'dh-s-resolved':'dh-s-closed';
-    var actions='';
-    if(c.status==='Open')
-      actions='<button class="dh-ca-btn dh-ca-resolve" onclick="caseAction(\''+c.id+'\',\'Resolved\')">Mark Resolved</button>';
-    else if(c.status==='Resolved')
-      actions='<button class="dh-ca-btn dh-ca-close" onclick="caseAction(\''+c.id+'\',\'Closed\')">'+
-              'Close (guest confirmed satisfied)</button>'+
-              '<button class="dh-ca-btn" onclick="caseAction(\''+c.id+'\',\'Open\')">Re-open</button>';
-    else
-      actions='<button class="dh-ca-btn" onclick="caseAction(\''+c.id+'\',\'Open\')">Re-open</button>';
-
-    var div=document.createElement('div');
-    div.className='dh-card';
-    div.innerHTML=
-      '<div class="dh-card-top"><div>'+
-        '<div class="dh-case-id">'+esc(c.id)+'</div>'+
-        '<div class="dh-case-guest">'+esc(c.firstName)+' '+esc(c.lastName)+'</div>'+
-        '<div class="dh-case-meta">Room '+esc(c.room)+' &middot; '+esc(c.phone)+'</div>'+
-      '</div><span class="dh-status '+sClass+'">'+esc(c.status)+'</span></div>'+
-      '<div class="dh-case-summary">'+esc(c.summary)+'</div>'+
-      '<span class="dh-case-type">'+esc(c.type)+'</span>'+
-      '<div class="dh-case-actions">'+actions+'</div>';
-    list.appendChild(div);
+  refreshStaffFromSettings();
+  var filter = window.__casesFilter || 'all';
+  var body = document.getElementById('body');
+  if(!body) return;
+  body.classList.remove('with-panel');
+  /* drop guest rail if it exists */
+  var gr = document.getElementById('guestRail'); if(gr) gr.remove();
+  /* filter cases */
+  var allCases = (typeof cases !== 'undefined') ? cases : [];
+  var visible = allCases.filter(function(c){ return c.closed !== true; });
+  var counts = {
+    all: visible.length,
+    open: visible.filter(function(c){ return statusKey(c) === 'open'; }).length,
+    inprogress: visible.filter(function(c){ return statusKey(c) === 'inprogress'; }).length,
+    done: visible.filter(function(c){ return statusKey(c) === 'done'; }).length
+  };
+  var byFilter = filter === 'all' ? visible : visible.filter(function(c){ return statusKey(c) === filter; });
+  /* sort: active (not done) first by createdAt asc; done at bottom by completedAt desc */
+  var active = byFilter.filter(function(c){ return statusKey(c) !== 'done'; });
+  var done   = byFilter.filter(function(c){ return statusKey(c) === 'done'; });
+  active.sort(function(a,b){
+    return (Date.parse(a.createdAt) || 0) - (Date.parse(b.createdAt) || 0);
   });
+  done.sort(function(a,b){
+    return (Date.parse(b.updatedAt) || 0) - (Date.parse(a.updatedAt) || 0);
+  });
+  body.innerHTML =
+    '<div class="dh-cases-h">' +
+      '<h2>Cases</h2>' +
+      '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
+        filterChipHtml('all','All',counts.all,filter) +
+        filterChipHtml('open','Open',counts.open,filter) +
+        filterChipHtml('inprogress','In Progress',counts.inprogress,filter) +
+        filterChipHtml('done','Done',counts.done,filter) +
+      '</div>' +
+    '</div>' +
+    '<div class="dh-cases-body" id="casesBody">' +
+      (active.length === 0 && done.length === 0
+        ? '<div class="dh-empty">No cases match this filter.</div>'
+        : (active.length > 0
+            ? '<div class="dh-section-h-cases">Active &middot; <span class="dh-count">'+active.length+'</span></div>' +
+              active.map(caseCardHtml).join('')
+            : '') +
+          (done.length > 0
+            ? '<div class="dh-section-h-cases" style="margin-top:24px">Done &middot; awaiting inspection <span class="dh-count">'+done.length+'</span></div>' +
+              done.map(caseCardHtml).join('')
+            : '')
+      ) +
+    '</div>';
+}
+function statusKey(c){
+  var s = (c.status || 'Open').toLowerCase();
+  if(s === 'in progress') return 'inprogress';
+  if(s === 'done' || s === 'resolved') return 'done';
+  return 'open';
+}
+function filterChipHtml(key, label, count, current){
+  var active = key === current ? ' active' : '';
+  return '<button class="dh-filter'+active+'" onclick="setCasesFilter(\''+key+'\')">'+label+' ('+count+')</button>';
+}
+function setCasesFilter(key){
+  window.__casesFilter = key;
+  renderCases();
+}
+function caseStatusBadge(c){
+  var key = statusKey(c);
+  if(key === 'inprogress') return '<span class="mt-badge mt-b-progress">In Progress</span>';
+  if(key === 'done')       return '<span class="mt-badge mt-b-done">Done</span>';
+  return '<span class="mt-badge mt-b-open">Open</span>';
+}
+function caseStatusButtons(c){
+  var id = esc(c.id);
+  var key = statusKey(c);
+  var owner = c.owner || 'frontDesk';
+  var buttons = [];
+  if(key === 'open'){
+    buttons.push(btn('Mark In Progress', "changeStatus('"+id+"','In Progress')", 'warn'));
+  }
+  if(key !== 'done'){
+    buttons.push(btn('Mark Done', "changeStatus('"+id+"','Done')", 'good'));
+  }
+  if(key === 'done'){
+    buttons.push(btn('✓ Inspect & Close', "inspectAndClose('"+id+"')", 'good-strong'));
+    buttons.push(btn('Reopen', "changeStatus('"+id+"','Open')", 'neutral'));
+  }
+  /* reassign button */
+  if(owner === 'frontDesk'){
+    buttons.push(btn('&#128295; Reassign to Maintenance', "reassignCase('"+id+"','maintenance')", 'warn-soft'));
+  } else {
+    buttons.push(btn('&#8617; Pull back to Front Desk', "reassignCase('"+id+"','frontDesk')", 'brand-soft'));
+  }
+  /* close (force close, even if not Done) */
+  if(key !== 'done'){
+    buttons.push(btn('Close', "forceClose('"+id+"')", 'neutral'));
+  }
+  return '<div class="dh-case-actions">' + buttons.join('') + '</div>';
+
+  function btn(label, onclick, variant){
+    var cls = 'dh-btn';
+    var style = '';
+    if(variant === 'warn')        style = 'background:var(--warn);color:#fff;border-color:var(--warn)';
+    if(variant === 'good')        style = 'background:var(--good);color:#fff;border-color:var(--good)';
+    if(variant === 'good-strong') style = 'background:var(--good);color:#fff;border-color:var(--good);font-weight:700';
+    if(variant === 'warn-soft')   style = 'background:var(--warn-soft);color:var(--warn);border-color:var(--warn-soft)';
+    if(variant === 'brand-soft')  style = 'background:#e6edf7;color:var(--brand);border-color:#e6edf7';
+    if(variant === 'neutral')     style = '';
+    return '<button class="'+cls+'" style="'+style+'" onclick="'+onclick+'">'+label+'</button>';
+  }
+}
+function caseCardHtml(c){
+  var id = esc(c.id);
+  var owner = c.owner || 'frontDesk';
+  var assigned = (c.assignedTo && c.assignedTo.person) || '';
+  var curNote = c.currentNote || '';
+  var issue = c.description || c.summary || c.currentNote || '(no description)';
+  var gname = c.guestName || ((c.firstName || '') + ' ' + (c.lastName || '')).trim() || '';
+  return '<div class="mt-card" data-case-id="'+id+'">' +
+    '<div class="mt-card-top">' +
+      '<div>' +
+        '<div class="mt-room-l">Room</div>' +
+        '<div class="mt-room">' + esc(c.room || '—') + '</div>' +
+      '</div>' +
+      '<div style="text-align:right">' +
+        caseStatusBadge(c) +
+        '<div class="mt-card-id">' + id + '</div>' +
+        '<div style="margin-top:6px">' + ownerBadgeHtml(c) + '</div>' +
+        '<div style="margin-top:4px;font-size:11px;color:var(--ink-soft)">&#128100; ' + esc(assigned || 'unassigned') + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="mt-issue">' + esc(issue) + '</div>' +
+    '<div class="mt-meta">' +
+      (gname ? '<span><b>Guest:</b> ' + esc(gname) + '</span>' : '') +
+      '<span><b>Opened:</b> ' + esc(fmtTimeShort(c.createdAt)) + '</span>' +
+    '</div>' +
+    /* always-expanded case management panel */
+    '<div class="dh-case-panel">' +
+      '<div class="dh-case-section">' +
+        '<div class="dh-case-label">Current Status Note</div>' +
+        '<div class="dh-case-current' + (curNote ? '' : ' empty') + '">' +
+          esc(curNote || '(no current status — add a note below to set one)') +
+        '</div>' +
+      '</div>' +
+      '<div class="dh-case-section">' +
+        '<div class="dh-case-label">Assigned To (' + (owner === 'maintenance' ? 'Maintenance' : 'Front Desk') + ')</div>' +
+        '<select class="dh-case-select" onchange="changeAssign(\''+id+'\', this.value)">' +
+          staffOptionsHtml(owner, assigned) +
+        '</select>' +
+      '</div>' +
+      '<div class="dh-case-section">' +
+        '<div class="dh-case-label">Timeline</div>' +
+        timelineHtml(c) +
+      '</div>' +
+      '<div class="dh-case-section">' +
+        '<div class="dh-case-label">Add a Note</div>' +
+        '<textarea class="dh-case-note-input" id="newNote-'+id+'" placeholder="What happened? What\'s the next step?"></textarea>' +
+        '<div class="dh-case-note-row">' +
+          '<label><input type="checkbox" id="updateCur-'+id+'" checked> Update Current Status Note</label>' +
+          '<button class="dh-case-note-btn" onclick="submitNote(\''+id+'\')">Add Note</button>' +
+        '</div>' +
+      '</div>' +
+    '</div>' +
+    caseStatusButtons(c) +
+  '</div>';
+}
+function changeStatus(caseId, newStatus){
+  var c = cases.find(function(x){ return x.id === caseId; });
+  if(!c) return;
+  /* warn if downgrading from In Progress to Open */
+  if((c.status||'').toLowerCase() === 'in progress' && newStatus === 'Open'){
+    if(!confirm('Reset status to Open? This will lose the In Progress state.')) return;
+  }
+  var who = (typeof getAgentName === 'function' ? getAgentName() : null) || 'Front Desk';
+  fetch(WORKER_URL + '/case/status', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: caseId, status: newStatus, changedBy: who, team: c.owner || 'frontDesk' })
+  }).then(function(r){ return r.json(); })
+    .then(function(d){
+      if(d.error){ alert(d.error); return; }
+      if(typeof doRefresh === 'function') doRefresh();
+    });
+}
+function inspectAndClose(caseId){
+  var c = cases.find(function(x){ return x.id === caseId; });
+  if(!c) return;
+  if(!confirm('Confirm the work is satisfactory and close this case? It will move out of the active list.')) return;
+  var who = (typeof getAgentName === 'function' ? getAgentName() : null) || 'Front Desk';
+  fetch(WORKER_URL + '/case/status', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: caseId, status: 'Closed', changedBy: who, team: 'frontDesk' })
+  }).then(function(r){ return r.json(); })
+    .then(function(){ if(typeof doRefresh === 'function') doRefresh(); });
+}
+function forceClose(caseId){
+  if(!confirm('Close this case without marking Done first? Use this only if the case was resolved out-of-band.')) return;
+  var who = (typeof getAgentName === 'function' ? getAgentName() : null) || 'Front Desk';
+  fetch(WORKER_URL + '/case/status', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id: caseId, status: 'Closed', changedBy: who, team: 'frontDesk' })
+  }).then(function(r){ return r.json(); })
+    .then(function(){ if(typeof doRefresh === 'function') doRefresh(); });
 }
 function setCaseFilter(f){caseFilter=f;renderCases();}
 function caseAction(id,newStatus){
@@ -1785,9 +1964,9 @@ function saveMaintToWorker(m){
    immediately catches up.
    ============================================================ */
 
-var POLL_ACTIVE    = 5000;     /* 5 seconds when actively used */
-var POLL_BACKGROUND= 60000;    /* 60 seconds when tab is hidden */
-var POLL_IDLE      = 300000;   /* 5 minutes when tab is visible but idle */
+var POLL_ACTIVE    = 15000;    /* 15 seconds when actively used (was 5s) */
+var POLL_BACKGROUND= -1;       /* -1 = stop polling when tab hidden (was 60000) */
+var POLL_IDLE      = -1;       /* -1 = stop polling when idle in tab (was 300s) */
 var IDLE_THRESHOLD = 60000;    /* 60s of no activity = idle */
 
 var lastActivity = Date.now();
@@ -1850,15 +2029,39 @@ function doRefresh(){
   }
 }
 
+
+/* When composer is focused, poll fast (5s). When tab is hidden, stop entirely.
+   Otherwise use normal active rate. */
+var POLL_COMPOSER = 5000;
+function isComposerFocused(){
+  var el = document.activeElement;
+  return el && el.id === 'composer';
+}
+function effectivePollMs(){
+  if(document.hidden) return -1;   /* -1 = stop */
+  if(isComposerFocused()) return POLL_COMPOSER;
+  return POLL_ACTIVE;
+}
+function onVisibilityChange(){
+  if(!document.hidden){
+    /* tab became visible — immediate refresh + resume polling */
+    if(typeof doRefresh === 'function') doRefresh();
+    if(typeof scheduleNextPoll === 'function') scheduleNextPoll();
+  }
+}
+document.addEventListener('visibilitychange', onVisibilityChange);
+
 function scheduleNextPoll(){
-  if(pollTimer) clearTimeout(pollTimer);
-  var s = currentPollState();
-  /* update the indicator badge if present */
-  updatePollIndicator(s.state);
-  pollTimer = setTimeout(function(){
-    doRefresh();
-    scheduleNextPoll();
-  }, s.interval);
+  if(window.__pollTimer){ clearTimeout(window.__pollTimer); window.__pollTimer = null; }
+  var nextMs = effectivePollMs();
+  if(nextMs < 0) return;  /* tab is hidden — don't reschedule */
+  window.__pollTimer = setTimeout(function(){
+    if(typeof doRefresh === 'function'){
+      doRefresh().finally(scheduleNextPoll);
+    } else {
+      scheduleNextPoll();
+    }
+  }, nextMs);
 }
 
 /* ---- activity detection — any input snaps us back to active mode ---- */
@@ -2203,116 +2406,7 @@ function toggleCaseExpanded(caseId){
    INIT — passcode gate first, then settings, then app
    ============================================================ */
 
-/* ── Maintenance view post-render: inject passcode banner + Close buttons ── */
-function injectMaintExtras(){
-  if(typeof currentView === 'undefined' || currentView !== 'maint') return;
-  var body = document.getElementById('body');
-  if(!body) return;
-  /* find the maintenance list container — look for any element holding maint cards */
-  var existing = document.getElementById('maintPassBanner');
-  if(!existing){
-    var banner = document.createElement('div');
-    banner.id = 'maintPassBanner';
-    banner.className = 'dh-maint-pass-banner';
-    var pass = settingStr('maintenancePasscode', 'iwillfixit');
-    banner.innerHTML = '<span>&#128274;</span><span>Maintenance passcode (share with techs):</span>' +
-      '<code id="maintPassValue">' + esc(pass) + '</code>' +
-      '<button class="dh-btn" style="padding:4px 10px;font-size:11px;margin-left:auto" onclick="copyMaintPass()">Copy</button>';
-    var firstCard = body.querySelector('.dh-maint-card, .dh-case-card, .dh-empty');
-    if(firstCard && firstCard.parentNode){
-      firstCard.parentNode.insertBefore(banner, firstCard);
-    } else {
-      body.appendChild(banner);
-    }
-  }
-  /* Add Close buttons to Done items */
-  document.querySelectorAll('[data-maint-id]').forEach(function(el){
-    var id = el.getAttribute('data-maint-id');
-    var status = el.getAttribute('data-maint-status');
-    if(status && status.toLowerCase() === 'done' && !el.querySelector('.dh-btn-close-maint')){
-      var btn = document.createElement('button');
-      btn.className = 'dh-btn-close-maint';
-      btn.textContent = '✓ Inspect & Close';
-      btn.onclick = function(){ closeMaintItem(id); };
-      el.appendChild(btn);
-    }
-  });
-}
 
-/* ── Cases view post-render: inject owner badge + reassign buttons ── */
-function injectCaseExtras(){
-  if(typeof currentView === 'undefined' || currentView !== 'cases') return;
-  refreshStaffFromSettings();
-  document.querySelectorAll('[data-case-id]').forEach(function(el){
-    if(el.querySelector('.dh-case-injected')) return;
-    var id = el.getAttribute('data-case-id');
-    var c = (typeof cases !== 'undefined' && cases.find) ?
-            cases.find(function(x){ return x.id === id; }) : null;
-    if(!c) return;
-    var owner = c.owner || 'frontDesk';
-    var injectWrap = document.createElement('div');
-    injectWrap.className = 'dh-case-injected';
-
-    /* Top row: owner chip + assigned person */
-    var topRow = document.createElement('div');
-    topRow.className = 'dh-case-card-meta';
-    var assigned = (c.assignedTo && c.assignedTo.person) || 'unassigned';
-    topRow.innerHTML = ownerBadgeHtml(c) +
-      '<span style="color:var(--ink-soft)">&#128100; ' + esc(assigned) + '</span>';
-    injectWrap.appendChild(topRow);
-
-    /* Current status note inline */
-    if(c.currentNote){
-      var cn = document.createElement('div');
-      cn.className = 'dh-case-current-inline';
-      cn.textContent = c.currentNote;
-      injectWrap.appendChild(cn);
-    }
-
-    /* Expand button */
-    var expandBtn = document.createElement('button');
-    expandBtn.className = 'dh-case-expand-btn';
-    expandBtn.textContent = EXPANDED_CASE_ID === id ? '▼ Hide details' : '▶ Show details, notes & assignment';
-    expandBtn.onclick = function(ev){ ev.stopPropagation(); toggleCaseExpanded(id); };
-    injectWrap.appendChild(expandBtn);
-
-    /* Reassignment button row */
-    if((c.status || '').toLowerCase() !== 'closed'){
-      var btnWrap = document.createElement('div');
-      btnWrap.style.cssText = 'margin-top:8px;display:flex;gap:8px;flex-wrap:wrap';
-      if(owner === 'frontDesk'){
-        var b = document.createElement('button');
-        b.className = 'dh-btn';
-        b.style.cssText = 'background:var(--warn-soft);color:var(--warn);border-color:var(--warn-soft);font-size:12px';
-        b.innerHTML = '&#128295; Reassign to Maintenance';
-        b.onclick = function(){ reassignCase(id, 'maintenance'); };
-        btnWrap.appendChild(b);
-      } else {
-        var b2 = document.createElement('button');
-        b2.className = 'dh-btn';
-        b2.style.cssText = 'background:#e6edf7;color:var(--brand);border-color:#e6edf7;font-size:12px';
-        b2.innerHTML = '&#8617; Pull back to Front Desk';
-        b2.onclick = function(){ reassignCase(id, 'frontDesk'); };
-        btnWrap.appendChild(b2);
-      }
-      injectWrap.appendChild(btnWrap);
-    }
-
-    /* Expanded panel */
-    if(EXPANDED_CASE_ID === id){
-      var panel = document.createElement('div');
-      panel.innerHTML = expandedCasePanelHtml(c);
-      injectWrap.appendChild(panel.firstChild);
-    }
-
-    el.appendChild(injectWrap);
-  });
-}
-setInterval(function(){
-  if(typeof currentView !== 'undefined' && currentView === 'cases'){
-    injectCaseExtras();
-  }
-}, 600);
 
 function copyMaintPass(){
   var v = document.getElementById('maintPassValue');

@@ -175,6 +175,7 @@ input, textarea { font-family: inherit; font-size: 16px; }
     <h1>Maintenance Log</h1>
     <p>Quality Inn &amp; Suites McAlester</p>
   </div>
+  <button class="mt-agent" id="refreshBtn" onclick="manualRefresh()" style="margin-right:6px">&#8635; Refresh</button>
   <button class="mt-agent" id="agentTag" onclick="signOut()">&#128100; <span id="agentName">—</span></button>
 </div>
 
@@ -185,7 +186,7 @@ input, textarea { font-family: inherit; font-size: 16px; }
   <div class="mt-section-h toggle" id="doneHeader" onclick="toggleDone()">Completed (last 24h) <span class="mt-count" id="doneCount">0</span></div>
   <div class="mt-collapsed" id="doneList"></div>
 
-  <div class="mt-refresh-note">Auto-refreshes every 15 seconds</div>
+  <div class="mt-refresh-note" id="lastUpdatedNote">Tap Refresh in the header to check for new work.</div>
 </div>
 
 <script>
@@ -291,7 +292,7 @@ function startApp(){
   document.getElementById('topbar').style.display = 'flex';
   document.getElementById('mainArea').style.display = 'block';
   refresh();
-  pollTimer = setInterval(refresh, REFRESH_MS);
+  /* no auto-refresh — manual button + after-action refresh only */
 }
 
 /* ───── DATA ───── */
@@ -306,15 +307,41 @@ function loadStaffList(){
     .catch(function(){ STAFF_MT = []; });
 }
 function refresh(){
-  loadStaffList().then(function(){
-    fetch(WORKER_URL + '/maintenance-log')
+  return loadStaffList().then(function(){
+    return fetch(WORKER_URL + '/maintenance-log')
       .then(function(r){ return r.json(); })
       .then(function(data){
         maintenance = (data && data.maintenance) || [];
         render();
+        updateLastUpdated();
       })
       .catch(function(){});
   });
+}
+function updateLastUpdated(){
+  var note = document.getElementById('lastUpdatedNote');
+  if(!note) return;
+  var t = new Date();
+  var h = t.getHours();
+  var mn = t.getMinutes();
+  var ampm = h >= 12 ? 'PM' : 'AM';
+  h = h % 12; if(h === 0) h = 12;
+  if(mn < 10) mn = '0' + mn;
+  note.textContent = 'Last updated ' + h + ':' + mn + ' ' + ampm + ' — tap Refresh to check for new work.';
+}
+function manualRefresh(){
+  var btn = document.getElementById('refreshBtn');
+  if(btn){
+    var orig = btn.innerHTML;
+    btn.innerHTML = '…';
+    btn.disabled = true;
+    refresh().finally(function(){
+      btn.innerHTML = orig;
+      btn.disabled = false;
+    });
+  } else {
+    refresh();
+  }
 }
 
 function statusBadge(m){

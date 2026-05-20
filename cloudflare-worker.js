@@ -186,6 +186,9 @@ export default {
       if (path === "/case/note" && request.method === "POST") {
         return await addCaseNote(request, env);
       }
+      if (path === "/case/status" && request.method === "POST") {
+        return await changeCaseStatus(request, env);
+      }
       if (path === "/case/assign" && request.method === "POST") {
         return await assignCaseToPerson(request, env);
       }
@@ -651,6 +654,39 @@ async function assignCaseToPerson(request, env) {
     });
   }
   c.updatedAt = new Date().toISOString();
+  await env.HOTEL_KV.put("case:" + c.id, JSON.stringify(c));
+  return json({ ok: true, case: c });
+}
+
+async function changeCaseStatus(request, env) {
+  const body = await request.json();
+  if (!body.id || !body.status) {
+    return json({ error: "id and status required" }, 400);
+  }
+  const raw = await env.HOTEL_KV.get("case:" + body.id);
+  if (!raw) return json({ error: "Case not found" }, 404);
+  const c = JSON.parse(raw);
+  const prev = c.status || "Open";
+  c.status = body.status;
+  c.updatedAt = new Date().toISOString();
+  /* "Closed" marks the case as closed and removes it from active views */
+  if (body.status === "Closed") {
+    c.closed = true;
+    c.closedAt = c.updatedAt;
+    c.closedBy = body.changedBy || "Front Desk";
+  } else if (prev === "Closed" && body.status !== "Closed") {
+    /* reopen: clear closed flag */
+    c.closed = false;
+    c.closedAt = null;
+  }
+  c.notes = c.notes || [];
+  c.notes.push({
+    author: body.changedBy || "System",
+    team: body.team || c.owner || "frontDesk",
+    text: "Status: " + prev + " → " + body.status,
+    type: "status",
+    at: c.updatedAt
+  });
   await env.HOTEL_KV.put("case:" + c.id, JSON.stringify(c));
   return json({ ok: true, case: c });
 }
