@@ -1035,27 +1035,28 @@ function doRefresh(){
       if(!list)return;
       var savedActive=activeConvId;
       list.innerHTML='';
-      if(conversations.length===0){
-        list.innerHTML='<div class="dh-empty">No conversations yet.</div>';
+      /* honor the current view filter (active vs archived) */
+      var showArchived = (currentView === 'archive');
+      var filtered = conversations.filter(function(c){
+        return showArchived ? isArchived(c) : !isArchived(c);
+      });
+      if(filtered.length===0){
+        list.innerHTML='<div class="dh-empty">'+
+          (showArchived ? 'No archived conversations.' : 'No conversations yet.')+
+          '</div>';
         return;
       }
-      conversations.forEach(function(c){
+      filtered.forEach(function(c){
         var last=c.messages[c.messages.length-1];
         var div=document.createElement('div');
         div.className='dh-conv'+(c.id===savedActive?' active':'');
         div.setAttribute('data-conv-id', c.id);
         div.onclick=function(){openConv(c.id);};
-        var badge=c.caseId
-          ?'<span class="dh-badge dh-b-case">Case '+esc(c.caseId)+'</span>'
-          :c.status==='attention'
-          ?'<span class="dh-badge dh-b-attn">Needs Help</span>'
-          :'<span class="dh-badge dh-b-web">Web Chat</span>';
         div.innerHTML=
-          (c.status==='attention'?'<div class="dh-attn-dot"></div>':'')+
           '<div class="dh-conv-top"><span class="dh-conv-name">'+esc(guestDisplay(c))+'</span>'+
             '<span class="dh-conv-time">'+esc(timeDisplay(c))+'</span></div>'+
           '<div class="dh-conv-prev">Room '+esc(roomDisplay(c))+' &middot; '+esc(last?last.text:'')+'</div>'+
-          badge;
+          '<div style="margin-top:6px">' + badgeHtml(c) + '</div>';
         list.appendChild(div);
       });
       /* if the OPEN conversation got new messages, append seamlessly */
