@@ -113,6 +113,48 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 
 .dh-empty-main{flex:1;display:flex;flex-direction:column;align-items:center;
   justify-content:center;color:#718096;text-align:center}
+
+.dh-bub-ai a, .dh-bub-staff a, .dh-bub-hotel a{color:#fdd28a;text-decoration:underline;word-break:break-all}
+.dh-bub-guest a{color:#c9964a;text-decoration:underline;word-break:break-all}
+
+/* GUEST DETAILS PANEL */
+.dh-guest-panel{background:#fff;border-bottom:1px solid #e2e0d8;padding:11px 18px;
+  display:flex;gap:9px;align-items:flex-end;flex-wrap:wrap;flex-shrink:0}
+.dh-gp-field{display:flex;flex-direction:column;min-width:0}
+.dh-gp-field label{font-size:9px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;
+  color:#718096;margin-bottom:3px}
+.dh-gp-input{border:1.5px solid #e2e0d8;border-radius:6px;padding:6px 9px;font-size:12px;
+  font-family:inherit;outline:none}
+.dh-gp-input:focus{border-color:#c9964a}
+.dh-gp-w-name{width:90px}
+.dh-gp-w-room{width:62px}
+.dh-gp-w-phone{width:120px}
+.dh-gp-w-date{width:115px}
+.dh-gp-save{background:#2d6a4f;color:#fff;border:none;border-radius:6px;padding:7px 14px;
+  font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;height:30px}
+.dh-gp-save:hover{background:#235740}
+.dh-gp-saved{color:#2d6a4f;font-size:11px;font-weight:600;margin-left:6px;align-self:center}
+.dh-gp-archive{background:#fff;color:#6b7280;border:1.5px solid #e2e0d8;border-radius:6px;
+  padding:7px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;height:30px}
+.dh-gp-archive:hover{border-color:#c0392b;color:#c0392b}
+
+/* STATUS BADGES — green/yellow/orange/red */
+.dh-status-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+  padding:3px 9px;border-radius:11px;text-transform:uppercase;letter-spacing:.04em}
+.dh-sb-replied{background:#e8f3ee;color:#2d6a4f}
+.dh-sb-ai{background:#eef2f6;color:#6b7280}
+.dh-sb-waiting-low{background:#fff7e0;color:#a17600}
+.dh-sb-waiting-mid{background:#ffe3c4;color:#9a4d00}
+.dh-sb-waiting-high{background:#fbd8d4;color:#a72020;animation:pulseRed 1.6s infinite}
+@keyframes pulseRed{0%,100%{opacity:1}50%{opacity:.55}}
+.dh-sb-dot{width:7px;height:7px;border-radius:50%;display:inline-block}
+.dh-sb-replied .dh-sb-dot{background:#2d6a4f}
+.dh-sb-ai .dh-sb-dot{background:#9aa3b0}
+.dh-sb-waiting-low .dh-sb-dot{background:#e0a900}
+.dh-sb-waiting-mid .dh-sb-dot{background:#d97a00}
+.dh-sb-waiting-high .dh-sb-dot{background:#c53030}
+
+/* ARCHIVE TAB BUTTON */
 </style>
 </head>
 <body>
@@ -127,6 +169,7 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
     <button class="dh-nav-btn active" data-view="inbox" onclick="nav(this)">&#128172; Inbox</button>
     <button class="dh-nav-btn" data-view="cases" onclick="nav(this)">&#128221; Cases</button>
     <button class="dh-nav-btn" data-view="maint" onclick="nav(this)">&#128295; Maintenance Log</button>
+    <button class="dh-nav-btn" data-view="archive" onclick="nav(this)">&#128189; Archive</button>
   </div>
 </div>
 
@@ -140,21 +183,28 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
    ============================================================ */
 var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";   /* e.g. https://qi-concierge.yourname.workers.dev */
 
+function linkify(s){return s.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');}
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
 function timeNow(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
 
 /* ---- robust display helpers — work for live AND demo conversation shapes ---- */
 function guestDisplay(c){
   if(!c) return 'Guest';
+  /* prefer guestInfo (set via intro card or staff edit) */
+  if(c.guestInfo){
+    var n = ((c.guestInfo.firstName||'') + ' ' + (c.guestInfo.lastName||'')).trim();
+    if(n) return n;
+  }
   if(c.guest && typeof c.guest === 'object'){
-    var n = ((c.guest.firstName||'') + ' ' + (c.guest.lastName||'')).trim();
-    return n || 'Web Guest';
+    var n2 = ((c.guest.firstName||'') + ' ' + (c.guest.lastName||'')).trim();
+    return n2 || 'Web Guest';
   }
   if(typeof c.guest === 'string' && c.guest) return c.guest;
   return 'Web Guest';
 }
 function roomDisplay(c){
   if(!c) return '—';
+  if(c.guestInfo && c.guestInfo.room) return c.guestInfo.room;
   if(c.room) return c.room;
   if(c.guest && typeof c.guest === 'object' && c.guest.room) return c.guest.room;
   return '—';
@@ -256,8 +306,8 @@ function nav(btn){
 }
 function render(){
   loadData().then(function(){
-    if(currentView==='inbox')renderInbox();
-    else if(currentView==='cases')renderCases();
+    if(currentView==='inbox' || currentView==='archive') renderInbox();
+    else if(currentView==='cases') renderCases();
     else renderMaint();
   });
 }
@@ -268,33 +318,37 @@ function render(){
 var activeConvId=null;
 function renderInbox(){
   var body=document.getElementById('body');
+  /* run archive sweep once per render */
+  runArchiveSweep();
+  var showArchived = (currentView === 'archive');
   body.innerHTML=
-    '<div class="dh-list"><div class="dh-list-h">Guest Conversations</div>'+
+    '<div class="dh-list"><div class="dh-list-h">' +
+      (showArchived ? 'Archived Conversations' : 'Guest Conversations') +
+    '</div>'+
       '<div id="convList"></div></div>'+
     '<div class="dh-view" id="convView">'+
       '<div class="dh-empty-main"><div class="dh-empty-icon">&#128172;</div>'+
-      '<h3>Select a conversation</h3></div></div>';
+      '<h3>Select a conversation</h3>'+
+      '<div style="margin-top:18px;width:100%;max-width:540px;padding:0 20px"><div id="scoreboardSlot"></div></div>'+
+      '</div></div>';
+  renderScoreboard();
   var list=document.getElementById('convList');
-  if(conversations.length===0){
-    list.innerHTML='<div class="dh-empty">No conversations yet.</div>';return;
+  var filtered = conversations.filter(function(c){ return showArchived ? isArchived(c) : !isArchived(c); });
+  if(filtered.length===0){
+    list.innerHTML='<div class="dh-empty">'+ (showArchived ? 'No archived conversations.' : 'No conversations yet.') +'</div>';
+    return;
   }
-  conversations.forEach(function(c){
+  filtered.forEach(function(c){
     var last=c.messages[c.messages.length-1];
     var div=document.createElement('div');
     div.className='dh-conv'+(c.id===activeConvId?' active':'');
     div.setAttribute('data-conv-id', c.id);
     div.onclick=function(){openConv(c.id);};
-    var badge=c.caseId
-      ?'<span class="dh-badge dh-b-case">Case '+esc(c.caseId)+'</span>'
-      :c.status==='attention'
-      ?'<span class="dh-badge dh-b-attn">Needs Help</span>'
-      :'<span class="dh-badge dh-b-web">Web Chat</span>';
     div.innerHTML=
-      (c.status==='attention'?'<div class="dh-attn-dot"></div>':'')+
       '<div class="dh-conv-top"><span class="dh-conv-name">'+esc(guestDisplay(c))+'</span>'+
         '<span class="dh-conv-time">'+esc(timeDisplay(c))+'</span></div>'+
       '<div class="dh-conv-prev">Room '+esc(roomDisplay(c))+' &middot; '+esc(last?last.text:'')+'</div>'+
-      badge;
+      '<div style="margin-top:6px">' + badgeHtml(c) + '</div>';
     list.appendChild(div);
   });
 }
@@ -308,7 +362,8 @@ function openConv(id){
     :'<button class="dh-btn dh-btn-case" onclick="openCaseFromConv(\''+c.id+'\')">+ Open a Case</button>';
   view.innerHTML=
     '<div class="dh-view-h"><div><h2>'+esc(guestDisplay(c))+'</h2>'+
-      '<p>Room '+esc(roomDisplay(c))+' &middot; Web Chat</p></div>'+caseBtn+'</div>'+
+      '<p>'+ badgeHtml(c) +' &middot; Room '+esc(roomDisplay(c))+'</p></div>'+caseBtn+'</div>'+
+    guestPanelHtml(c) +
     '<div class="dh-thread" id="thread"></div>'+
     '<div class="dh-ai-panel" id="aiPanel"></div>'+
     '<div class="dh-composer">'+
@@ -322,6 +377,7 @@ function openConv(id){
   input.addEventListener('keydown',function(e){
     if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendReply(c.id);}});
   document.getElementById('sendBtn').onclick=function(){sendReply(c.id);};
+  wireGuestPanel(c);
   /* update list highlight without redrawing whole inbox */
   document.querySelectorAll('.dh-conv').forEach(function(el){el.classList.remove('active');});
   var activeEl=document.querySelector('[data-conv-id="'+id+'"]');
@@ -702,11 +758,46 @@ function updatePollIndicator(state){
   el.style.color = colors[state] || '#9aa3b0';
 }
 
+
+/* Live status badge ticker — refreshes badges every second without re-rendering whole list */
+setInterval(function(){
+  if(currentView !== 'inbox' && currentView !== 'archive') return;
+  document.querySelectorAll('.dh-conv').forEach(function(el){
+    var id = el.getAttribute('data-conv-id');
+    if(!id) return;
+    var c = conversations.find(function(x){return x.id===id;});
+    if(!c) return;
+    var badgeWrap = el.querySelector('.dh-status-badge');
+    if(badgeWrap){
+      var temp = document.createElement('div');
+      temp.innerHTML = badgeHtml(c);
+      badgeWrap.parentNode.replaceChild(temp.firstChild, badgeWrap);
+    }
+  });
+  /* also update open conversation header badge */
+  if(activeConvId){
+    var c2 = conversations.find(function(x){return x.id===activeConvId;});
+    if(c2){
+      var headBadge = document.querySelector('.dh-view-h .dh-status-badge');
+      if(headBadge){
+        var temp = document.createElement('div');
+        temp.innerHTML = badgeHtml(c2);
+        headBadge.parentNode.replaceChild(temp.firstChild, headBadge);
+      }
+    }
+  }
+}, 1000);
+
 /* ============================================================
    INIT
    ============================================================ */
-render();
-scheduleNextPoll();
+updateAgentTag();
+if(!loadAgent()){
+  promptAgentName().then(function(){ render(); scheduleNextPoll(); });
+} else {
+  render();
+  scheduleNextPoll();
+}
 </script>
 </body>
 </html>

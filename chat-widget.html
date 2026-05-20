@@ -75,15 +75,78 @@ body{font-family:'DM Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-seri
 .cw-send:disabled{opacity:.4;cursor:not-allowed}
 
 .cw-foot{font-size:10px;color:#718096;text-align:center;padding:6px 14px;background:#faf7f2;flex-shrink:0}
+
+.cw-info-btn{background:rgba(255,255,255,0.12);border:none;color:#fff;
+  width:32px;height:32px;border-radius:50%;font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;font-family:inherit;
+  flex-shrink:0;transition:background .15s}
+.cw-info-btn:hover{background:rgba(255,255,255,0.22)}
+.cw-info-menu{position:absolute;top:62px;right:14px;background:#fff;
+  border:1px solid #e2e0d8;border-radius:10px;padding:6px;
+  box-shadow:0 6px 20px rgba(15,31,61,0.15);min-width:200px;z-index:50;
+  display:none}
+.cw-info-menu.open{display:block}
+.cw-info-link{display:block;padding:9px 12px;font-size:13px;color:#0f1f3d;
+  text-decoration:none;border-radius:6px;font-weight:500}
+.cw-info-link:hover{background:#faf7f2}
+.cw-info-head{font-size:10px;font-weight:700;color:#718096;text-transform:uppercase;
+  letter-spacing:.06em;padding:6px 12px 4px}
+/* clickable link inside chat bubble */
+.cw-ai a, .cw-staff a{color:#c9964a;text-decoration:underline;font-weight:600;
+  word-break:break-all}
+.cw-user a{color:#fdd28a;text-decoration:underline}
+
+.cw-intro-overlay{position:fixed;inset:0;background:rgba(15,31,61,0.6);display:flex;align-items:center;justify-content:center;z-index:200}
+.cw-intro-card{background:#fff;border-radius:16px;padding:24px 24px 20px;width:340px;max-width:92%;box-shadow:0 10px 32px rgba(15,31,61,0.25)}
+.cw-intro-title{font-family:'Playfair Display',Georgia,serif;font-size:18px;font-weight:700;color:#0f1f3d;line-height:1.3;margin-bottom:6px}
+.cw-intro-sub{font-size:12px;color:#718096;line-height:1.5;margin-bottom:16px}
+.cw-intro-row{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:9px}
+.cw-intro-input{width:100%;padding:10px 12px;border:1.5px solid #e2e0d8;border-radius:8px;font-size:13px;font-family:inherit;outline:none}
+.cw-intro-input:focus{border-color:#c9964a}
+.cw-intro-btns{display:flex;gap:8px;margin-top:14px}
+.cw-intro-primary{flex:1;background:#0f1f3d;color:#fff;border:none;border-radius:8px;padding:11px;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit}
+.cw-intro-primary:hover{background:#1a2f52}
+.cw-intro-skip{background:transparent;color:#718096;border:1.5px solid #e2e0d8;border-radius:8px;padding:11px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.cw-intro-skip:hover{border-color:#9aa3b0;color:#0f1f3d}
+.cw-intro-note{font-size:10px;color:#9aa3b0;text-align:center;margin-top:10px}
 </style>
 </head>
 <body>
+<div class="cw-intro-overlay" id="introOverlay" style="display:none">
+  <div class="cw-intro-card">
+    <div class="cw-intro-title">Welcome to Quality Inn &amp; Suites McAlester</div>
+    <div class="cw-intro-sub">Share a few details so we can serve you better &mdash; or skip and jump right in.</div>
+    <div class="cw-intro-row">
+      <input class="cw-intro-input" id="introFirst" placeholder="First name" autocomplete="given-name">
+      <input class="cw-intro-input" id="introLast" placeholder="Last name" autocomplete="family-name">
+    </div>
+    <div class="cw-intro-row">
+      <input class="cw-intro-input" id="introRoom" placeholder="Room number" inputmode="numeric">
+      <input class="cw-intro-input" id="introPhone" placeholder="Phone (optional)" inputmode="tel">
+    </div>
+    <div class="cw-intro-btns">
+      <button class="cw-intro-primary" id="introGo">Start chatting</button>
+      <button class="cw-intro-skip" id="introSkip">Skip</button>
+    </div>
+    <div class="cw-intro-note">All fields optional. Helps the front desk respond faster.</div>
+  </div>
+</div>
 
-<div class="cw-header">
+
+<div class="cw-header" style="position:relative">
   <div class="cw-logo">&#127976;</div>
   <div class="cw-htext">
     <div class="cw-hname">Quality Inn &amp; Suites McAlester</div>
-    <div class="cw-status"><span class="cw-dot"></span><span>Concierge &mdash; here to help</span></div>
+    <div class="cw-status"><span class="cw-dot"></span><span>Ayri &mdash; your digital concierge</span></div>
+  </div>
+  <button class="cw-info-btn" id="infoBtn" aria-label="More info" onclick="toggleInfoMenu()">&#9432;</button>
+  <div class="cw-info-menu" id="infoMenu">
+    <div class="cw-info-head">Hotel</div>
+    <a class="cw-info-link" href="https://www.qualityinnmcalester.com/guest-guide" target="_blank" rel="noopener">&#128214; Guest Guide</a>
+    <a class="cw-info-link" href="https://www.qualityinnmcalester.com/amenities" target="_blank" rel="noopener">&#10024; Amenities</a>
+    <a class="cw-info-link" href="https://www.qualityinnmcalester.com/gallery" target="_blank" rel="noopener">&#128247; Gallery</a>
+    <div class="cw-info-head" style="margin-top:4px">McAlester</div>
+    <a class="cw-info-link" href="https://www.qualityinnmcalester.com/explore" target="_blank" rel="noopener">&#128205; Local Attractions</a>
   </div>
 </div>
 
@@ -136,15 +199,38 @@ var quick=document.getElementById('quick');
 function esc(s){var d=document.createElement('div');d.textContent=s==null?'':s;return d.innerHTML;}
 function timeNow(){return new Date().toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});}
 
+
+/* turn http://... and https://... links in AI/staff messages into clickable anchors */
+function linkify(escapedText){
+  return escapedText.replace(
+    /(https?:\/\/[^\s<]+)/g,
+    '<a href="$1" target="_blank" rel="noopener">$1</a>'
+  );
+}
+function toggleInfoMenu(){
+  var m=document.getElementById('infoMenu');
+  if(m) m.classList.toggle('open');
+}
+document.addEventListener('click', function(e){
+  var menu=document.getElementById('infoMenu');
+  var btn=document.getElementById('infoBtn');
+  if(menu && menu.classList.contains('open') && !menu.contains(e.target) && e.target!==btn){
+    menu.classList.remove('open');
+  }
+});
+
 function addMsg(text,sender){
   var msg=document.createElement('div');
   msg.className='cw-msg cw-'+sender;
-  var label=sender==='ai'?'<div class="cw-label">&#129302; Concierge</div>'
+  var label=sender==='ai'?'<div class="cw-label">&#129302; Ayri</div>'
     :sender==='staff'?'<div class="cw-label">&#128100; Front Desk</div>':'';
+  /* For AI and staff messages, escape THEN linkify so URLs are clickable.
+     Guest/system messages stay plain-text only. */
+  var rendered = (sender==='ai' || sender==='staff') ? linkify(esc(text)) : esc(text);
   if(sender==='system'){
-    msg.innerHTML='<div>'+esc(text)+'</div>';
+    msg.innerHTML='<div>'+rendered+'</div>';
   }else{
-    msg.innerHTML=label+'<div>'+esc(text)+'</div><div class="cw-time">'+timeNow()+'</div>';
+    msg.innerHTML=label+'<div>'+rendered+'</div><div class="cw-time">'+timeNow()+'</div>';
   }
   chat.appendChild(msg);
   chat.scrollTop=chat.scrollHeight;
@@ -216,6 +302,7 @@ function localReply(text){
   else if(/park|rv|truck/.test(t))reply="Parking is "+HOTEL.parking+".";
   else if(/wi.?fi|internet|password/.test(t))reply="Our wi-fi is "+HOTEL.wifi+".";
   else if(/report a problem/.test(t))reply="I'm sorry to hear something's not right. Let's get this taken care of for you.";
+  else if(/help|human|front desk|staff|agent|person/.test(t))reply="Of course! I'm Ayri, the AI concierge \u2014 let me connect you with our front desk team. If they're with another guest right now, they'll be with you shortly. For anything urgent, you can also call "+HOTEL.phone+".";
   else if(issue)reply="I'm sorry to hear that. Let's get this taken care of — I'll open a case so our team follows up until it's resolved.";
   else if(/thank/.test(t))reply="You're very welcome! Enjoy your stay with us.";
   else reply="Thanks for your message! For anything I can't answer, our front desk is available 24/7 at "+HOTEL.phone+".";
@@ -315,12 +402,48 @@ input.addEventListener('keydown',function(e){
   if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();send();}});
 sendBtn.addEventListener('click',send);
 
-/* opening greeting */
-setTimeout(function(){
-  addMsg("Welcome to Quality Inn & Suites McAlester on Hwy 69! I'm your digital "+
-    "concierge. Ask me about breakfast, parking, check-out, or let me know if "+
-    "anything in your room needs attention.",'ai');
-},400);
+/* INTRO CARD: capture optional details before chat starts */
+(function initIntro(){
+  var overlay = document.getElementById('introOverlay');
+  if(!overlay) return;
+  overlay.style.display = 'flex';
+  function finish(captured){
+    if(captured && (captured.first||captured.last||captured.room||captured.phone)){
+      session.guestInfo = {
+        firstName: captured.first||'',
+        lastName:  captured.last||'',
+        room:      captured.room||'',
+        phone:     captured.phone||''
+      };
+      if(WORKER_URL){
+        fetch(WORKER_URL+'/conversation',{method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify(session)}).catch(function(){});
+      }
+    }
+    overlay.style.display='none';
+    var name = captured && captured.first ? captured.first : '';
+    var greet = name
+      ? ("Hi " + name + "! I'm Ayri, the AI concierge for Quality Inn & Suites McAlester on Hwy 69. How can I help you today?")
+      : "Hi! I'm Ayri, the AI concierge for Quality Inn & Suites McAlester on Hwy 69. I can help with breakfast times, parking, check-out, local recommendations, or anything else about your stay. If you need a human, just say so and I'll connect you with our front desk team.";
+    addMsg(greet, 'ai');
+  }
+  document.getElementById('introGo').onclick = function(){
+    finish({
+      first: document.getElementById('introFirst').value.trim(),
+      last:  document.getElementById('introLast').value.trim(),
+      room:  document.getElementById('introRoom').value.trim(),
+      phone: document.getElementById('introPhone').value.trim()
+    });
+  };
+  document.getElementById('introSkip').onclick = function(){ finish(null); };
+  ['introFirst','introLast','introRoom','introPhone'].forEach(function(id){
+    document.getElementById(id).addEventListener('keydown', function(e){
+      if(e.key==='Enter') document.getElementById('introGo').click();
+    });
+  });
+  setTimeout(function(){ document.getElementById('introFirst').focus(); }, 100);
+})();
 </script>
 </body>
 </html>
