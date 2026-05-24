@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="apple-touch-icon" sizes="192x192" href="assets/favicon-192.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
 <title>Accessibility | Quality Inn & Suites McAlester on Hwy 69</title>
 <meta name="description" content="Accessibility statement for Quality Inn & Suites McAlester on Hwy 69. ADA accommodations, accessible rooms, accessible parking, and contact information for accommodation requests.">
 <link rel="canonical" href="https://www.qualityinnmcalester.com/accessibility.html">
@@ -38,8 +42,14 @@ img{max-width:100%;display:block}
 
 /* ── NAV ── */
 .nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:68px;position:sticky;top:0;z-index:200;border-bottom:2px solid var(--gold)}
-.nav-logo-text{font-family:var(--font-display);font-size:15px;color:#fff;line-height:1.3}
-.nav-logo-text span{color:var(--gold)}
+.nav-logo-wrap{display:flex;align-items:center;gap:14px}
+.nav-brand-mark{height:42px;width:auto;display:block;flex-shrink:0}
+.nav-logo-text{font-family:var(--font-display);font-size:15px;color:#fff;line-height:1.3;display:inline-block}
+.nav-logo-text .nav-loc{color:var(--gold);display:block}
+@media (max-width:680px){
+  .nav-brand-mark{height:34px}
+  .nav-logo-text{font-size:13px}
+}
 .nav-links{display:flex;align-items:center;gap:24px}
 .nav-links a{font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);transition:color .15s}
 .nav-links a:hover,.nav-links a.active{color:#fff}
@@ -205,6 +215,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 .footer{background:#0a1628;padding:52px 5% 28px}
 .footer-inner{max-width:1100px;margin:0 auto}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
+.footer-brand-mark{height:38px;width:auto;display:block;margin-bottom:14px;opacity:0.95}
 .footer-brand .logo-text{font-family:var(--font-display);font-size:17px;color:#fff;margin-bottom:10px;line-height:1.3}
 .footer-brand .logo-text span{color:var(--gold)}
 .footer-brand p{font-size:13px;color:rgba(255,255,255,0.4);line-height:1.7;font-weight:300;max-width:260px;margin-bottom:16px}
@@ -334,7 +345,10 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 </head>
 <body>
 <nav class="nav">
-  <a href="index.html" class="nav-logo-text">Quality Inn &amp; Suites<br><span>McAlester on Hwy 69</span></a>
+  <a href="index.html" class="nav-logo-wrap" aria-label="Quality Inn & Suites McAlester on Hwy 69 home">
+  <img src="assets/logos/quality-inn-horizontal-white.png" alt="Quality Inn & Suites by Choice Hotels" class="nav-brand-mark">
+  <span class="nav-logo-text">Quality Inn &amp; Suites<br><span class="nav-loc">McAlester on Hwy 69</span></span>
+</a>
   <div class="nav-links">
     <a href="amenities.html">Amenities</a>
     <a href="extended-stay.html">Extended Stay</a>
@@ -430,6 +444,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
   <div class="footer-inner">
     <div class="footer-grid">
       <div class="footer-brand">
+        <img src="assets/logos/quality-inn-horizontal-white.png" alt="Quality Inn & Suites by Choice Hotels" class="footer-brand-mark">
         <div class="logo-text">Quality Inn &amp; Suites<br><span>McAlester on Hwy 69</span></div>
         <p>400 S George Nigh Expy<br>McAlester, OK 74501<br>(918) 426-8091<br>Choice Hotels · Family-Owned</p>
         <div class="footer-social">
