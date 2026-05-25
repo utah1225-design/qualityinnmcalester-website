@@ -153,7 +153,7 @@ input { font-family: inherit; font-size: 14px; }
     <h3>Staff Roster</h3>
     <div class="ad-section-desc">These names show up as the assigned-person dropdown on each case. Max 5 per team. Edit, add, or remove anytime.</div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px">
       <div>
         <div style="font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:10px">Front Desk</div>
         <div id="fdList"></div>
@@ -163,6 +163,11 @@ input { font-family: inherit; font-size: 14px; }
         <div style="font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:10px">Maintenance</div>
         <div id="mtList"></div>
         <button class="ad-input" id="mtAdd" style="background:var(--paper);border-style:dashed;cursor:pointer;width:100%;text-align:left;color:var(--accent);font-weight:600;margin-top:6px">+ Add maintenance member</button>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:10px">Housekeeping</div>
+        <div id="hkList"></div>
+        <button class="ad-input" id="hkAdd" style="background:var(--paper);border-style:dashed;cursor:pointer;width:100%;text-align:left;color:var(--accent);font-weight:600;margin-top:6px">+ Add housekeeping member</button>
       </div>
     </div>
   </div>
@@ -342,6 +347,7 @@ function loadSettings(){
 
 var rosterFD = [];
 var rosterMT = [];
+var rosterHK = [];
 var MAX_STAFF = 5;
 
 function renderRoster(){
@@ -355,28 +361,37 @@ function renderRoster(){
   }
   fdList.innerHTML = rosterFD.map(function(n,i){ return rowHtml(n,'fd',i); }).join('');
   mtList.innerHTML = rosterMT.map(function(n,i){ return rowHtml(n,'mt',i); }).join('');
+  var hkList = document.getElementById('hkList');
+  if(hkList) hkList.innerHTML = rosterHK.map(function(n,i){ return rowHtml(n,'hk',i); }).join('');
   document.getElementById('fdAdd').disabled = rosterFD.length >= MAX_STAFF;
   document.getElementById('mtAdd').disabled = rosterMT.length >= MAX_STAFF;
+  var hkAdd = document.getElementById('hkAdd');
+  if(hkAdd) hkAdd.disabled = rosterHK.length >= MAX_STAFF;
   if(rosterFD.length >= MAX_STAFF) document.getElementById('fdAdd').textContent = 'Max 5 reached';
   else document.getElementById('fdAdd').textContent = '+ Add front-desk member';
   if(rosterMT.length >= MAX_STAFF) document.getElementById('mtAdd').textContent = 'Max 5 reached';
   else document.getElementById('mtAdd').textContent = '+ Add maintenance member';
+  if(hkAdd){
+    if(rosterHK.length >= MAX_STAFF) hkAdd.textContent = 'Max 5 reached';
+    else hkAdd.textContent = '+ Add housekeeping member';
+  }
   /* wire inputs to update arrays on edit */
   document.querySelectorAll('[data-kind][data-idx]').forEach(function(el){
     el.oninput = function(){
       var kind = this.getAttribute('data-kind');
       var idx = parseInt(this.getAttribute('data-idx'), 10);
       if(kind === 'fd') rosterFD[idx] = this.value;
-      else rosterMT[idx] = this.value;
+      else if(kind === 'mt') rosterMT[idx] = this.value;
+      else rosterHK[idx] = this.value;
     };
   });
 }
 function escAttr(s){ return String(s||'').replace(/"/g,'&quot;'); }
 function removeStaff(kind, idx){
-  var name = kind === 'fd' ? rosterFD[idx] : rosterMT[idx];
+  var roster = kind === 'fd' ? rosterFD : (kind === 'mt' ? rosterMT : rosterHK);
+  var name = roster[idx];
   if(!confirm('Remove "' + (name||'(unnamed)') + '" from the roster?')) return;
-  if(kind === 'fd') rosterFD.splice(idx, 1);
-  else rosterMT.splice(idx, 1);
+  roster.splice(idx, 1);
   renderRoster();
 }
 document.getElementById('fdAdd').onclick = function(){
@@ -394,14 +409,22 @@ document.getElementById('mtAdd').onclick = function(){
   var inputs = document.querySelectorAll('[data-kind="mt"]');
   if(inputs.length) inputs[inputs.length-1].focus();
 };
+document.getElementById('hkAdd').onclick = function(){
+  if(rosterHK.length >= MAX_STAFF) return;
+  rosterHK.push('');
+  renderRoster();
+  var inputs = document.querySelectorAll('[data-kind="hk"]');
+  if(inputs.length) inputs[inputs.length-1].focus();
+};
 
 function populateFields(){
   document.getElementById('fldDashPass').value     = settings.dashboardPasscode || '';
   document.getElementById('fldDashRequire').checked  = settings.requireDashboardPasscode !== false;
   document.getElementById('fldAdminPass').value    = '';  /* blank = keep */
   /* staff rosters */
-  rosterFD = (settings.frontDeskStaff   || ['Front Desk 1','Front Desk 2','Front Desk 3']).slice(0, MAX_STAFF);
-  rosterMT = (settings.maintenanceStaff || ['Maintenance 1','Maintenance 2','Maintenance 3']).slice(0, MAX_STAFF);
+  rosterFD = (settings.frontDeskStaff    || ['Front Desk 1','Front Desk 2','Front Desk 3']).slice(0, MAX_STAFF);
+  rosterMT = (settings.maintenanceStaff  || ['Maintenance 1','Maintenance 2','Maintenance 3']).slice(0, MAX_STAFF);
+  rosterHK = (settings.housekeepingStaff || ['Housekeeping 1','Housekeeping 2','Housekeeping 3']).slice(0, MAX_STAFF);
   renderRoster();
   /* inbox polling */
   document.getElementById('fldInboxPoll').value    = Math.round((settings.inboxPollActiveMs   || 15000)/1000);
@@ -429,11 +452,13 @@ function saveAll(){
   /* trim + filter empty names from rosters before saving */
   var cleanFD = rosterFD.map(function(n){ return (n||'').trim(); }).filter(function(n){ return n.length > 0; });
   var cleanMT = rosterMT.map(function(n){ return (n||'').trim(); }).filter(function(n){ return n.length > 0; });
+  var cleanHK = rosterHK.map(function(n){ return (n||'').trim(); }).filter(function(n){ return n.length > 0; });
   var payload = {
     dashboardPasscode:        document.getElementById('fldDashPass').value.trim() || settings.dashboardPasscode,
     requireDashboardPasscode: document.getElementById('fldDashRequire').checked,
     frontDeskStaff:           cleanFD,
     maintenanceStaff:         cleanMT,
+    housekeepingStaff:        cleanHK,
     inboxPollActiveMs:   Math.min(60000, Math.max(5000, parseInt(document.getElementById('fldInboxPoll').value, 10) * 1000)) || settings.inboxPollActiveMs,
     inboxPollComposerMs: Math.min(10000, Math.max(3000, parseInt(document.getElementById('fldComposerPoll').value, 10) * 1000)) || settings.inboxPollComposerMs,
     excellentMs:         Math.max(60000, parseInt(document.getElementById('fldExcellent').value, 10) * 60000) || settings.excellentMs,
@@ -522,6 +547,7 @@ var DEFAULTS = {
   requireDashboardPasscode: true,
   frontDeskStaff:   ["Front Desk 1","Front Desk 2","Front Desk 3"],
   maintenanceStaff: ["Maintenance 1","Maintenance 2","Maintenance 3"],
+  housekeepingStaff: ["Housekeeping 1","Housekeeping 2","Housekeeping 3"],
   inboxPollActiveMs:   15000,
   inboxPollComposerMs: 5000,
   excellentMs:  180000,

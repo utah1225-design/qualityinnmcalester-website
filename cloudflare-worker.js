@@ -193,6 +193,25 @@ export default {
         return await assignCaseToPerson(request, env);
       }
 
+      /* ═══════════════════════════════════════════════════
+         SECTION — GUEST REQUESTS (V1.01)
+         Express checkouts, refunds, lost & found,
+         late checkout, housekeeping incidents.
+         All stored under request: KV pattern.
+         ═══════════════════════════════════════════════════ */
+      if (path === "/request" && request.method === "POST") {
+        return await saveRequest(request, env);
+      }
+      if (path === "/requests" && request.method === "GET") {
+        return await listRequests(env);
+      }
+      if (path === "/request/process" && request.method === "POST") {
+        return await processRequest(request, env);
+      }
+      if (path === "/request/archive" && request.method === "POST") {
+        return await archiveRequest(request, env);
+      }
+
       /* ---- unified settings (admin + readers) ---- */
       if (path === "/settings" && request.method === "GET") {
         return await getSettings(env);
@@ -220,6 +239,16 @@ export default {
     } catch (err) {
       return json({ error: err.message }, 500);
     }
+  },
+
+  /* ═══════════════════════════════════════════════════
+     CRON — auto-archives express_checkout requests > 48h.
+     Configure cron trigger via wrangler.toml or
+     Cloudflare dashboard: Workers → Settings → Triggers.
+     Suggested schedule: "0 * * * *" (hourly)
+     ═══════════════════════════════════════════════════ */
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(autoArchiveOldRequests(env));
   }
 };
 
@@ -331,14 +360,16 @@ function classifyIssue(text) {
    Reads go through the index (cheap GETs). Writes update it.
    ============================================================ */
 const INDEX_KEYS = {
-  conv:  "index:conv",
-  case:  "index:case",
-  maint: "index:maint"
+  conv:    "index:conv",
+  case:    "index:case",
+  maint:   "index:maint",
+  request: "index:request"
 };
 const PREFIXES = {
-  conv:  "conv:",
-  case:  "case:",
-  maint: "maint:"
+  conv:    "conv:",
+  case:    "case:",
+  maint:   "maint:",
+  request: "request:"
 };
 
 async function readIndex(env, kind) {
@@ -476,6 +507,101 @@ async function listAllMaintenance(env) {
 }
 
 /* ============================================================
+   GUEST REQUESTS (V1.01) — Express checkouts, refunds,
+   lost & found, late checkout, housekeeping incidents.
+   ============================================================
+   Same shape across all request types:
+     { id, type, status, createdAt, fields:{}, processedAt, processedBy }
+   Status flow: pending -> processed -> archived (or skip to archived)
+   ============================================================ */
+
+async function saveRequest(request, env) {
+  const r = await request.json();
+  if (!r.type) {
+    return json({ error: "type required (express_checkout | refund | lost_found | late_checkout | housekeeping_incident)" }, 400);
+  }
+  if (!r.id) r.id = "REQ-" + Date.now().toString().slice(-6);
+  r.createdAt = r.createdAt || new Date().toISOString();
+  r.status = r.status || "pending";
+  if (typeof r.fields !== "object" || r.fields === null) r.fields = {};
+  if (!("processedAt" in r)) r.processedAt = null;
+  if (!("processedBy" in r)) r.processedBy = null;
+  await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
+  await addToIndex(env, "request", r.id);
+  return json({ ok: true, id: r.id });
+}
+
+async function listRequests(env) {
+  const items = await readAll(env, "request");
+  /* return active (non-archived) for the dashboard view */
+  const active = items.filter(function(x){ return x && x.status !== "archived"; });
+  return json({ requests: active });
+}
+
+async function processRequest(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("request:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  r.status = "archived";              /* processed = immediately archived per design */
+  r.processedAt = new Date().toISOString();
+  r.processedBy = body.processedBy || "Unknown";
+  await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id, status: r.status });
+}
+
+async function archiveRequest(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("request:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  r.status = "archived";
+  r.processedAt = r.processedAt || new Date().toISOString();
+  r.processedBy = r.processedBy || (body.archivedBy || "Unknown");
+  await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id, status: r.status });
+}
+
+/* Auto-archive requests by type-specific age thresholds.
+   Called from the scheduled() cron handler below.
+   Rules:
+     express_checkout      -> 48 hours
+     housekeeping_incident -> 10 days
+   Other types are NOT auto-archived (front desk must process manually). */
+async function autoArchiveOldRequests(env) {
+  const items = await readAll(env, "request");
+  const now = Date.now();
+  const HOUR = 3600 * 1000;
+  const THRESHOLDS = {
+    express_checkout:      48 * HOUR,
+    housekeeping_incident: 10 * 24 * HOUR
+  };
+  let archived = 0;
+  for (const r of items) {
+    if (!r || r.status === "archived") continue;
+    const threshold = THRESHOLDS[r.type];
+    if (!threshold) continue;
+    const created = new Date(r.createdAt).getTime();
+    if (now - created > threshold) {
+      r.status = "archived";
+      r.processedAt = r.processedAt || new Date().toISOString();
+      r.processedBy = r.processedBy || ("Auto (" + Math.round(threshold / HOUR) + "h)");
+      await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
+      archived++;
+    }
+  }
+  return { archived };
+}
+
+/* Backwards-compat shim — old name still callable if anything references it */
+async function autoArchiveOldCheckouts(env) {
+  return autoArchiveOldRequests(env);
+}
+
+
+/* ============================================================
    UNIFIED SETTINGS — front desk + maintenance + admin in one key.
    Stored at KV key "settings".
    ============================================================ */
@@ -489,8 +615,9 @@ const DEFAULT_SETTINGS = {
   requireDashboardPasscode:   true,
   requireMaintenancePasscode: true,
   /* staff rosters — admin types these once, dropdown choices */
-  frontDeskStaff:   ["Front Desk 1","Front Desk 2","Front Desk 3"],
-  maintenanceStaff: ["Maintenance 1","Maintenance 2","Maintenance 3"],
+  frontDeskStaff:    ["Front Desk 1","Front Desk 2","Front Desk 3"],
+  maintenanceStaff:  ["Maintenance 1","Maintenance 2","Maintenance 3"],
+  housekeepingStaff: ["Housekeeping 1","Housekeeping 2","Housekeeping 3"],
   staffMaxPerTeam:  5,
   /* inbox polling — tunable from admin to balance quota vs responsiveness */
   inboxPollActiveMs:   15000,

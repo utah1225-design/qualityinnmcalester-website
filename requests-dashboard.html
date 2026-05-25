@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Requests Dashboard — Quality Inn & Suites McAlester</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
+<style>
+:root{
+  --bg:#f4f5f7;
+  --paper:#fafbfc;
+  --paper-card:#ffffff;
+  --ink:#1a1d24;
+  --ink-soft:#5a6273;
+  --ink-mute:#8d94a3;
+  --line:#e3e6ec;
+  --accent:#2c5f8d;
+  --accent-soft:#e8f0f7;
+  --brand:#2c5f8d;
+  --good:#1d9b6c;
+  --good-soft:#e3f5ec;
+  --warn:#c97a1a;
+  --warn-soft:#fdf1e1;
+  --alert:#c4493e;
+  --alert-soft:#fce8e6;
+  --topbar:#1a1d24;
+  --topbar-ink:#fafbfc;
+  --shadow:0 1px 2px rgba(0,0,0,0.04),0 2px 8px rgba(0,0,0,0.04);
+}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+
+/* TOPBAR */
+.rd-topbar{background:var(--topbar);color:var(--topbar-ink);padding:10px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #000}
+.rd-topbar-title{font-size:14px;font-weight:600;letter-spacing:0.01em}
+.rd-topbar-sub{font-size:11px;color:rgba(255,255,255,0.5)}
+.rd-agent{margin-left:auto;font-size:12px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:10px}
+.rd-refresh{background:none;border:none;color:rgba(255,255,255,0.85);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:4px}
+.rd-refresh:hover{background:rgba(255,255,255,0.1)}
+.rd-refresh:disabled{opacity:0.4;cursor:wait}
+.rd-updated{color:rgba(255,255,255,0.5);font-size:10px;margin-left:6px}
+
+/* MAIN */
+.rd-main{padding:18px 22px;max-width:1180px;margin:0 auto}
+.rd-h1{font-size:18px;font-weight:600;margin:0 0 4px 0}
+.rd-desc{font-size:13px;color:var(--ink-soft);margin-bottom:18px}
+
+/* FILTER CHIPS */
+.rd-chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.rd-chip{background:var(--paper-card);border:1px solid var(--line);border-radius:18px;padding:6px 14px;font-size:12px;font-weight:500;color:var(--ink-soft);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all 0.15s}
+.rd-chip:hover{border-color:var(--accent);color:var(--accent)}
+.rd-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.rd-chip-count{background:rgba(0,0,0,0.08);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600}
+.rd-chip.active .rd-chip-count{background:rgba(255,255,255,0.22);color:#fff}
+
+/* CARDS */
+.rd-list{display:flex;flex-direction:column;gap:10px}
+.rd-card{background:var(--paper-card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)}
+.rd-card-head{display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap}
+.rd-card-type{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:4px}
+.rd-type-checkout{background:#e3f5ec;color:#1d9b6c}
+.rd-type-refund{background:#fdf1e1;color:#c97a1a}
+.rd-type-lost-found{background:#e8f0f7;color:#2c5f8d}
+.rd-type-late-checkout{background:#f3eafa;color:#7344b0}
+.rd-type-housekeeping{background:#fce8e6;color:#c4493e}
+.rd-card-room{font-size:15px;font-weight:600;color:var(--ink)}
+.rd-card-name{font-size:13px;color:var(--ink-soft)}
+.rd-card-time{font-size:11px;color:var(--ink-mute);margin-left:auto}
+.rd-card-body{font-size:13px;color:var(--ink);margin:6px 0 10px;padding:8px 12px;background:var(--paper);border-radius:5px;border-left:3px solid var(--line)}
+.rd-card-body-row{margin-bottom:3px}
+.rd-card-body-row:last-child{margin-bottom:0}
+.rd-card-label{font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin-right:6px}
+.rd-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+.rd-btn{padding:6px 14px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid;font-family:inherit}
+.rd-btn-process{background:var(--good);color:#fff;border-color:var(--good)}
+.rd-btn-process:hover{background:#168558}
+.rd-btn-archive{background:var(--paper);color:var(--ink-soft);border-color:var(--line)}
+.rd-btn-archive:hover{background:#eef0f4}
+
+/* EMPTY STATE */
+.rd-empty{text-align:center;padding:60px 20px;color:var(--ink-mute);font-size:13px}
+.rd-empty-icon{font-size:32px;margin-bottom:10px;opacity:0.4}
+
+/* SIGN-IN MODAL */
+.rd-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000}
+.rd-modal{background:#fff;border-radius:10px;padding:26px 24px;width:min(380px,90vw);box-shadow:0 20px 50px rgba(0,0,0,0.3)}
+.rd-modal h3{margin:0 0 6px;font-size:17px}
+.rd-modal p{margin:0 0 16px;color:var(--ink-soft);font-size:13px}
+.rd-modal-input,.rd-modal-select{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;background:var(--paper-card)}
+.rd-modal-input:focus,.rd-modal-select:focus{border-color:var(--accent)}
+.rd-modal-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.rd-modal-btn:hover{background:#234e76}
+
+/* RESPONSIVE */
+@media (max-width:640px){
+  .rd-main{padding:14px}
+  .rd-chips{gap:6px}
+  .rd-chip{padding:5px 10px;font-size:11px}
+}
+</style>
+</head>
+<body>
+
+<div class="rd-topbar">
+  <div>
+    <div class="rd-topbar-title">Requests Dashboard</div>
+    <div class="rd-topbar-sub">Quality Inn &amp; Suites McAlester</div>
+  </div>
+  <div class="rd-agent">
+    <span id="agentTag"></span>
+    <button class="rd-refresh" id="refreshBtn" title="Refresh now">&#8635;</button>
+    <span class="rd-updated" id="updatedLabel"></span>
+  </div>
+</div>
+
+<div class="rd-main">
+  <h1 class="rd-h1">Active Guest Requests</h1>
+  <div class="rd-desc">Express checkouts, refunds, lost &amp; found, late checkouts, and housekeeping incidents. Mark processed when done.</div>
+
+  <div class="rd-chips" id="chips"></div>
+  <div class="rd-list" id="list"></div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────────────────
+   CONFIG
+   ───────────────────────────────────────────────────── */
+var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+var TYPE_META = {
+  express_checkout:      { label: "Express Checkout",       cssClass: "rd-type-checkout",      shortLabel: "Checkouts" },
+  refund:                { label: "Refund Request",          cssClass: "rd-type-refund",        shortLabel: "Refunds" },
+  lost_found:            { label: "Lost & Found",            cssClass: "rd-type-lost-found",    shortLabel: "Lost+Found" },
+  late_checkout:         { label: "Late Checkout",           cssClass: "rd-type-late-checkout", shortLabel: "Late Checkout" },
+  housekeeping_incident: { label: "Housekeeping Incident",   cssClass: "rd-type-housekeeping",  shortLabel: "Housekeeping" }
+};
+var TYPE_ORDER = ["express_checkout","refund","lost_found","late_checkout","housekeeping_incident"];
+
+/* ─────────────────────────────────────────────────────
+   STATE
+   ───────────────────────────────────────────────────── */
+var SETTINGS_CACHE = null;
+var REQUESTS = [];
+var activeFilter = "all";
+var agentName = null;
+
+/* ─────────────────────────────────────────────────────
+   HELPERS
+   ───────────────────────────────────────────────────── */
+function esc(s){
+  if(s == null) return "";
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeAgo(iso){
+  if(!iso) return "";
+  var t = new Date(iso).getTime();
+  var diff = Date.now() - t;
+  if(diff < 60000) return "just now";
+  if(diff < 3600000) return Math.round(diff/60000) + " min ago";
+  if(diff < 86400000) return Math.round(diff/3600000) + "h ago";
+  return Math.round(diff/86400000) + "d ago";
+}
+function loadAgent(){
+  try {
+    var raw = localStorage.getItem("rd_agent");
+    if(!raw) return null;
+    var data = JSON.parse(raw);
+    if(Date.now() - data.t > 12*3600*1000) return null;   /* 12h session */
+    return data.name;
+  } catch(e){ return null; }
+}
+function saveAgent(name){
+  try {
+    localStorage.setItem("rd_agent", JSON.stringify({name:name, t:Date.now()}));
+  } catch(e){}
+  agentName = name;
+}
+function updateAgentTag(){
+  document.getElementById("agentTag").textContent = agentName ? ("Signed in: " + agentName) : "";
+}
+
+/* ─────────────────────────────────────────────────────
+   LOAD SETTINGS (for roster dropdown)
+   ───────────────────────────────────────────────────── */
+function loadSettings(){
+  return fetch(WORKER_URL + "/settings")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      SETTINGS_CACHE = (data && data.settings) || {};
+    })
+    .catch(function(){ SETTINGS_CACHE = {}; });
+}
+
+/* ─────────────────────────────────────────────────────
+   SIGN-IN MODAL (dropdown from frontDeskStaff)
+   ───────────────────────────────────────────────────── */
+function promptAgentName(){
+  return new Promise(function(resolve){
+    var roster = (SETTINGS_CACHE && SETTINGS_CACHE.frontDeskStaff) || [];
+    var bg = document.createElement("div");
+    bg.className = "rd-modal-bg";
+    var hasRoster = roster.length > 0;
+    var optionsHtml = roster.map(function(n){ return '<option value="'+esc(n)+'">'+esc(n)+'</option>'; }).join('');
+    bg.innerHTML =
+      '<div class="rd-modal">' +
+        '<h3>Sign in</h3>' +
+        '<p>Pick your name so processed requests are tagged correctly.</p>' +
+        (hasRoster ?
+          '<select class="rd-modal-select" id="agentSelect">' +
+            '<option value="">— Pick a name —</option>' +
+            optionsHtml +
+            '<option value="__other__">Other (type a name)</option>' +
+          '</select>' : '') +
+        '<input class="rd-modal-input" id="agentInput" type="text" placeholder="' + (hasRoster ? 'Or type your name here' : 'Your first name') + '" autocomplete="off" style="' + (hasRoster ? 'display:none' : '') + '">' +
+        '<button class="rd-modal-btn" id="agentSubmit">Continue</button>' +
+      '</div>';
+    document.body.appendChild(bg);
+    var sel = document.getElementById("agentSelect");
+    var inp = document.getElementById("agentInput");
+    var btn = document.getElementById("agentSubmit");
+    if(sel){
+      sel.onchange = function(){
+        if(sel.value === "__other__"){
+          inp.style.display = "";
+          inp.value = "";
+          setTimeout(function(){ inp.focus(); }, 50);
+        } else {
+          inp.style.display = "none";
+          inp.value = "";
+        }
+      };
+      setTimeout(function(){ sel.focus(); }, 50);
+    } else {
+      setTimeout(function(){ inp.focus(); }, 50);
+    }
+    function finish(){
+      var name = "";
+      if(sel && sel.value && sel.value !== "__other__") name = sel.value.trim();
+      else if(inp) name = (inp.value || "").trim();
+      if(!name){
+        if(sel && !sel.value){ sel.focus(); }
+        else if(inp){ inp.focus(); }
+        return;
+      }
+      saveAgent(name);
+      updateAgentTag();
+      document.body.removeChild(bg);
+      resolve();
+    }
+    btn.onclick = finish;
+    if(inp) inp.addEventListener("keydown", function(e){ if(e.key === "Enter") finish(); });
+  });
+}
+
+/* ─────────────────────────────────────────────────────
+   FETCH + RENDER
+   ───────────────────────────────────────────────────── */
+function loadRequests(){
+  return fetch(WORKER_URL + "/requests")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      REQUESTS = (data && data.requests) || [];
+      /* newest first */
+      REQUESTS.sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+    })
+    .catch(function(e){ console.error("loadRequests failed:", e); REQUESTS = []; });
+}
+
+function renderChips(){
+  var counts = { all: REQUESTS.length };
+  TYPE_ORDER.forEach(function(t){ counts[t] = 0; });
+  REQUESTS.forEach(function(r){
+    if(counts[r.type] != null) counts[r.type]++;
+  });
+  var chips = [{key:"all", label:"All", count:counts.all}].concat(
+    TYPE_ORDER.map(function(t){
+      return { key:t, label:TYPE_META[t].shortLabel, count:counts[t] };
+    })
+  );
+  document.getElementById("chips").innerHTML = chips.map(function(c){
+    var active = c.key === activeFilter ? " active" : "";
+    return '<button class="rd-chip'+active+'" data-filter="'+c.key+'">' +
+      esc(c.label) +
+      '<span class="rd-chip-count">'+c.count+'</span>' +
+    '</button>';
+  }).join('');
+  /* wire chip clicks */
+  document.querySelectorAll(".rd-chip").forEach(function(btn){
+    btn.onclick = function(){
+      activeFilter = btn.getAttribute("data-filter");
+      renderChips();
+      renderList();
+    };
+  });
+}
+
+function renderList(){
+  var filtered = activeFilter === "all"
+    ? REQUESTS.slice()
+    : REQUESTS.filter(function(r){ return r.type === activeFilter; });
+
+  var listEl = document.getElementById("list");
+  if(filtered.length === 0){
+    listEl.innerHTML = '<div class="rd-empty"><div class="rd-empty-icon">✓</div>No active requests. New submissions appear here.</div>';
+    return;
+  }
+
+  listEl.innerHTML = filtered.map(function(r){
+    var meta = TYPE_META[r.type] || { label: r.type, cssClass: "" };
+    var f = r.fields || {};
+    var first = f.firstName || "";
+    var last  = f.lastName || f.last_name || "";
+    var name  = (first + " " + last).trim() || "—";
+    var room = f.roomNumber || f.room || "";
+    var roomLabel = room ? ("Room " + esc(room)) : "—";
+
+    /* Body content depends on type */
+    var bodyRows = [];
+    if(r.type === "express_checkout"){
+      if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
+      if(f.email) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Email</span>'+esc(f.email)+'</div>');
+      if(f.note) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Note</span>'+esc(f.note)+'</div>');
+    } else if(r.type === "refund"){
+      if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
+      if(f.email) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Email</span>'+esc(f.email)+'</div>');
+      if(f.requestedAmount) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Amount</span>$'+esc(f.requestedAmount)+'</div>');
+      if(f.reason) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Reason</span>'+esc(f.reason)+'</div>');
+    } else if(r.type === "lost_found"){
+      if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
+      if(f.email) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Email</span>'+esc(f.email)+'</div>');
+      if(f.item) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Item</span>'+esc(f.item)+'</div>');
+    } else if(r.type === "late_checkout"){
+      if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
+      if(f.requestedTime) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Requested</span>'+esc(f.requestedTime)+'</div>');
+    } else if(r.type === "housekeeping_incident"){
+      if(f.description) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Found</span>'+esc(f.description)+'</div>');
+      if(f.suggestedCharge != null) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Suggested $</span>'+esc(f.suggestedCharge)+'</div>');
+      if(f.reportedBy) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Reported by</span>'+esc(f.reportedBy)+'</div>');
+    }
+    var body = bodyRows.length ? '<div class="rd-card-body">'+bodyRows.join('')+'</div>' : '';
+
+    return '<div class="rd-card" data-id="'+esc(r.id)+'">' +
+      '<div class="rd-card-head">' +
+        '<span class="rd-card-type '+meta.cssClass+'">'+esc(meta.label)+'</span>' +
+        '<span class="rd-card-room">'+roomLabel+'</span>' +
+        '<span class="rd-card-name">'+esc(name)+'</span>' +
+        '<span class="rd-card-time">'+esc(timeAgo(r.createdAt))+'</span>' +
+      '</div>' +
+      body +
+      '<div class="rd-card-actions">' +
+        '<button class="rd-btn rd-btn-process" data-id="'+esc(r.id)+'" data-action="process">&#10003; Mark Processed</button>' +
+        '<button class="rd-btn rd-btn-archive" data-id="'+esc(r.id)+'" data-action="archive">Archive</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+
+  /* wire action buttons */
+  document.querySelectorAll(".rd-btn[data-action]").forEach(function(btn){
+    btn.onclick = function(){
+      var id = btn.getAttribute("data-id");
+      var action = btn.getAttribute("data-action");
+      handleAction(id, action, btn);
+    };
+  });
+}
+
+function handleAction(id, action, btn){
+  btn.disabled = true;
+  var url = action === "process" ? "/request/process" : "/request/archive";
+  var payload = action === "process"
+    ? { id: id, processedBy: agentName || "Unknown" }
+    : { id: id, archivedBy: agentName || "Unknown" };
+  fetch(WORKER_URL + url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data && data.ok){
+      /* immediate refresh */
+      doRefresh();
+    } else {
+      btn.disabled = false;
+      alert("Action failed. Please try again.");
+    }
+  })
+  .catch(function(){
+    btn.disabled = false;
+    alert("Network error. Check connection.");
+  });
+}
+
+/* ─────────────────────────────────────────────────────
+   REFRESH
+   ───────────────────────────────────────────────────── */
+function updateLastUpdated(){
+  var el = document.getElementById("updatedLabel");
+  if(!el) return;
+  var t = new Date();
+  var h = t.getHours(); var m = t.getMinutes(); var ap = h >= 12 ? "PM" : "AM";
+  h = h % 12; if(h===0) h = 12;
+  if(m < 10) m = "0" + m;
+  el.textContent = "Updated " + h + ":" + m + " " + ap;
+}
+
+function doRefresh(){
+  var btn = document.getElementById("refreshBtn");
+  if(btn) btn.disabled = true;
+  return loadRequests().then(function(){
+    renderChips();
+    renderList();
+    updateLastUpdated();
+  }).finally(function(){
+    if(btn) btn.disabled = false;
+  });
+}
+
+/* ─────────────────────────────────────────────────────
+   INIT
+   ───────────────────────────────────────────────────── */
+(function init(){
+  document.getElementById("refreshBtn").onclick = doRefresh;
+  loadSettings().then(function(){
+    var existing = loadAgent();
+    if(existing){
+      agentName = existing;
+      updateAgentTag();
+      doRefresh();
+    } else {
+      promptAgentName().then(function(){
+        doRefresh();
+      });
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
