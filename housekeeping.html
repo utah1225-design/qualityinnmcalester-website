@@ -62,6 +62,30 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
 .hk-btn-cancel{padding:12px 18px;background:var(--white);color:var(--slate);border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:14px;cursor:pointer}
 .hk-btn-cancel:hover{background:var(--cream)}
 
+/* V1.02: Secondary action ("Log Found Item") on landing view */
+.hk-btn-secondary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 20px;margin-top:12px;background:var(--white);color:var(--navy);border:1px solid var(--border);border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.hk-btn-secondary:hover{background:var(--cream);border-color:var(--gold)}
+.hk-btn-secondary-icon{font-size:18px;line-height:1}
+
+/* L&F modal */
+.lf-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:18px}
+.lf-modal{background:#fff;border-radius:10px;padding:24px;width:100%;max-width:440px;box-shadow:0 20px 50px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto}
+.lf-modal h3{margin:0 0 6px;font-size:17px;color:var(--navy)}
+.lf-modal p{margin:0 0 14px;color:var(--slate);font-size:13px}
+.lf-modal-field{margin-bottom:12px}
+.lf-modal-field label{display:block;font-size:11px;font-weight:600;color:var(--slate);margin-bottom:4px;letter-spacing:0.04em;text-transform:uppercase}
+.lf-modal-input,.lf-modal-textarea{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:6px;font-size:14px;font-family:inherit;outline:none;background:var(--cream)}
+.lf-modal-input:focus,.lf-modal-textarea:focus{border-color:var(--navy);background:#fff}
+.lf-modal-textarea{resize:vertical;min-height:70px}
+.lf-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.lf-modal-btn-cancel{padding:9px 18px;background:#fff;color:var(--slate);border:1px solid var(--border);border-radius:6px;font-family:inherit;font-size:13px;cursor:pointer}
+.lf-modal-btn-confirm{padding:9px 18px;background:var(--navy);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.lf-modal-btn-confirm:disabled{opacity:0.6;cursor:wait}
+.lf-modal-msg{margin-top:10px;font-size:12px;padding:8px 10px;border-radius:5px;display:none}
+.lf-modal-msg.show{display:block}
+.lf-modal-msg.ok{background:var(--good-soft,#e3f5ec);color:var(--good,#1d9b6c)}
+.lf-modal-msg.err{background:#fce8e6;color:var(--alert,#c4493e)}
+
 .hk-error{color:var(--alert);font-size:13px;margin-top:8px;display:none}
 .hk-error.show{display:block}
 
@@ -120,6 +144,10 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
     <button class="hk-big-btn" onclick="showForm()">
       <span class="hk-big-btn-icon">&#9888;</span>
       Report Room Incident
+    </button>
+    <button class="hk-btn-secondary" id="lfLogBtn" type="button">
+      <span class="hk-btn-secondary-icon">&#128274;</span>
+      Log Found Item (Lost &amp; Found)
     </button>
 
     <div class="hk-recent">
@@ -467,6 +495,79 @@ function loadMyReports(){
 /* ────────────────────────────────────────────
    INIT
    ──────────────────────────────────────────── */
+/* V1.02: Open modal for housekeeping to log a Lost & Found item. */
+function openLfLogModal(){
+  var bg = document.createElement("div");
+  bg.className = "lf-modal-bg";
+  bg.innerHTML =
+    '<div class="lf-modal">' +
+      '<h3>Log Found Item</h3>' +
+      '<p>Found something in a room or area? Log it so front desk can match it to guest reports.</p>' +
+      '<div class="lf-modal-field">' +
+        '<label>Description *</label>' +
+        '<textarea class="lf-modal-textarea" id="lfDesc" placeholder="Color, brand, size, distinguishing features (e.g., black iPhone with red case)"></textarea>' +
+      '</div>' +
+      '<div class="lf-modal-field">' +
+        '<label>Where found *</label>' +
+        '<input class="lf-modal-input" id="lfFound" placeholder="e.g., Room 215 - under bed">' +
+      '</div>' +
+      '<div class="lf-modal-field">' +
+        '<label>Storage location</label>' +
+        '<input class="lf-modal-input" id="lfStorage" placeholder="e.g., Front desk safe, Housekeeping office shelf">' +
+      '</div>' +
+      '<div class="lf-modal-msg" id="lfMsg"></div>' +
+      '<div class="lf-modal-actions">' +
+        '<button class="lf-modal-btn-cancel" id="lfCancel">Cancel</button>' +
+        '<button class="lf-modal-btn-confirm" id="lfConfirm">Log Item</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(bg);
+  setTimeout(function(){ document.getElementById("lfDesc").focus(); }, 50);
+  function close(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
+  function setMsg(text, kind){
+    var el = document.getElementById("lfMsg");
+    el.textContent = text;
+    el.className = "lf-modal-msg show " + (kind || "ok");
+  }
+  document.getElementById("lfCancel").onclick = close;
+  bg.onclick = function(e){ if(e.target === bg) close(); };
+  document.getElementById("lfConfirm").onclick = function(){
+    var desc    = document.getElementById("lfDesc").value.trim();
+    var found   = document.getElementById("lfFound").value.trim();
+    var storage = document.getElementById("lfStorage").value.trim();
+    if(!desc){ setMsg("Description is required.", "err"); return; }
+    if(!found){ setMsg("Where found is required.", "err"); return; }
+    var btn = document.getElementById("lfConfirm");
+    btn.disabled = true; btn.textContent = "Logging\u2026";
+    fetch(WORKER_URL + "/lfitem", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fields: {
+          description: desc,
+          foundLocation: found,
+          storageLocation: storage,
+          foundBy: agentName || "Unknown"
+        }
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data && data.ok){
+        setMsg("Logged. Front desk will see it. (ID: " + data.id + ")", "ok");
+        setTimeout(close, 1200);
+      } else {
+        btn.disabled = false; btn.textContent = "Log Item";
+        setMsg("Submission failed. Please try again.", "err");
+      }
+    })
+    .catch(function(){
+      btn.disabled = false; btn.textContent = "Log Item";
+      setMsg("Network error. Please try again.", "err");
+    });
+  };
+}
+
 function applyFormMessage(){
   var msgs = (SETTINGS_CACHE && SETTINGS_CACHE.formMessages) || {};
   var cfg = msgs.housekeeping_incident;
@@ -486,6 +587,11 @@ function applyFormMessage(){
   var refreshBtn = document.getElementById("recentRefreshBtn");
   if(refreshBtn){
     refreshBtn.onclick = function(){ loadMyReports(); };
+  }
+  /* V1.02: wire Log Found Item button */
+  var lfBtn = document.getElementById("lfLogBtn");
+  if(lfBtn){
+    lfBtn.onclick = function(){ openLfLogModal(); };
   }
   loadSettings().then(function(){
     applyFormMessage();

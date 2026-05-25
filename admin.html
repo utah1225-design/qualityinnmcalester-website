@@ -181,6 +181,15 @@ input { font-family: inherit; font-size: 14px; }
     <div class="ad-hint">Title is the bold headline. Body is the line of explanation.</div>
   </div>
 
+  <!-- SHIFT DEFINITIONS (V1.02) -->
+  <div class="ad-section">
+    <h3>Shift Definitions</h3>
+    <div class="ad-section-desc">Used by the Shift Handoff Log. Add/edit/remove the shifts your property runs.</div>
+    <div id="shiftList" style="display:flex;flex-direction:column;gap:8px"></div>
+    <button class="ad-input" id="shiftAdd" style="background:var(--paper);border-style:dashed;cursor:pointer;width:100%;text-align:left;color:var(--accent);font-weight:600;margin-top:6px">+ Add shift</button>
+    <div class="ad-hint">Label is what shows up on each handoff entry (e.g., "PM (3pm-11pm)").</div>
+  </div>
+
   <!-- RESPONSE TIERS -->
   <div class="ad-section">
     <h3>Response Time Tiers</h3>
@@ -358,6 +367,8 @@ var rosterFD = [];
 var rosterMT = [];
 var rosterHK = [];
 var msgConfig = {};   /* V1.01: per-form success messages */
+var shiftDefs = [];   /* V1.02: configurable shift labels */
+var MAX_SHIFTS = 8;   /* hard cap to prevent runaway lists */
 var MSG_TYPES = [
   { key:"express_checkout",      label:"Express Checkout" },
   { key:"refund",                label:"Refund Request" },
@@ -367,6 +378,42 @@ var MSG_TYPES = [
   { key:"housekeeping_incident", label:"Housekeeping (staff)" }
 ];
 var MAX_STAFF = 5;
+
+function renderShiftDefs(){
+  var listEl = document.getElementById("shiftList");
+  if(!listEl) return;
+  var escHtml = function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+  listEl.innerHTML = shiftDefs.map(function(s, i){
+    return '<div style="display:flex;gap:8px;align-items:center">' +
+      '<input class="ad-input" data-shift-idx="' + i + '" type="text" placeholder="Shift label (e.g., AM (7am-3pm))" value="' + escHtml(s.label || '') + '" style="flex:1">' +
+      '<button class="ad-input ad-input-sm" data-shift-remove="' + i + '" style="background:#fff;border:1px solid var(--line);color:var(--alert);cursor:pointer;padding:8px 12px;width:auto;flex-shrink:0">Remove</button>' +
+    '</div>';
+  }).join('');
+  /* wire inputs */
+  document.querySelectorAll('[data-shift-idx]').forEach(function(el){
+    el.addEventListener('input', function(){
+      var idx = parseInt(el.getAttribute('data-shift-idx'), 10);
+      if(!shiftDefs[idx]) shiftDefs[idx] = { key:"", label:"" };
+      shiftDefs[idx].label = el.value;
+      /* derive key from label first word (uppercase, no spaces) */
+      var key = (el.value || "").split(/\s+/)[0].replace(/[^A-Za-z0-9]/g, "").toUpperCase();
+      shiftDefs[idx].key = key || ("S" + (idx + 1));
+    });
+  });
+  document.querySelectorAll('[data-shift-remove]').forEach(function(btn){
+    btn.onclick = function(){
+      var idx = parseInt(btn.getAttribute('data-shift-remove'), 10);
+      if(!confirm('Remove this shift? Existing handoff entries keep their labels.')) return;
+      shiftDefs.splice(idx, 1);
+      renderShiftDefs();
+    };
+  });
+  var addBtn = document.getElementById('shiftAdd');
+  if(addBtn){
+    addBtn.disabled = shiftDefs.length >= MAX_SHIFTS;
+    addBtn.textContent = shiftDefs.length >= MAX_SHIFTS ? 'Max ' + MAX_SHIFTS + ' reached' : '+ Add shift';
+  }
+}
 
 function renderFormMessages(){
   var listEl = document.getElementById("msgList");
@@ -463,6 +510,13 @@ document.getElementById('hkAdd').onclick = function(){
   var inputs = document.querySelectorAll('[data-kind="hk"]');
   if(inputs.length) inputs[inputs.length-1].focus();
 };
+document.getElementById('shiftAdd').onclick = function(){
+  if(shiftDefs.length >= MAX_SHIFTS) return;
+  shiftDefs.push({ key:"", label:"" });
+  renderShiftDefs();
+  var inputs = document.querySelectorAll('[data-shift-idx]');
+  if(inputs.length) inputs[inputs.length-1].focus();
+};
 
 function populateFields(){
   document.getElementById('fldDashPass').value     = settings.dashboardPasscode || '';
@@ -474,12 +528,18 @@ function populateFields(){
   rosterHK = (settings.housekeepingStaff || ['Housekeeping 1','Housekeeping 2','Housekeeping 3']).slice(0, MAX_STAFF);
   /* V1.01 — form messages */
   msgConfig = settings.formMessages || {};
-  /* ensure all 6 keys exist so the UI can render */
   MSG_TYPES.forEach(function(t){
     if(!msgConfig[t.key]) msgConfig[t.key] = { title:"", body:"" };
   });
+  /* V1.02 — shift definitions */
+  shiftDefs = (settings.shiftDefinitions || [
+    { key:"AM",        label:"AM (7am-3pm)" },
+    { key:"PM",        label:"PM (3pm-11pm)" },
+    { key:"Overnight", label:"Overnight (11pm-7am)" }
+  ]).slice(0, MAX_SHIFTS);
   renderRoster();
   renderFormMessages();
+  renderShiftDefs();
   /* inbox polling */
   document.getElementById('fldInboxPoll').value    = Math.round((settings.inboxPollActiveMs   || 15000)/1000);
   document.getElementById('fldComposerPoll').value = Math.round((settings.inboxPollComposerMs || 5000)/1000);
@@ -514,6 +574,7 @@ function saveAll(){
     maintenanceStaff:         cleanMT,
     housekeepingStaff:        cleanHK,
     formMessages:             msgConfig,
+    shiftDefinitions:         shiftDefs.filter(function(s){ return s && (s.label || '').trim() !== ''; }),
     inboxPollActiveMs:   Math.min(60000, Math.max(5000, parseInt(document.getElementById('fldInboxPoll').value, 10) * 1000)) || settings.inboxPollActiveMs,
     inboxPollComposerMs: Math.min(10000, Math.max(3000, parseInt(document.getElementById('fldComposerPoll').value, 10) * 1000)) || settings.inboxPollComposerMs,
     excellentMs:         Math.max(60000, parseInt(document.getElementById('fldExcellent').value, 10) * 60000) || settings.excellentMs,
@@ -603,6 +664,11 @@ var DEFAULTS = {
   frontDeskStaff:   ["Front Desk 1","Front Desk 2","Front Desk 3"],
   maintenanceStaff: ["Maintenance 1","Maintenance 2","Maintenance 3"],
   housekeepingStaff: ["Housekeeping 1","Housekeeping 2","Housekeeping 3"],
+  shiftDefinitions: [
+    { key:"AM",        label:"AM (7am-3pm)" },
+    { key:"PM",        label:"PM (3pm-11pm)" },
+    { key:"Overnight", label:"Overnight (11pm-7am)" }
+  ],
   formMessages: {
     express_checkout:      { title:"Thanks — your check-out is logged.", body:"We've passed your details to the front desk. Safe travels! Thank you for choosing Quality Inn & Suites McAlester." },
     refund:                { title:"Thanks — request received.", body:"The front desk team has been notified. For follow-up, please call (918) 420-9537. Thank you for choosing Quality Inn & Suites McAlester." },

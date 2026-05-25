@@ -196,7 +196,8 @@ var TYPE_ORDER = ["express_checkout","refund","lost_found","late_checkout","hous
    ───────────────────────────────────────────────────── */
 var SETTINGS_CACHE = null;
 var REQUESTS = [];
-var ARCHIVED_REQUESTS = [];   /* V1.01: lazily refreshed alongside REQUESTS */
+var ARCHIVED_REQUESTS = [];   /* V1.01: lazy-loaded on first click of Archived chip */
+var archivedLoaded = false;   /* once true, doRefresh keeps it in sync */
 var activeFilter = "all";
 var agentName = null;
 
@@ -327,28 +328,36 @@ function promptAgentName(){
 /* ─────────────────────────────────────────────────────
    FETCH + RENDER
    ───────────────────────────────────────────────────── */
-function loadRequests(){
-  /* fetch active + archived in parallel */
-  var p1 = fetch(WORKER_URL + "/requests")
+function loadActive(){
+  return fetch(WORKER_URL + "/requests")
     .then(function(r){ return r.json(); })
     .then(function(data){
       REQUESTS = (data && data.requests) || [];
       REQUESTS.sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
     })
-    .catch(function(e){ console.error("loadRequests(active) failed:", e); REQUESTS = []; });
-  var p2 = fetch(WORKER_URL + "/requests?status=archived")
+    .catch(function(e){ console.error("loadActive failed:", e); REQUESTS = []; });
+}
+
+function loadArchived(){
+  return fetch(WORKER_URL + "/requests?status=archived")
     .then(function(r){ return r.json(); })
     .then(function(data){
       ARCHIVED_REQUESTS = (data && data.requests) || [];
       ARCHIVED_REQUESTS.sort(function(a,b){
-        /* sort by archivedAt desc if present, else createdAt */
         var aT = new Date(a.archivedAt || a.createdAt);
         var bT = new Date(b.archivedAt || b.createdAt);
         return bT - aT;
       });
+      archivedLoaded = true;
     })
-    .catch(function(e){ console.error("loadRequests(archived) failed:", e); ARCHIVED_REQUESTS = []; });
-  return Promise.all([p1, p2]);
+    .catch(function(e){ console.error("loadArchived failed:", e); ARCHIVED_REQUESTS = []; });
+}
+
+/* Backwards-compat — kept so any future code using loadRequests still works */
+function loadRequests(){
+  var ps = [loadActive()];
+  if(archivedLoaded) ps.push(loadArchived());
+  return Promise.all(ps);
 }
 
 function renderChips(){
@@ -371,8 +380,7 @@ function renderChips(){
       return { key:t, label:TYPE_META[t].shortLabel, pending:pendingByType[t], total:totalByType[t] };
     })
   );
-  /* Archived chip = single count, no pending/total split */
-  var archivedCount = (ARCHIVED_REQUESTS || []).length;
+  /* Archived chip = lazy. Count is shown only after first load (archivedLoaded). */
   var html = chips.map(function(c){
     var active = c.key === activeFilter ? " active" : "";
     var counter = c.pending + "/" + c.total;
@@ -381,17 +389,29 @@ function renderChips(){
       '<span class="rd-chip-count">'+counter+'</span>' +
     '</button>';
   }).join('');
+  var archCountHtml = archivedLoaded
+    ? '<span class="rd-chip-count">' + (ARCHIVED_REQUESTS || []).length + '</span>'
+    : '';
   html += '<button class="rd-chip' + (activeFilter === "archived" ? " active" : "") + '" data-filter="archived">' +
-    'Archived' +
-    '<span class="rd-chip-count">' + archivedCount + '</span>' +
+    'Archived' + archCountHtml +
   '</button>';
   document.getElementById("chips").innerHTML = html;
   /* wire chip clicks */
   document.querySelectorAll(".rd-chip").forEach(function(btn){
     btn.onclick = function(){
       activeFilter = btn.getAttribute("data-filter");
-      renderChips();
-      renderList();
+      if(activeFilter === "archived" && !archivedLoaded){
+        /* lazy: fetch archived dataset just once on first click */
+        var listEl = document.getElementById("list");
+        if(listEl) listEl.innerHTML = '<div class="rd-empty"><div class="rd-empty-icon">⋯</div>Loading archived requests…</div>';
+        loadArchived().then(function(){
+          renderChips();
+          renderList();
+        });
+      } else {
+        renderChips();
+        renderList();
+      }
     };
   });
 }
@@ -708,7 +728,10 @@ function updateLastUpdated(){
 function doRefresh(){
   var btn = document.getElementById("refreshBtn");
   if(btn) btn.disabled = true;
-  return loadRequests().then(function(){
+  /* always refresh active; refresh archived only if it's been loaded */
+  var ps = [loadActive()];
+  if(archivedLoaded) ps.push(loadArchived());
+  return Promise.all(ps).then(function(){
     renderChips();
     renderList();
     updateLastUpdated();

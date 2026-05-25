@@ -219,6 +219,64 @@ export default {
         return await incidentReport(env, id);
       }
 
+      /* ═══════════════════════════════════════════════════
+         SECTION — SHIFT HANDOFF LOG (V1.02)
+         ═══════════════════════════════════════════════════ */
+      if (path === "/shift" && request.method === "POST") {
+        return await saveShift(request, env);
+      }
+      if (path === "/shifts" && request.method === "GET") {
+        return await listShifts(env, url);
+      }
+      if (path === "/shift/ack" && request.method === "POST") {
+        return await ackShift(request, env);
+      }
+      if (path === "/shift/archive" && request.method === "POST") {
+        return await archiveShift(request, env);
+      }
+
+      /* ═══════════════════════════════════════════════════
+         SECTION — LOST & FOUND INVENTORY (V1.02)
+         ═══════════════════════════════════════════════════ */
+      if (path === "/lfitem" && request.method === "POST") {
+        return await saveLfItem(request, env);
+      }
+      if (path === "/lfitems" && request.method === "GET") {
+        return await listLfItems(env, url);
+      }
+      if (path === "/lfitem/update" && request.method === "POST") {
+        return await updateLfItem(request, env);
+      }
+      if (path === "/lfitem/return" && request.method === "POST") {
+        return await returnLfItem(request, env);
+      }
+      if (path === "/lfitem/dispose" && request.method === "POST") {
+        return await disposeLfItem(request, env);
+      }
+
+      /* ═══════════════════════════════════════════════════
+         SECTION — INCIDENT LOG (V1.02)
+         ═══════════════════════════════════════════════════ */
+      if (path === "/incident" && request.method === "POST") {
+        return await saveIncident(request, env);
+      }
+      if (path === "/incidents" && request.method === "GET") {
+        return await listIncidents(env, url);
+      }
+      if (path === "/incident/process" && request.method === "POST") {
+        return await processIncident(request, env);
+      }
+      if (path === "/incident/archive" && request.method === "POST") {
+        return await archiveIncident(request, env);
+      }
+
+      /* ═══════════════════════════════════════════════════
+         SECTION — STAFF HUB (V1.02)
+         ═══════════════════════════════════════════════════ */
+      if (path === "/hub/counts" && request.method === "GET") {
+        return await hubCounts(env);
+      }
+
       /* ---- unified settings (admin + readers) ---- */
       if (path === "/settings" && request.method === "GET") {
         return await getSettings(env);
@@ -255,7 +313,12 @@ export default {
      Suggested schedule: "0 * * * *" (hourly)
      ═══════════════════════════════════════════════════ */
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(autoArchiveOldRequests(env));
+    ctx.waitUntil(Promise.all([
+      autoArchiveOldRequests(env),
+      autoArchiveOldShifts(env),
+      autoArchiveOldLfItems(env),
+      autoArchiveOldIncidents(env)
+    ]));
   }
 };
 
@@ -367,16 +430,22 @@ function classifyIssue(text) {
    Reads go through the index (cheap GETs). Writes update it.
    ============================================================ */
 const INDEX_KEYS = {
-  conv:    "index:conv",
-  case:    "index:case",
-  maint:   "index:maint",
-  request: "index:request"
+  conv:     "index:conv",
+  case:     "index:case",
+  maint:    "index:maint",
+  request:  "index:request",
+  shift:    "index:shift",
+  lfitem:   "index:lfitem",
+  incident: "index:incident"
 };
 const PREFIXES = {
-  conv:    "conv:",
-  case:    "case:",
-  maint:   "maint:",
-  request: "request:"
+  conv:     "conv:",
+  case:     "case:",
+  maint:    "maint:",
+  request:  "request:",
+  shift:    "shift:",
+  lfitem:   "lfitem:",
+  incident: "incident:"
 };
 
 async function readIndex(env, kind) {
@@ -696,18 +765,97 @@ async function autoArchiveOldCheckouts(env) {
   return autoArchiveOldRequests(env);
 }
 
+/* V1.02 — archive old shift handoffs (7 days after createdAt). */
+async function autoArchiveOldShifts(env) {
+  const items = await readAll(env, "shift");
+  const now = Date.now();
+  const SEVEN_DAYS = 7 * 24 * 3600 * 1000;
+  let archived = 0;
+  for (const r of items) {
+    if (!r || r.status === "archived") continue;
+    const created = new Date(r.createdAt).getTime();
+    if (now - created > SEVEN_DAYS) {
+      r.priorStatus = r.status;
+      r.status = "archived";
+      r.archivedAt = new Date().toISOString();
+      r.archivedBy = "Auto (7d)";
+      await env.HOTEL_KV.put("shift:" + r.id, JSON.stringify(r));
+      archived++;
+    }
+  }
+  return { archived };
+}
+
+/* V1.02 — archive disposed L&F items (30 days after disposedAt). */
+async function autoArchiveOldLfItems(env) {
+  const items = await readAll(env, "lfitem");
+  const now = Date.now();
+  const THIRTY_DAYS = 30 * 24 * 3600 * 1000;
+  let archived = 0;
+  for (const r of items) {
+    if (!r || r.status === "archived") continue;
+    /* only archive items that are CLOSED (returned or disposed), past retention */
+    if (r.status !== "returned" && r.status !== "disposed") continue;
+    const closedAt = new Date(r.returnedAt || r.disposedAt || r.createdAt).getTime();
+    if (now - closedAt > THIRTY_DAYS) {
+      r.priorStatus = r.status;
+      r.status = "archived";
+      r.archivedAt = new Date().toISOString();
+      r.archivedBy = "Auto (30d post-close)";
+      await env.HOTEL_KV.put("lfitem:" + r.id, JSON.stringify(r));
+      archived++;
+    }
+  }
+  return { archived };
+}
+
+/* V1.02 — archive resolved incidents (30 days after processedAt). */
+async function autoArchiveOldIncidents(env) {
+  const items = await readAll(env, "incident");
+  const now = Date.now();
+  const THIRTY_DAYS = 30 * 24 * 3600 * 1000;
+  let archived = 0;
+  for (const r of items) {
+    if (!r || r.status === "archived") continue;
+    if (r.status !== "resolved") continue;
+    const procT = new Date(r.processedAt || r.createdAt).getTime();
+    if (now - procT > THIRTY_DAYS) {
+      r.priorStatus = r.status;
+      r.status = "archived";
+      r.archivedAt = new Date().toISOString();
+      r.archivedBy = "Auto (30d post-resolve)";
+      await env.HOTEL_KV.put("incident:" + r.id, JSON.stringify(r));
+      archived++;
+    }
+  }
+  return { archived };
+}
+
 
 /* Generate a printable HTML "Housekeeping Incident Report" for a request.
    Read-only, on-demand. Browser print -> "Save as PDF" produces the audit doc. */
 async function incidentReport(env, id) {
-  const raw = await env.HOTEL_KV.get("request:" + id);
+  /* V1.02: support BOTH housekeeping incidents (request: KV) and non-charge
+     incidents (incident: KV). Look in incident: first since INC- prefix is
+     unambiguous; fall back to request: for housekeeping. */
+  let raw = null;
+  let kvKey = null;
+  if (id.indexOf("INC-") === 0) {
+    raw = await env.HOTEL_KV.get("incident:" + id);
+    kvKey = "incident";
+  } else {
+    raw = await env.HOTEL_KV.get("request:" + id);
+    kvKey = "request";
+  }
   if (!raw) {
     return new Response("Incident report not found.", { status: 404, headers: { "Content-Type": "text/plain" } });
   }
   const r = JSON.parse(raw);
-  if (r.type !== "housekeeping_incident") {
+  if (kvKey === "request" && r.type !== "housekeeping_incident") {
     return new Response("This report ID is not a housekeeping incident.", { status: 400, headers: { "Content-Type": "text/plain" } });
   }
+  /* incident type is set by saveIncident; housekeeping_incident is set by saveRequest */
+  const isNonCharge = (kvKey === "incident");
   const f = r.fields || {};
   const esc = function(s){ if(s==null) return ""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
   const fmtDate = function(iso){ if(!iso) return "—"; try { return new Date(iso).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" }); } catch(e){ return iso; } };
@@ -723,7 +871,7 @@ async function incidentReport(env, id) {
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Housekeeping Incident Report ${esc(r.id)} — Quality Inn &amp; Suites McAlester</title>
+<title>${isNonCharge ? "Incident Report" : "Housekeeping Incident Report"} ${esc(r.id)} — Quality Inn &amp; Suites McAlester</title>
 <style>
   :root{--navy:#1c2c47;--gold:#c9964a;--cream:#fbf8f3;--ink:#2a3245;--slate:#5a6378;--border:#d8d4cc;--alert:#c4493e}
   *{box-sizing:border-box}
@@ -781,14 +929,54 @@ async function incidentReport(env, id) {
       <div class="addr">400 S George Nigh Expy<br>McAlester, OK 74501<br>(918) 420-9537</div>
     </div>
     <div class="head-right">
-      <div class="doc-title">Housekeeping Incident Report</div>
+      <div class="doc-title">${isNonCharge ? "Incident Report" : "Housekeeping Incident Report"}</div>
       <div class="doc-id">${esc(r.id)}</div>
       <div class="doc-date">Generated ${esc(fmtDate(new Date().toISOString()))}</div>
     </div>
   </div>
 
   <h1>Incident Details</h1>
-  <div class="field-grid">
+  <div class="field-grid">${
+    isNonCharge
+      ? `
+    <div>
+      <div class="field-label">Category</div>
+      <div class="field-value">${esc(f.category || "—")}</div>
+    </div>
+    <div>
+      <div class="field-label">Title</div>
+      <div class="field-value">${esc(f.title || "—")}</div>
+    </div>
+    <div>
+      <div class="field-label">Date Occurred</div>
+      <div class="field-value">${esc(fmtDate(f.occurredAt || r.createdAt))}</div>
+    </div>
+    <div>
+      <div class="field-label">Reported By</div>
+      <div class="field-value">${esc(f.reportedBy || "—")}</div>
+    </div>
+    <div>
+      <div class="field-label">Date Reported</div>
+      <div class="field-value">${esc(fmtDate(r.createdAt))}</div>
+    </div>
+    <div>
+      <div class="field-label">${r.status === "resolved" || r.status === "archived" ? "Date Resolved" : "Status"}</div>
+      <div class="field-value">${esc(r.processedAt ? fmtDate(r.processedAt) : (r.status || "open"))}</div>
+    </div>
+    <div>
+      <div class="field-label">Resolved By</div>
+      <div class="field-value">${esc(r.processedBy || "—")}</div>
+    </div>
+    <div></div>
+    ${f.involvedParties ? `<div class="full"><div class="field-label">Involved Parties</div><div class="desc-box">${esc(f.involvedParties)}</div></div>` : ""}
+    ${f.witnesses ? `<div class="full"><div class="field-label">Witnesses</div><div class="desc-box">${esc(f.witnesses)}</div></div>` : ""}
+    <div class="full">
+      <div class="field-label">Description</div>
+      <div class="desc-box">${esc(f.description || "—")}</div>
+    </div>
+    ${f.actionTaken ? `<div class="full"><div class="field-label">Action Taken</div><div class="desc-box">${esc(f.actionTaken)}</div></div>` : ""}
+      `
+      : `
     <div>
       <div class="field-label">Room Number</div>
       <div class="field-value">${esc(f.roomNumber || "—")}</div>
@@ -817,13 +1005,17 @@ async function incidentReport(env, id) {
       <div class="field-label">Description of Findings</div>
       <div class="desc-box">${esc(f.description || "—")}</div>
     </div>
-  </div>
+      `
+  }</div>
 
-  <h1>Front Desk Action / Notes</h1>
+  <h1>${isNonCharge ? "Resolution Notes" : "Front Desk Action / Notes"}</h1>
   <div class="notes-box">${notesHtml}</div>
 
   <div class="legal">
-    <strong>Audit Trail.</strong> This report was generated from the housekeeping incident logged in the property's internal system. The details above were entered by housekeeping staff and reviewed by the front desk team. Any charge to the guest's account was processed through the property management system (PMS) separately. This document serves as a record of the inspection findings and the action taken.
+    <strong>Audit Trail.</strong> ${isNonCharge
+    ? "This report was generated from the incident record logged in the property's internal system. The details above were entered by front desk staff at the time of, or shortly after, the incident. This document serves as a record of the event and the action taken."
+    : "This report was generated from the housekeeping incident logged in the property's internal system. The details above were entered by housekeeping staff and reviewed by the front desk team. Any charge to the guest's account was processed through the property management system (PMS) separately. This document serves as a record of the inspection findings and the action taken."
+  }
   </div>
 
   <div class="sig">
@@ -847,6 +1039,225 @@ async function incidentReport(env, id) {
 }
 
 /* ============================================================
+   SHIFT HANDOFF LOG (V1.02)
+   Pass-down notes between shifts. Each entry tagged with author
+   and shift label. Other staff "Mark Read" to acknowledge.
+   ============================================================ */
+async function saveShift(request, env) {
+  const r = await request.json();
+  if (!r.id) r.id = "SH-" + Date.now().toString().slice(-6);
+  r.createdAt = r.createdAt || new Date().toISOString();
+  r.status = "active";
+  r.shiftLabel = r.shiftLabel || "";
+  r.author = r.author || "Unknown";
+  r.notes = String(r.notes || "").trim();
+  if (!r.notes) return json({ error: "notes required" }, 400);
+  r.acknowledgedBy = [];
+  await env.HOTEL_KV.put("shift:" + r.id, JSON.stringify(r));
+  await addToIndex(env, "shift", r.id);
+  return json({ ok: true, id: r.id });
+}
+async function listShifts(env, url) {
+  const items = await readAll(env, "shift");
+  const wantArchived = url && url.searchParams && url.searchParams.get("status") === "archived";
+  const out = wantArchived
+    ? items.filter(function(x){ return x && x.status === "archived"; })
+    : items.filter(function(x){ return x && x.status !== "archived"; });
+  return json({ shifts: out });
+}
+async function ackShift(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("shift:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  if (!Array.isArray(r.acknowledgedBy)) r.acknowledgedBy = [];
+  const name = body.acknowledgedBy || "Unknown";
+  /* avoid double-ack from the same person */
+  const already = r.acknowledgedBy.some(function(a){ return a.name === name; });
+  if (!already) {
+    r.acknowledgedBy.push({ name: name, at: new Date().toISOString() });
+    await env.HOTEL_KV.put("shift:" + r.id, JSON.stringify(r));
+  }
+  return json({ ok: true, id: r.id, acknowledgedBy: r.acknowledgedBy });
+}
+async function archiveShift(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("shift:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  if (r.status !== "archived") r.priorStatus = r.status;
+  r.status = "archived";
+  r.archivedAt = new Date().toISOString();
+  r.archivedBy = body.archivedBy || "Unknown";
+  await env.HOTEL_KV.put("shift:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id });
+}
+
+/* ============================================================
+   LOST & FOUND INVENTORY (V1.02)
+   Items found by staff. Tracked from found -> held -> returned/disposed.
+   ============================================================ */
+async function saveLfItem(request, env) {
+  const r = await request.json();
+  if (!r.id) r.id = "LF-" + Date.now().toString().slice(-6);
+  r.createdAt = r.createdAt || new Date().toISOString();
+  r.status = "held";
+  if (typeof r.fields !== "object" || r.fields === null) r.fields = {};
+  /* expected fields: description, foundLocation, storageLocation, foundBy */
+  await env.HOTEL_KV.put("lfitem:" + r.id, JSON.stringify(r));
+  await addToIndex(env, "lfitem", r.id);
+  return json({ ok: true, id: r.id });
+}
+async function listLfItems(env, url) {
+  const items = await readAll(env, "lfitem");
+  const wantArchived = url && url.searchParams && url.searchParams.get("status") === "archived";
+  /* "archived" view: returned + disposed (closed items).
+     active view: held items only. */
+  const out = wantArchived
+    ? items.filter(function(x){ return x && (x.status === "returned" || x.status === "disposed" || x.status === "archived"); })
+    : items.filter(function(x){ return x && x.status === "held"; });
+  return json({ lfitems: out });
+}
+async function updateLfItem(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("lfitem:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  /* allow editing description / location / storage */
+  if (typeof body.fields === "object" && body.fields) {
+    r.fields = Object.assign({}, r.fields || {}, body.fields);
+  }
+  r.updatedAt = new Date().toISOString();
+  r.updatedBy = body.updatedBy || "Unknown";
+  await env.HOTEL_KV.put("lfitem:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id });
+}
+async function returnLfItem(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("lfitem:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  r.status = "returned";
+  r.returnedAt = new Date().toISOString();
+  r.returnedBy = body.returnedBy || "Unknown";
+  r.returnedTo = body.returnedTo || "";
+  if (body.matchedGuestRequestId) r.matchedGuestRequestId = body.matchedGuestRequestId;
+  await env.HOTEL_KV.put("lfitem:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id, status: r.status });
+}
+async function disposeLfItem(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("lfitem:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  r.status = "disposed";
+  r.disposedAt = new Date().toISOString();
+  r.disposedBy = body.disposedBy || "Unknown";
+  r.disposedReason = body.disposedReason || "";
+  await env.HOTEL_KV.put("lfitem:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id, status: r.status });
+}
+
+/* ============================================================
+   INCIDENT LOG (V1.02)
+   Non-charge incidents: lobby slip, noise, police visit, etc.
+   Status: open -> resolved -> archived.
+   ============================================================ */
+async function saveIncident(request, env) {
+  const r = await request.json();
+  if (!r.id) r.id = "INC-" + Date.now().toString().slice(-6);
+  r.createdAt = r.createdAt || new Date().toISOString();
+  r.status = r.status || "open";
+  if (typeof r.fields !== "object" || r.fields === null) r.fields = {};
+  /* expected fields: category, title, description, occurredAt, reportedBy,
+                       involvedParties, witnesses, actionTaken */
+  if (!Array.isArray(r.notes)) r.notes = [];
+  /* Capture device info for audit */
+  const ua = request.headers.get("User-Agent") || "";
+  r.userAgent = ua;
+  r.deviceLabel = parseDeviceLabel(ua);
+  await env.HOTEL_KV.put("incident:" + r.id, JSON.stringify(r));
+  await addToIndex(env, "incident", r.id);
+  return json({ ok: true, id: r.id });
+}
+async function listIncidents(env, url) {
+  const items = await readAll(env, "incident");
+  const wantArchived = url && url.searchParams && url.searchParams.get("status") === "archived";
+  const out = wantArchived
+    ? items.filter(function(x){ return x && x.status === "archived"; })
+    : items.filter(function(x){ return x && x.status !== "archived"; });
+  return json({ incidents: out });
+}
+async function processIncident(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("incident:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  r.status = "resolved";
+  r.processedAt = new Date().toISOString();
+  r.processedBy = body.processedBy || "Unknown";
+  if (!Array.isArray(r.notes)) r.notes = [];
+  if (body.note && String(body.note).trim()) {
+    r.notes.push({
+      author: body.processedBy || "Unknown",
+      text: String(body.note).trim(),
+      at: r.processedAt,
+      type: "process"
+    });
+  }
+  await env.HOTEL_KV.put("incident:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id, status: r.status });
+}
+async function archiveIncident(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("incident:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  if (r.status !== "archived") r.priorStatus = r.status;
+  r.status = "archived";
+  r.archivedAt = new Date().toISOString();
+  r.archivedBy = body.archivedBy || "Unknown";
+  await env.HOTEL_KV.put("incident:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id });
+}
+
+/* ============================================================
+   STAFF HUB COUNTS (V1.02)
+   Aggregates pending counts across surfaces for the hub page.
+   Reads up to 7 KV indexes in parallel.
+   ============================================================ */
+async function hubCounts(env) {
+  /* Parallel reads — much faster than sequential */
+  const [convs, cases, maints, requests_, shifts, lfitems, incidents] = await Promise.all([
+    readAll(env, "conv").catch(function(){ return []; }),
+    readAll(env, "case").catch(function(){ return []; }),
+    readAll(env, "maint").catch(function(){ return []; }),
+    readAll(env, "request").catch(function(){ return []; }),
+    readAll(env, "shift").catch(function(){ return []; }),
+    readAll(env, "lfitem").catch(function(){ return []; }),
+    readAll(env, "incident").catch(function(){ return []; })
+  ]);
+  return json({
+    counts: {
+      inbox:       (convs    || []).filter(function(c){ return c && c.unread; }).length,
+      cases:       (cases    || []).filter(function(c){ return c && !c.closed; }).length,
+      maintenance: (maints   || []).filter(function(m){ return m && !m.closed; }).length,
+      requests:    (requests_|| []).filter(function(r){ return r && r.status !== "archived" && r.status !== "processed"; }).length,
+      shift:       (shifts   || []).filter(function(s){ return s && s.status === "active" && (!s.acknowledgedBy || s.acknowledgedBy.length === 0); }).length,
+      lfItems:     (lfitems  || []).filter(function(l){ return l && l.status === "held"; }).length,
+      incidents:   (incidents|| []).filter(function(i){ return i && i.status === "open"; }).length
+    }
+  });
+}
+
+/* ============================================================
    UNIFIED SETTINGS — front desk + maintenance + admin in one key.
    Stored at KV key "settings".
    ============================================================ */
@@ -863,6 +1274,12 @@ const DEFAULT_SETTINGS = {
   frontDeskStaff:    ["Front Desk 1","Front Desk 2","Front Desk 3"],
   maintenanceStaff:  ["Maintenance 1","Maintenance 2","Maintenance 3"],
   housekeepingStaff: ["Housekeeping 1","Housekeeping 2","Housekeeping 3"],
+  /* V1.02 - configurable shift definitions for the shift handoff log */
+  shiftDefinitions: [
+    { key:"AM",        label:"AM (7am-3pm)" },
+    { key:"PM",        label:"PM (3pm-11pm)" },
+    { key:"Overnight", label:"Overnight (11pm-7am)" }
+  ],
   formMessages: {
     express_checkout: {
       title: "Thanks — your check-out is logged.",

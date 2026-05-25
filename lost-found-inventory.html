@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lost & Found Inventory — Quality Inn & Suites McAlester</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
+<style>
+:root{
+  --bg:#f4f5f7;
+  --paper:#fafbfc;
+  --paper-card:#ffffff;
+  --ink:#1a1d24;
+  --ink-soft:#5a6273;
+  --ink-mute:#8d94a3;
+  --line:#e3e6ec;
+  --accent:#2c5f8d;
+  --accent-soft:#e8f0f7;
+  --good:#1d9b6c;
+  --good-soft:#e3f5ec;
+  --warn:#c97a1a;
+  --warn-soft:#fdf1e1;
+  --gold:#c9964a;
+  --alert:#c4493e;
+  --topbar:#1a1d24;
+  --shadow:0 1px 2px rgba(0,0,0,0.04),0 2px 8px rgba(0,0,0,0.04);
+}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+
+.lf-topbar{background:var(--topbar);color:#fff;padding:10px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #000}
+.lf-title{font-size:14px;font-weight:600}
+.lf-sub{font-size:11px;color:rgba(255,255,255,0.5)}
+.lf-agent{margin-left:auto;font-size:12px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:10px}
+.lf-refresh{background:none;border:none;color:rgba(255,255,255,0.85);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:4px}
+.lf-refresh:hover{background:rgba(255,255,255,0.1)}
+.lf-refresh:disabled{opacity:0.4;cursor:wait}
+.lf-updated{color:rgba(255,255,255,0.5);font-size:10px;margin-left:6px}
+
+.lf-main{padding:18px 22px;max-width:1100px;margin:0 auto}
+.lf-h1{font-size:18px;font-weight:600;margin:0 0 4px}
+.lf-desc{font-size:13px;color:var(--ink-soft);margin-bottom:18px}
+
+/* SEARCH BAR */
+.lf-search-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.lf-search-input{flex:1;min-width:200px;padding:10px 14px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;outline:none;background:#fff}
+.lf-search-input:focus{border-color:var(--accent)}
+.lf-add-btn{padding:10px 18px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.lf-add-btn:hover{background:#234e76}
+
+/* FILTER CHIPS */
+.lf-chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.lf-chip{background:var(--paper-card);border:1px solid var(--line);border-radius:18px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--ink-soft);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.lf-chip:hover{border-color:var(--accent);color:var(--accent)}
+.lf-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.lf-chip-count{background:rgba(0,0,0,0.08);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600}
+.lf-chip.active .lf-chip-count{background:rgba(255,255,255,0.22);color:#fff}
+
+/* ITEM CARDS */
+.lf-list{display:flex;flex-direction:column;gap:10px}
+.lf-card{background:var(--paper-card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)}
+.lf-card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.lf-card-id{font-size:10px;color:var(--ink-mute);font-family:Menlo,Consolas,monospace;background:var(--paper);padding:2px 7px;border-radius:3px}
+.lf-status{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:3px 9px;border-radius:4px}
+.lf-status-held{background:var(--warn-soft);color:var(--warn)}
+.lf-status-returned{background:var(--good-soft);color:var(--good)}
+.lf-status-disposed{background:#eaecf0;color:var(--ink-soft)}
+.lf-time-block{display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-left:auto;font-size:11px;line-height:1.35}
+.lf-time-rel{color:var(--ink-mute);font-weight:500}
+.lf-time-abs{color:var(--ink-mute);font-size:10px;opacity:0.85}
+.lf-card-body{padding:8px 12px;background:var(--paper);border-radius:5px;border-left:3px solid var(--line);margin-bottom:10px}
+.lf-row{margin-bottom:3px;font-size:13px}
+.lf-row:last-child{margin-bottom:0}
+.lf-label{font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--ink-mute);margin-right:6px}
+.lf-card-actions{display:flex;gap:8px;flex-wrap:wrap}
+.lf-btn{padding:6px 14px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid;font-family:inherit}
+.lf-btn-return{background:var(--good);color:#fff;border-color:var(--good)}
+.lf-btn-return:hover{background:#168558}
+.lf-btn-dispose{background:#fff;color:var(--alert);border-color:var(--alert)}
+.lf-btn-dispose:hover{background:#fde9e7}
+.lf-btn-edit{background:var(--paper);color:var(--ink-soft);border-color:var(--line)}
+.lf-btn-edit:hover{background:#eef0f4}
+
+.lf-card.is-closed{opacity:0.78;border-style:dashed}
+.lf-card.is-closed .lf-card-id{opacity:0.7}
+
+.lf-empty{text-align:center;padding:40px 20px;color:var(--ink-mute);font-size:13px}
+.lf-empty-icon{font-size:30px;margin-bottom:10px;opacity:0.4}
+
+/* MATCH SUGGESTIONS (when guest L&F request exists) */
+.lf-matches-section{background:var(--accent-soft);border:1px solid rgba(44,95,141,0.2);border-radius:8px;padding:12px 14px;margin-bottom:18px}
+.lf-matches-title{font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--accent);margin-bottom:8px}
+.lf-match-row{font-size:13px;color:var(--ink);padding:6px 0;border-bottom:1px dashed rgba(44,95,141,0.2)}
+.lf-match-row:last-child{border-bottom:none}
+.lf-match-name{font-weight:600}
+
+/* MODAL (add/edit/return/dispose) */
+.lf-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:18px}
+.lf-modal{background:#fff;border-radius:10px;padding:26px 24px;width:100%;max-width:480px;box-shadow:0 20px 50px rgba(0,0,0,0.3);max-height:90vh;overflow-y:auto}
+.lf-modal h3{margin:0 0 6px;font-size:17px}
+.lf-modal p{margin:0 0 14px;color:var(--ink-soft);font-size:13px}
+.lf-modal-field{margin-bottom:12px}
+.lf-modal-field label{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;letter-spacing:0.04em;text-transform:uppercase}
+.lf-modal-input,.lf-modal-textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;outline:none;background:var(--paper)}
+.lf-modal-input:focus,.lf-modal-textarea:focus{border-color:var(--accent);background:#fff}
+.lf-modal-textarea{resize:vertical;min-height:70px}
+.lf-modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.lf-modal-btn-cancel{padding:9px 18px;background:#fff;color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:13px;cursor:pointer}
+.lf-modal-btn-confirm{padding:9px 18px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.lf-modal-btn-confirm:hover{background:#234e76}
+.lf-modal-btn-confirm:disabled{opacity:0.6;cursor:wait}
+
+/* SIGN-IN MODAL */
+.lf-signin-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1100;padding:18px}
+.lf-signin{background:#fff;border-radius:10px;padding:26px 24px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,0.3)}
+.lf-signin h3{margin:0 0 6px;font-size:17px}
+.lf-signin p{margin:0 0 14px;color:var(--ink-soft);font-size:13px}
+.lf-signin-select,.lf-signin-input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;background:var(--paper-card)}
+.lf-signin-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+
+@media (max-width:640px){
+  .lf-main{padding:14px}
+  .lf-time-block{font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="lf-topbar">
+  <div>
+    <div class="lf-title">Lost &amp; Found Inventory</div>
+    <div class="lf-sub">Quality Inn &amp; Suites McAlester</div>
+  </div>
+  <div class="lf-agent">
+    <span id="agentTag"></span>
+    <button class="lf-refresh" id="refreshBtn" title="Refresh">&#8635;</button>
+    <span class="lf-updated" id="updatedLabel"></span>
+  </div>
+</div>
+
+<div class="lf-main">
+  <h1 class="lf-h1">Lost &amp; Found Inventory</h1>
+  <div class="lf-desc">Held items found by staff. Match to guest reports, return, or dispose after 30 days.</div>
+
+  <!-- GUEST REPORTS PENDING (suggested matches) -->
+  <div id="matchesSection" style="display:none"></div>
+
+  <!-- SEARCH + ADD ROW -->
+  <div class="lf-search-row">
+    <input class="lf-search-input" id="searchInput" type="search" placeholder="Search items by description, location, finder…">
+    <button class="lf-add-btn" id="addBtn">+ Log Found Item</button>
+  </div>
+
+  <!-- FILTER CHIPS -->
+  <div class="lf-chips" id="chips"></div>
+
+  <!-- LIST -->
+  <div class="lf-list" id="list"></div>
+</div>
+
+<script>
+var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+/* STATE */
+var SETTINGS_CACHE = null;
+var ITEMS = [];        /* held items */
+var ARCHIVED = [];     /* returned + disposed */
+var archivedLoaded = false;
+var activeFilter = "held";
+var searchQuery = "";
+var agentName = null;
+var GUEST_LF_REPORTS = [];   /* from /requests filtered to lost_found */
+
+/* HELPERS */
+function esc(s){
+  if(s == null) return "";
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeAgo(iso){
+  if(!iso) return "";
+  var t = new Date(iso).getTime();
+  var diff = Date.now() - t;
+  if(diff < 60000) return "just now";
+  if(diff < 3600000) return Math.round(diff/60000) + " min ago";
+  if(diff < 86400000) return Math.round(diff/3600000) + "h ago";
+  return Math.round(diff/86400000) + "d ago";
+}
+function formatAbsoluteTime(iso){
+  if(!iso) return "";
+  var d = new Date(iso);
+  if(isNaN(d.getTime())) return "";
+  var now = new Date();
+  var sameDay = d.toDateString() === now.toDateString();
+  var h = d.getHours(); var m = d.getMinutes();
+  var ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12; if(h === 0) h = 12;
+  var mm = (m < 10 ? "0" : "") + m;
+  var timeStr = h + ":" + mm + " " + ampm;
+  if(sameDay) return timeStr + " today";
+  var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return months[d.getMonth()] + " " + d.getDate() + " \u00B7 " + timeStr;
+}
+
+function loadAgent(){
+  try {
+    var raw = localStorage.getItem("lf_agent");
+    if(!raw) return null;
+    var data = JSON.parse(raw);
+    if(Date.now() - data.t > 12*3600*1000) return null;
+    return data.name;
+  } catch(e){ return null; }
+}
+function saveAgent(name){
+  try { localStorage.setItem("lf_agent", JSON.stringify({name:name, t:Date.now()})); } catch(e){}
+  agentName = name;
+}
+function updateAgentTag(){
+  document.getElementById("agentTag").textContent = agentName ? ("Signed in: " + agentName) : "";
+}
+
+/* SETTINGS + SIGN-IN */
+function loadSettings(){
+  return fetch(WORKER_URL + "/settings")
+    .then(function(r){ return r.json(); })
+    .then(function(data){ SETTINGS_CACHE = (data && data.settings) || {}; })
+    .catch(function(){ SETTINGS_CACHE = {}; });
+}
+
+function promptAgentName(){
+  return new Promise(function(resolve){
+    var s = SETTINGS_CACHE || {};
+    var combined = [].concat(
+      s.frontDeskStaff || [],
+      s.maintenanceStaff || [],
+      s.housekeepingStaff || []
+    );
+    var bg = document.createElement("div");
+    bg.className = "lf-signin-bg";
+    var hasRoster = combined.length > 0;
+    var optionsHtml = combined.map(function(n){ return '<option value="'+esc(n)+'">'+esc(n)+'</option>'; }).join('');
+    bg.innerHTML =
+      '<div class="lf-signin">' +
+        '<h3>Sign in</h3>' +
+        '<p>Pick your name to log and track items.</p>' +
+        (hasRoster ?
+          '<select class="lf-signin-select" id="agentSelect">' +
+            '<option value="">— Pick a name —</option>' +
+            optionsHtml +
+            '<option value="__other__">Other (type a name)</option>' +
+          '</select>' : '') +
+        '<input class="lf-signin-input" id="agentInput" type="text" placeholder="' + (hasRoster ? 'Or type your name' : 'Your name') + '" style="' + (hasRoster ? 'display:none' : '') + '">' +
+        '<button class="lf-signin-btn" id="agentSubmit">Continue</button>' +
+      '</div>';
+    document.body.appendChild(bg);
+    var sel = document.getElementById("agentSelect");
+    var inp = document.getElementById("agentInput");
+    var btn = document.getElementById("agentSubmit");
+    if(sel){
+      sel.onchange = function(){
+        if(sel.value === "__other__"){
+          inp.style.display = ""; inp.value = "";
+          setTimeout(function(){ inp.focus(); }, 50);
+        } else {
+          inp.style.display = "none"; inp.value = "";
+        }
+      };
+      setTimeout(function(){ sel.focus(); }, 50);
+    } else {
+      setTimeout(function(){ inp.focus(); }, 50);
+    }
+    function finish(){
+      var name = "";
+      if(sel && sel.value && sel.value !== "__other__") name = sel.value.trim();
+      else if(inp) name = (inp.value || "").trim();
+      if(!name){
+        if(sel && !sel.value) sel.focus();
+        else if(inp) inp.focus();
+        return;
+      }
+      saveAgent(name);
+      updateAgentTag();
+      document.body.removeChild(bg);
+      resolve();
+    }
+    btn.onclick = finish;
+    if(inp) inp.addEventListener("keydown", function(e){ if(e.key === "Enter") finish(); });
+  });
+}
+
+/* LOAD */
+function loadHeld(){
+  return fetch(WORKER_URL + "/lfitems")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      ITEMS = (data && data.lfitems) || [];
+      ITEMS.sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+    })
+    .catch(function(){ ITEMS = []; });
+}
+function loadArchived(){
+  return fetch(WORKER_URL + "/lfitems?status=archived")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      ARCHIVED = (data && data.lfitems) || [];
+      ARCHIVED.sort(function(a,b){
+        var aT = new Date(a.returnedAt || a.disposedAt || a.archivedAt || a.createdAt);
+        var bT = new Date(b.returnedAt || b.disposedAt || b.archivedAt || b.createdAt);
+        return bT - aT;
+      });
+      archivedLoaded = true;
+    })
+    .catch(function(){ ARCHIVED = []; });
+}
+function loadGuestLfReports(){
+  return fetch(WORKER_URL + "/requests")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var all = (data && data.requests) || [];
+      GUEST_LF_REPORTS = all.filter(function(r){
+        return r && r.type === "lost_found" && r.status !== "archived" && r.status !== "processed";
+      });
+    })
+    .catch(function(){ GUEST_LF_REPORTS = []; });
+}
+
+/* RENDER */
+function renderMatches(){
+  var sec = document.getElementById("matchesSection");
+  if(!sec) return;
+  if(GUEST_LF_REPORTS.length === 0){ sec.style.display = "none"; return; }
+  sec.style.display = "";
+  sec.innerHTML = '<div class="lf-matches-section">' +
+    '<div class="lf-matches-title">Pending Guest Reports (' + GUEST_LF_REPORTS.length + ')</div>' +
+    GUEST_LF_REPORTS.map(function(r){
+      var f = r.fields || {};
+      var nm = ((f.firstName || "") + " " + (f.lastName || "")).trim() || "—";
+      return '<div class="lf-match-row">' +
+        '<span class="lf-match-name">' + esc(nm) + '</span> &middot; ' +
+        '<em>' + esc((f.item || "").slice(0,80)) + '</em> &middot; ' +
+        esc(f.phone || f.email || "") +
+      '</div>';
+    }).join('') +
+  '</div>';
+}
+
+function renderChips(){
+  var heldCount = ITEMS.length;
+  var html = '';
+  html += '<button class="lf-chip' + (activeFilter === "held" ? " active" : "") + '" data-filter="held">' +
+    'Held <span class="lf-chip-count">' + heldCount + '</span>' +
+  '</button>';
+  html += '<button class="lf-chip' + (activeFilter === "archived" ? " active" : "") + '" data-filter="archived">' +
+    'Returned/Disposed' +
+    (archivedLoaded ? ' <span class="lf-chip-count">' + ARCHIVED.length + '</span>' : '') +
+  '</button>';
+  document.getElementById("chips").innerHTML = html;
+  document.querySelectorAll(".lf-chip").forEach(function(btn){
+    btn.onclick = function(){
+      var newFilter = btn.getAttribute("data-filter");
+      if(newFilter === "archived" && !archivedLoaded){
+        var listEl = document.getElementById("list");
+        if(listEl) listEl.innerHTML = '<div class="lf-empty"><div class="lf-empty-icon">\u22EF</div>Loading…</div>';
+        loadArchived().then(function(){
+          activeFilter = newFilter;
+          renderChips();
+          renderList();
+        });
+      } else {
+        activeFilter = newFilter;
+        renderChips();
+        renderList();
+      }
+    };
+  });
+}
+
+function matchesSearch(item, q){
+  if(!q) return true;
+  q = q.toLowerCase();
+  var f = item.fields || {};
+  var blob = (f.description || "") + " " + (f.foundLocation || "") + " " + (f.storageLocation || "") + " " + (f.foundBy || item.foundBy || "") + " " + (item.id || "");
+  return blob.toLowerCase().indexOf(q) !== -1;
+}
+
+function renderList(){
+  var listEl = document.getElementById("list");
+  var src = (activeFilter === "archived") ? ARCHIVED : ITEMS;
+  src = src.filter(function(i){ return matchesSearch(i, searchQuery); });
+  if(src.length === 0){
+    listEl.innerHTML = activeFilter === "archived"
+      ? '<div class="lf-empty"><div class="lf-empty-icon">\u2709</div>No closed items.</div>'
+      : '<div class="lf-empty"><div class="lf-empty-icon">\u2713</div>No items currently held.</div>';
+    return;
+  }
+  listEl.innerHTML = src.map(renderCardHtml).join('');
+  document.querySelectorAll(".lf-btn[data-action]").forEach(function(btn){
+    btn.onclick = function(){
+      var id = btn.getAttribute("data-id");
+      var action = btn.getAttribute("data-action");
+      handleAction(id, action, btn);
+    };
+  });
+}
+
+function renderCardHtml(it){
+  var f = it.fields || {};
+  var isClosed = it.status === "returned" || it.status === "disposed" || it.status === "archived";
+  var statusClass = it.status === "returned" ? "lf-status-returned" : it.status === "disposed" ? "lf-status-disposed" : "lf-status-held";
+
+  var rows = [];
+  if(f.description) rows.push('<div class="lf-row"><span class="lf-label">Item</span>' + esc(f.description) + '</div>');
+  if(f.foundLocation) rows.push('<div class="lf-row"><span class="lf-label">Found in</span>' + esc(f.foundLocation) + '</div>');
+  if(f.storageLocation) rows.push('<div class="lf-row"><span class="lf-label">Stored at</span>' + esc(f.storageLocation) + '</div>');
+  if(f.foundBy) rows.push('<div class="lf-row"><span class="lf-label">Found by</span>' + esc(f.foundBy) + '</div>');
+  if(it.returnedTo) rows.push('<div class="lf-row"><span class="lf-label">Returned to</span>' + esc(it.returnedTo) + '</div>');
+  if(it.disposedReason) rows.push('<div class="lf-row"><span class="lf-label">Disposed</span>' + esc(it.disposedReason) + '</div>');
+
+  var actions = "";
+  if(!isClosed){
+    actions = '<div class="lf-card-actions">' +
+      '<button class="lf-btn lf-btn-return" data-id="' + esc(it.id) + '" data-action="return">\u2713 Returned</button>' +
+      '<button class="lf-btn lf-btn-edit" data-id="' + esc(it.id) + '" data-action="edit">Edit</button>' +
+      '<button class="lf-btn lf-btn-dispose" data-id="' + esc(it.id) + '" data-action="dispose">Dispose</button>' +
+    '</div>';
+  }
+
+  return '<div class="lf-card' + (isClosed ? ' is-closed' : '') + '">' +
+    '<div class="lf-card-head">' +
+      '<span class="lf-card-id">' + esc(it.id) + '</span>' +
+      '<span class="lf-status ' + statusClass + '">' + esc(it.status || "held") + '</span>' +
+      '<div class="lf-time-block">' +
+        '<div class="lf-time-rel">' + esc(timeAgo(it.createdAt)) + '</div>' +
+        '<div class="lf-time-abs">' + esc(formatAbsoluteTime(it.createdAt)) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="lf-card-body">' + rows.join('') + '</div>' +
+    actions +
+  '</div>';
+}
+
+/* ACTIONS */
+function handleAction(id, action, btn){
+  if(action === "return"){ openReturnModal(id, btn); return; }
+  if(action === "dispose"){ openDisposeModal(id, btn); return; }
+  if(action === "edit"){ openEditModal(id, btn); return; }
+}
+
+function openModalShell(headerText, bodyHtml, onConfirm){
+  var bg = document.createElement("div");
+  bg.className = "lf-modal-bg";
+  bg.innerHTML = '<div class="lf-modal"><h3>' + esc(headerText) + '</h3>' + bodyHtml +
+    '<div class="lf-modal-actions">' +
+      '<button class="lf-modal-btn-cancel" data-mod-cancel="1">Cancel</button>' +
+      '<button class="lf-modal-btn-confirm" data-mod-confirm="1">Confirm</button>' +
+    '</div></div>';
+  document.body.appendChild(bg);
+  function close(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
+  bg.querySelector('[data-mod-cancel]').onclick = close;
+  bg.onclick = function(e){ if(e.target === bg) close(); };
+  bg.querySelector('[data-mod-confirm]').onclick = function(){
+    var btn = bg.querySelector('[data-mod-confirm]');
+    btn.disabled = true; btn.textContent = "…";
+    Promise.resolve(onConfirm(bg)).then(function(ok){
+      if(ok){ close(); doRefresh(); }
+      else { btn.disabled = false; btn.textContent = "Confirm"; }
+    });
+  };
+  return bg;
+}
+
+function openAddModal(){
+  var body =
+    '<p>Log a new found item to inventory.</p>' +
+    '<div class="lf-modal-field"><label>Description</label><textarea class="lf-modal-textarea" id="mDesc" placeholder="Color, size, brand, distinguishing features…"></textarea></div>' +
+    '<div class="lf-modal-field"><label>Found Location</label><input class="lf-modal-input" id="mFound" placeholder="e.g., Room 215, Lobby, Breakfast area"></div>' +
+    '<div class="lf-modal-field"><label>Storage Location</label><input class="lf-modal-input" id="mStorage" placeholder="e.g., Safe shelf 3, Office cabinet, Back office bag"></div>';
+  openModalShell("Log Found Item", body, function(bg){
+    var desc = bg.querySelector("#mDesc").value.trim();
+    var found = bg.querySelector("#mFound").value.trim();
+    var storage = bg.querySelector("#mStorage").value.trim();
+    if(!desc){ alert("Description required"); return false; }
+    return fetch(WORKER_URL + "/lfitem", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        fields: {
+          description: desc, foundLocation: found, storageLocation: storage,
+          foundBy: agentName || "Unknown"
+        }
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){ return !!(data && data.ok); })
+    .catch(function(){ return false; });
+  });
+}
+
+function openReturnModal(id){
+  var it = ITEMS.filter(function(i){ return i.id === id; })[0];
+  if(!it) return;
+  var body =
+    '<p>Mark item <strong>' + esc(id) + '</strong> as returned.</p>' +
+    '<div class="lf-modal-field"><label>Returned to (guest name)</label><input class="lf-modal-input" id="mReturnTo" placeholder="Guest name"></div>' +
+    '<div class="lf-modal-field"><label>Notes (optional)</label><input class="lf-modal-input" id="mReturnNote" placeholder="How returned: in person, shipped, etc."></div>';
+  openModalShell("Mark Returned", body, function(bg){
+    var to = bg.querySelector("#mReturnTo").value.trim();
+    if(!to){ alert("Guest name required"); return false; }
+    return fetch(WORKER_URL + "/lfitem/return", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, returnedTo: to, returnedBy: agentName || "Unknown" })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){ return !!(data && data.ok); })
+    .catch(function(){ return false; });
+  });
+}
+
+function openDisposeModal(id){
+  var body =
+    '<p>Dispose item <strong>' + esc(id) + '</strong> (typically after 30-day hold).</p>' +
+    '<div class="lf-modal-field"><label>Reason</label><input class="lf-modal-input" id="mReason" placeholder="e.g., Held 30+ days, no claim"></div>';
+  openModalShell("Dispose Item", body, function(bg){
+    var reason = bg.querySelector("#mReason").value.trim() || "Held over 30 days";
+    return fetch(WORKER_URL + "/lfitem/dispose", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: id, disposedReason: reason, disposedBy: agentName || "Unknown" })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){ return !!(data && data.ok); })
+    .catch(function(){ return false; });
+  });
+}
+
+function openEditModal(id){
+  var it = ITEMS.filter(function(i){ return i.id === id; })[0];
+  if(!it) return;
+  var f = it.fields || {};
+  var body =
+    '<p>Edit item <strong>' + esc(id) + '</strong></p>' +
+    '<div class="lf-modal-field"><label>Description</label><textarea class="lf-modal-textarea" id="mDesc">' + esc(f.description || "") + '</textarea></div>' +
+    '<div class="lf-modal-field"><label>Found Location</label><input class="lf-modal-input" id="mFound" value="' + esc(f.foundLocation || "") + '"></div>' +
+    '<div class="lf-modal-field"><label>Storage Location</label><input class="lf-modal-input" id="mStorage" value="' + esc(f.storageLocation || "") + '"></div>';
+  openModalShell("Edit Item", body, function(bg){
+    var desc = bg.querySelector("#mDesc").value.trim();
+    var found = bg.querySelector("#mFound").value.trim();
+    var storage = bg.querySelector("#mStorage").value.trim();
+    if(!desc){ alert("Description required"); return false; }
+    return fetch(WORKER_URL + "/lfitem/update", {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: id,
+        fields: { description: desc, foundLocation: found, storageLocation: storage },
+        updatedBy: agentName || "Unknown"
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){ return !!(data && data.ok); })
+    .catch(function(){ return false; });
+  });
+}
+
+document.getElementById("addBtn").onclick = openAddModal;
+document.getElementById("searchInput").addEventListener("input", function(e){
+  searchQuery = e.target.value;
+  renderList();
+});
+
+/* REFRESH */
+function updateLastUpdated(){
+  var t = new Date();
+  var h = t.getHours(); var m = t.getMinutes();
+  var ap = h >= 12 ? "PM" : "AM";
+  h = h % 12; if(h===0) h = 12;
+  if(m < 10) m = "0" + m;
+  document.getElementById("updatedLabel").textContent = "Updated " + h + ":" + m + " " + ap;
+}
+function doRefresh(){
+  var btn = document.getElementById("refreshBtn");
+  if(btn) btn.disabled = true;
+  var ps = [loadHeld(), loadGuestLfReports()];
+  if(archivedLoaded) ps.push(loadArchived());
+  return Promise.all(ps).then(function(){
+    renderMatches();
+    renderChips();
+    renderList();
+    updateLastUpdated();
+  }).finally(function(){
+    if(btn) btn.disabled = false;
+  });
+}
+document.getElementById("refreshBtn").onclick = doRefresh;
+
+/* INIT */
+(function init(){
+  loadSettings().then(function(){
+    var existing = loadAgent();
+    if(existing){
+      agentName = existing;
+      updateAgentTag();
+      doRefresh();
+    } else {
+      promptAgentName().then(function(){
+        doRefresh();
+      });
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

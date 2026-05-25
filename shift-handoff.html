@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Shift Handoff — Quality Inn & Suites McAlester</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
+<style>
+:root{
+  --bg:#f4f5f7;
+  --paper:#fafbfc;
+  --paper-card:#ffffff;
+  --ink:#1a1d24;
+  --ink-soft:#5a6273;
+  --ink-mute:#8d94a3;
+  --line:#e3e6ec;
+  --accent:#2c5f8d;
+  --accent-soft:#e8f0f7;
+  --good:#1d9b6c;
+  --good-soft:#e3f5ec;
+  --gold:#c9964a;
+  --alert:#c4493e;
+  --topbar:#1a1d24;
+  --topbar-ink:#fafbfc;
+  --shadow:0 1px 2px rgba(0,0,0,0.04),0 2px 8px rgba(0,0,0,0.04);
+}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+
+.sh-topbar{background:var(--topbar);color:var(--topbar-ink);padding:10px 22px;display:flex;align-items:center;gap:14px;border-bottom:1px solid #000}
+.sh-title{font-size:14px;font-weight:600}
+.sh-sub{font-size:11px;color:rgba(255,255,255,0.5)}
+.sh-agent{margin-left:auto;font-size:12px;color:rgba(255,255,255,0.65);display:flex;align-items:center;gap:10px}
+.sh-refresh{background:none;border:none;color:rgba(255,255,255,0.85);cursor:pointer;font-size:16px;padding:4px 8px;border-radius:4px}
+.sh-refresh:hover{background:rgba(255,255,255,0.1)}
+.sh-refresh:disabled{opacity:0.4;cursor:wait}
+.sh-updated{color:rgba(255,255,255,0.5);font-size:10px;margin-left:6px}
+
+.sh-main{padding:18px 22px;max-width:920px;margin:0 auto}
+.sh-h1{font-size:18px;font-weight:600;margin:0 0 4px}
+.sh-desc{font-size:13px;color:var(--ink-soft);margin-bottom:18px}
+
+/* COMPOSER */
+.sh-composer{background:var(--paper-card);border:1px solid var(--line);border-radius:8px;padding:16px;margin-bottom:24px;box-shadow:var(--shadow)}
+.sh-comp-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.sh-comp-title{font-size:13px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--ink-soft)}
+.sh-row{display:flex;gap:10px;margin-bottom:10px;flex-wrap:wrap}
+.sh-field{flex:1;min-width:160px}
+.sh-field label{display:block;font-size:11px;font-weight:600;color:var(--ink-soft);margin-bottom:4px;letter-spacing:0.04em;text-transform:uppercase}
+.sh-input,.sh-select,.sh-textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:5px;font-size:14px;font-family:inherit;background:var(--paper-card);outline:none}
+.sh-input:focus,.sh-select:focus,.sh-textarea:focus{border-color:var(--accent)}
+.sh-textarea{resize:vertical;min-height:80px}
+.sh-comp-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
+.sh-btn-primary{padding:9px 20px;background:var(--navy,#1c2c47);background:var(--accent);color:#fff;border:none;border-radius:5px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.sh-btn-primary:hover{background:#234e76}
+.sh-btn-primary:disabled{opacity:0.6;cursor:wait}
+.sh-error{color:var(--alert);font-size:13px;margin-top:6px;display:none}
+.sh-error.show{display:block}
+
+/* ENTRY CARDS */
+.sh-section-head{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.sh-section-count{font-size:11px;font-weight:700;color:var(--ink-mute);background:rgba(0,0,0,0.04);padding:1px 8px;border-radius:10px}
+.sh-list{display:flex;flex-direction:column;gap:10px}
+.sh-card{background:var(--paper-card);border:1px solid var(--line);border-radius:8px;padding:14px 16px;box-shadow:var(--shadow)}
+.sh-card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+.sh-shift{font-size:10px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;background:var(--accent-soft);color:var(--accent);padding:3px 9px;border-radius:4px}
+.sh-author{font-size:13px;color:var(--ink-soft)}
+.sh-time-block{display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-left:auto;font-size:11px;line-height:1.35}
+.sh-time-rel{color:var(--ink-mute);font-weight:500}
+.sh-time-abs{color:var(--ink-mute);font-size:10px;opacity:0.85}
+.sh-card-body{font-size:14px;color:var(--ink);white-space:pre-wrap;word-wrap:break-word;line-height:1.55;padding:6px 0 4px}
+.sh-card-acks{margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:11px;color:var(--ink-mute);display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.sh-ack-pill{background:var(--good-soft);color:var(--good);padding:2px 8px;border-radius:10px;font-weight:600;font-size:10px}
+.sh-card-actions{display:flex;gap:8px;margin-top:10px}
+.sh-btn{padding:6px 14px;border-radius:5px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid;font-family:inherit}
+.sh-btn-ack{background:var(--good);color:#fff;border-color:var(--good)}
+.sh-btn-ack:hover{background:#168558}
+.sh-btn-ack.acked{background:var(--paper);color:var(--good);border-color:var(--good);cursor:default}
+.sh-btn-archive{background:var(--paper);color:var(--ink-soft);border-color:var(--line)}
+.sh-btn-archive:hover{background:#eef0f4}
+
+.sh-card.is-archived{opacity:0.65;border-style:dashed;background:var(--paper)}
+.sh-archived-badge{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:#eaecf0;color:var(--ink-soft);padding:2px 7px;border-radius:3px}
+
+.sh-empty{text-align:center;padding:40px 20px;color:var(--ink-mute);font-size:13px}
+.sh-empty-icon{font-size:30px;margin-bottom:10px;opacity:0.4}
+
+/* CHIPS for filter view */
+.sh-chips{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap}
+.sh-chip{background:var(--paper-card);border:1px solid var(--line);border-radius:18px;padding:5px 14px;font-size:12px;font-weight:500;color:var(--ink-soft);cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.sh-chip:hover{border-color:var(--accent);color:var(--accent)}
+.sh-chip.active{background:var(--accent);border-color:var(--accent);color:#fff}
+.sh-chip-count{background:rgba(0,0,0,0.08);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:600}
+.sh-chip.active .sh-chip-count{background:rgba(255,255,255,0.22);color:#fff}
+
+/* SIGN-IN MODAL */
+.sh-modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:18px}
+.sh-modal{background:#fff;border-radius:10px;padding:26px 24px;width:100%;max-width:380px;box-shadow:0 20px 50px rgba(0,0,0,0.3)}
+.sh-modal h3{margin:0 0 6px;font-size:17px}
+.sh-modal p{margin:0 0 16px;color:var(--ink-soft);font-size:13px}
+.sh-modal-input,.sh-modal-select{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;background:var(--paper-card)}
+.sh-modal-input:focus,.sh-modal-select:focus{border-color:var(--accent)}
+.sh-modal-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+.sh-modal-btn:hover{background:#234e76}
+
+@media (max-width:640px){
+  .sh-main{padding:14px}
+  .sh-time-block{font-size:10px}
+}
+</style>
+</head>
+<body>
+
+<div class="sh-topbar">
+  <div>
+    <div class="sh-title">Shift Handoff</div>
+    <div class="sh-sub">Quality Inn &amp; Suites McAlester</div>
+  </div>
+  <div class="sh-agent">
+    <span id="agentTag"></span>
+    <button class="sh-refresh" id="refreshBtn" title="Refresh">&#8635;</button>
+    <span class="sh-updated" id="updatedLabel"></span>
+  </div>
+</div>
+
+<div class="sh-main">
+  <h1 class="sh-h1">Pass-down Notes</h1>
+  <div class="sh-desc">Leave notes for the next shift. Tap "Mark Read" once you've reviewed an entry.</div>
+
+  <!-- COMPOSER -->
+  <div class="sh-composer">
+    <div class="sh-comp-head"><div class="sh-comp-title">New Entry</div></div>
+    <div class="sh-row">
+      <div class="sh-field" style="max-width:260px">
+        <label>Shift</label>
+        <select class="sh-select" id="shiftSelect"></select>
+      </div>
+    </div>
+    <div class="sh-row">
+      <div class="sh-field">
+        <label>Notes</label>
+        <textarea class="sh-textarea" id="notesField" placeholder="Anything the next shift should know — pending tasks, watch list, equipment status, guest issues…"></textarea>
+      </div>
+    </div>
+    <div class="sh-comp-actions">
+      <button class="sh-btn-primary" id="submitBtn">Post Entry</button>
+    </div>
+    <div class="sh-error" id="errMsg"></div>
+  </div>
+
+  <!-- FILTER CHIPS -->
+  <div class="sh-chips" id="chips"></div>
+
+  <!-- LIST -->
+  <div class="sh-list" id="list"></div>
+</div>
+
+<script>
+var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+/* STATE */
+var SETTINGS_CACHE = null;
+var ENTRIES = [];
+var ARCHIVED = [];
+var archivedLoaded = false;
+var activeFilter = "active";
+var agentName = null;
+
+/* HELPERS */
+function esc(s){
+  if(s == null) return "";
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function timeAgo(iso){
+  if(!iso) return "";
+  var t = new Date(iso).getTime();
+  var diff = Date.now() - t;
+  if(diff < 60000) return "just now";
+  if(diff < 3600000) return Math.round(diff/60000) + " min ago";
+  if(diff < 86400000) return Math.round(diff/3600000) + "h ago";
+  return Math.round(diff/86400000) + "d ago";
+}
+function formatAbsoluteTime(iso){
+  if(!iso) return "";
+  var d = new Date(iso);
+  if(isNaN(d.getTime())) return "";
+  var now = new Date();
+  var sameDay = d.toDateString() === now.toDateString();
+  var h = d.getHours(); var m = d.getMinutes();
+  var ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12; if(h === 0) h = 12;
+  var mm = (m < 10 ? "0" : "") + m;
+  var timeStr = h + ":" + mm + " " + ampm;
+  if(sameDay) return timeStr + " today";
+  var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return months[d.getMonth()] + " " + d.getDate() + " \u00B7 " + timeStr;
+}
+function val(id){ var el = document.getElementById(id); return el ? (el.value || "").trim() : ""; }
+
+function loadAgent(){
+  try {
+    var raw = localStorage.getItem("sh_agent");
+    if(!raw) return null;
+    var data = JSON.parse(raw);
+    if(Date.now() - data.t > 12*3600*1000) return null;
+    return data.name;
+  } catch(e){ return null; }
+}
+function saveAgent(name){
+  try { localStorage.setItem("sh_agent", JSON.stringify({name:name, t:Date.now()})); } catch(e){}
+  agentName = name;
+}
+function updateAgentTag(){
+  document.getElementById("agentTag").textContent = agentName ? ("Signed in: " + agentName) : "";
+}
+
+/* SETTINGS */
+function loadSettings(){
+  return fetch(WORKER_URL + "/settings")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      SETTINGS_CACHE = (data && data.settings) || {};
+      populateShiftDropdown();
+    })
+    .catch(function(){ SETTINGS_CACHE = {}; populateShiftDropdown(); });
+}
+
+function populateShiftDropdown(){
+  var defs = (SETTINGS_CACHE && SETTINGS_CACHE.shiftDefinitions) || [
+    { key:"AM",        label:"AM (7am-3pm)" },
+    { key:"PM",        label:"PM (3pm-11pm)" },
+    { key:"Overnight", label:"Overnight (11pm-7am)" }
+  ];
+  var sel = document.getElementById("shiftSelect");
+  sel.innerHTML = defs.map(function(d){
+    return '<option value="' + esc(d.label) + '">' + esc(d.label) + '</option>';
+  }).join('');
+}
+
+/* SIGN-IN MODAL — accepts ANY of the 3 rosters (combined) */
+function promptAgentName(){
+  return new Promise(function(resolve){
+    var s = SETTINGS_CACHE || {};
+    var combined = [].concat(
+      s.frontDeskStaff || [],
+      s.maintenanceStaff || [],
+      s.housekeepingStaff || []
+    );
+    var bg = document.createElement("div");
+    bg.className = "sh-modal-bg";
+    var hasRoster = combined.length > 0;
+    var optionsHtml = combined.map(function(n){ return '<option value="'+esc(n)+'">'+esc(n)+'</option>'; }).join('');
+    bg.innerHTML =
+      '<div class="sh-modal">' +
+        '<h3>Sign in</h3>' +
+        '<p>Pick your name so your handoff entries are tagged correctly.</p>' +
+        (hasRoster ?
+          '<select class="sh-modal-select" id="agentSelect">' +
+            '<option value="">— Pick a name —</option>' +
+            optionsHtml +
+            '<option value="__other__">Other (type a name)</option>' +
+          '</select>' : '') +
+        '<input class="sh-modal-input" id="agentInput" type="text" placeholder="' + (hasRoster ? 'Or type your name' : 'Your first name') + '" style="' + (hasRoster ? 'display:none' : '') + '">' +
+        '<button class="sh-modal-btn" id="agentSubmit">Continue</button>' +
+      '</div>';
+    document.body.appendChild(bg);
+    var sel = document.getElementById("agentSelect");
+    var inp = document.getElementById("agentInput");
+    var btn = document.getElementById("agentSubmit");
+    if(sel){
+      sel.onchange = function(){
+        if(sel.value === "__other__"){
+          inp.style.display = ""; inp.value = "";
+          setTimeout(function(){ inp.focus(); }, 50);
+        } else {
+          inp.style.display = "none"; inp.value = "";
+        }
+      };
+      setTimeout(function(){ sel.focus(); }, 50);
+    } else {
+      setTimeout(function(){ inp.focus(); }, 50);
+    }
+    function finish(){
+      var name = "";
+      if(sel && sel.value && sel.value !== "__other__") name = sel.value.trim();
+      else if(inp) name = (inp.value || "").trim();
+      if(!name){
+        if(sel && !sel.value) sel.focus();
+        else if(inp) inp.focus();
+        return;
+      }
+      saveAgent(name);
+      updateAgentTag();
+      document.body.removeChild(bg);
+      resolve();
+    }
+    btn.onclick = finish;
+    if(inp) inp.addEventListener("keydown", function(e){ if(e.key === "Enter") finish(); });
+  });
+}
+
+/* LOAD */
+function loadActive(){
+  return fetch(WORKER_URL + "/shifts")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      ENTRIES = (data && data.shifts) || [];
+      ENTRIES.sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+    })
+    .catch(function(){ ENTRIES = []; });
+}
+function loadArchived(){
+  return fetch(WORKER_URL + "/shifts?status=archived")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      ARCHIVED = (data && data.shifts) || [];
+      ARCHIVED.sort(function(a,b){
+        return new Date(b.archivedAt || b.createdAt) - new Date(a.archivedAt || a.createdAt);
+      });
+      archivedLoaded = true;
+    })
+    .catch(function(){ ARCHIVED = []; });
+}
+
+function renderChips(){
+  var unread = ENTRIES.filter(function(e){
+    return e && (!e.acknowledgedBy || e.acknowledgedBy.length === 0);
+  }).length;
+  var active = ENTRIES.length;
+  var html = '';
+  html += '<button class="sh-chip' + (activeFilter === "active" ? " active" : "") + '" data-filter="active">' +
+    'Active <span class="sh-chip-count">' + unread + '/' + active + '</span>' +
+  '</button>';
+  html += '<button class="sh-chip' + (activeFilter === "archived" ? " active" : "") + '" data-filter="archived">' +
+    'Archived' +
+    (archivedLoaded ? ' <span class="sh-chip-count">' + ARCHIVED.length + '</span>' : '') +
+  '</button>';
+  document.getElementById("chips").innerHTML = html;
+  document.querySelectorAll(".sh-chip").forEach(function(btn){
+    btn.onclick = function(){
+      var newFilter = btn.getAttribute("data-filter");
+      if(newFilter === "archived" && !archivedLoaded){
+        var listEl = document.getElementById("list");
+        if(listEl) listEl.innerHTML = '<div class="sh-empty"><div class="sh-empty-icon">\u22EF</div>Loading…</div>';
+        loadArchived().then(function(){
+          activeFilter = newFilter;
+          renderChips();
+          renderList();
+        });
+      } else {
+        activeFilter = newFilter;
+        renderChips();
+        renderList();
+      }
+    };
+  });
+}
+
+function renderList(){
+  var listEl = document.getElementById("list");
+  var src = (activeFilter === "archived") ? ARCHIVED : ENTRIES;
+  if(src.length === 0){
+    listEl.innerHTML = activeFilter === "archived"
+      ? '<div class="sh-empty"><div class="sh-empty-icon">\u2709</div>No archived entries.</div>'
+      : '<div class="sh-empty"><div class="sh-empty-icon">\u2713</div>No handoff entries yet. Post the first one above.</div>';
+    return;
+  }
+  listEl.innerHTML = src.map(renderCardHtml).join('');
+  /* wire buttons */
+  document.querySelectorAll(".sh-btn[data-action]").forEach(function(btn){
+    btn.onclick = function(){
+      var id = btn.getAttribute("data-id");
+      var action = btn.getAttribute("data-action");
+      handleAction(id, action, btn);
+    };
+  });
+}
+
+function renderCardHtml(e){
+  var isArchived = (e.status === "archived");
+  var acks = Array.isArray(e.acknowledgedBy) ? e.acknowledgedBy : [];
+  var alreadyAcked = acks.some(function(a){ return a.name === agentName; });
+
+  var acksHtml = acks.length
+    ? '<div class="sh-card-acks">' +
+        '<span>Read by:</span>' +
+        acks.map(function(a){ return '<span class="sh-ack-pill">' + esc(a.name) + '</span>'; }).join('') +
+      '</div>'
+    : '<div class="sh-card-acks"><em>Not yet read.</em></div>';
+
+  var actions = "";
+  if(isArchived){
+    actions = '';
+  } else {
+    actions = '<div class="sh-card-actions">' +
+      (alreadyAcked
+        ? '<button class="sh-btn sh-btn-ack acked" disabled>\u2713 Read</button>'
+        : '<button class="sh-btn sh-btn-ack" data-id="' + esc(e.id) + '" data-action="ack">\u2713 Mark Read</button>'
+      ) +
+      '<button class="sh-btn sh-btn-archive" data-id="' + esc(e.id) + '" data-action="archive">Archive</button>' +
+    '</div>';
+  }
+
+  var statusBadge = isArchived ? '<span class="sh-archived-badge">Archived</span>' : '';
+
+  return '<div class="sh-card' + (isArchived ? ' is-archived' : '') + '">' +
+    '<div class="sh-card-head">' +
+      '<span class="sh-shift">' + esc(e.shiftLabel || "—") + '</span>' +
+      statusBadge +
+      '<span class="sh-author">' + esc(e.author || "—") + '</span>' +
+      '<div class="sh-time-block">' +
+        '<div class="sh-time-rel">' + esc(timeAgo(e.createdAt)) + '</div>' +
+        '<div class="sh-time-abs">' + esc(formatAbsoluteTime(e.createdAt)) + '</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="sh-card-body">' + esc(e.notes || "") + '</div>' +
+    acksHtml +
+    actions +
+  '</div>';
+}
+
+function handleAction(id, action, btn){
+  btn.disabled = true;
+  var url = action === "ack" ? "/shift/ack" : "/shift/archive";
+  var payload = action === "ack"
+    ? { id: id, acknowledgedBy: agentName || "Unknown" }
+    : { id: id, archivedBy: agentName || "Unknown" };
+  fetch(WORKER_URL + url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data && data.ok){
+      doRefresh();
+    } else {
+      btn.disabled = false;
+      alert("Action failed. Please try again.");
+    }
+  })
+  .catch(function(){
+    btn.disabled = false;
+    alert("Network error.");
+  });
+}
+
+/* SUBMIT NEW */
+function showError(msg){
+  var e = document.getElementById("errMsg");
+  e.textContent = msg;
+  e.classList.add("show");
+}
+function clearError(){
+  var e = document.getElementById("errMsg");
+  e.textContent = "";
+  e.classList.remove("show");
+}
+
+document.getElementById("submitBtn").onclick = function(){
+  clearError();
+  var shiftLabel = val("shiftSelect");
+  var notes = val("notesField");
+  if(!notes){ showError("Please enter notes before posting."); return; }
+  var btn = document.getElementById("submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Posting...";
+  fetch(WORKER_URL + "/shift", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      shiftLabel: shiftLabel,
+      author: agentName || "Unknown",
+      notes: notes
+    })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data && data.ok){
+      document.getElementById("notesField").value = "";
+      btn.disabled = false;
+      btn.textContent = "Post Entry";
+      doRefresh();
+    } else {
+      btn.disabled = false;
+      btn.textContent = "Post Entry";
+      showError("Submit failed. Try again.");
+    }
+  })
+  .catch(function(){
+    btn.disabled = false;
+    btn.textContent = "Post Entry";
+    showError("Network error.");
+  });
+};
+
+/* REFRESH */
+function updateLastUpdated(){
+  var t = new Date();
+  var h = t.getHours(); var m = t.getMinutes();
+  var ap = h >= 12 ? "PM" : "AM";
+  h = h % 12; if(h===0) h = 12;
+  if(m < 10) m = "0" + m;
+  document.getElementById("updatedLabel").textContent = "Updated " + h + ":" + m + " " + ap;
+}
+function doRefresh(){
+  var btn = document.getElementById("refreshBtn");
+  if(btn) btn.disabled = true;
+  var ps = [loadActive()];
+  if(archivedLoaded) ps.push(loadArchived());
+  return Promise.all(ps).then(function(){
+    renderChips();
+    renderList();
+    updateLastUpdated();
+  }).finally(function(){
+    if(btn) btn.disabled = false;
+  });
+}
+document.getElementById("refreshBtn").onclick = doRefresh;
+
+/* INIT */
+(function init(){
+  loadSettings().then(function(){
+    var existing = loadAgent();
+    if(existing){
+      agentName = existing;
+      updateAgentTag();
+      doRefresh();
+    } else {
+      promptAgentName().then(function(){
+        doRefresh();
+      });
+    }
+  });
+})();
+</script>
+
+</body>
+</html>
