@@ -93,6 +93,38 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Bl
 .rd-modal-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 .rd-modal-btn:hover{background:#234e76}
 
+/* SECTIONS within each filter view */
+.rd-section-head{font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--ink-soft);margin:18px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+.rd-section-head:first-child{margin-top:0}
+.rd-section-head-muted{color:var(--ink-mute);font-weight:600}
+.rd-section-count{font-size:11px;font-weight:700;color:var(--ink-mute);background:rgba(0,0,0,0.04);padding:1px 8px;border-radius:10px}
+.rd-section-empty{font-size:12px;color:var(--ink-mute);font-style:italic;padding:8px 4px;margin-bottom:14px}
+
+/* PROCESSED CARD VARIANT */
+.rd-card.is-processed{opacity:0.78;border-style:dashed}
+.rd-card.is-processed .rd-card-room,.rd-card.is-processed .rd-card-name{color:var(--ink-soft)}
+.rd-processed-badge{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:var(--good-soft);color:var(--good);padding:2px 7px;border-radius:3px}
+.rd-card-meta{font-size:11px;color:var(--ink-mute);margin-top:6px;display:flex;flex-wrap:wrap;gap:10px}
+.rd-card-notes{margin-top:8px;padding:8px 12px;background:#f8f9fb;border-radius:5px;border-left:3px solid var(--good)}
+.rd-note{font-size:12px;color:var(--ink);line-height:1.5}
+.rd-note-meta{font-size:10px;color:var(--ink-mute);margin-top:3px}
+
+/* MODAL — PROCESS CONFIRMATION */
+.rd-modal-large{width:min(480px,92vw)}
+.rd-modal-head{font-size:12px;font-weight:600;color:var(--ink-soft);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--line);text-transform:uppercase;letter-spacing:0.04em}
+.rd-modal-guidance{background:var(--accent-soft);border-left:3px solid var(--accent);padding:12px 14px;border-radius:5px;margin-bottom:14px;font-size:13px;color:var(--ink);line-height:1.55}
+.rd-modal-guidance-title{font-weight:700;color:var(--accent);margin-bottom:6px;font-size:12px;text-transform:uppercase;letter-spacing:0.05em}
+.rd-modal-guidance ol{margin:0;padding-left:18px}
+.rd-modal-guidance li{margin-bottom:3px}
+.rd-modal-textarea{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;outline:none;margin-bottom:12px;background:var(--paper-card);resize:vertical;min-height:80px}
+.rd-modal-textarea:focus{border-color:var(--accent)}
+.rd-modal-actions{display:flex;gap:8px;justify-content:flex-end}
+.rd-modal-btn-cancel{padding:10px 18px;background:var(--paper);color:var(--ink-soft);border:1px solid var(--line);border-radius:6px;font-family:inherit;font-size:13px;cursor:pointer}
+.rd-modal-btn-cancel:hover{background:#eef0f4}
+.rd-modal-btn-confirm{padding:10px 18px;background:var(--good);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.rd-modal-btn-confirm:hover{background:#168558}
+.rd-modal-btn-confirm:disabled{opacity:0.6;cursor:wait}
+
 /* RESPONSIVE */
 @media (max-width:640px){
   .rd-main{padding:14px}
@@ -269,21 +301,31 @@ function loadRequests(){
 }
 
 function renderChips(){
-  var counts = { all: REQUESTS.length };
-  TYPE_ORDER.forEach(function(t){ counts[t] = 0; });
+  /* For each type, count PENDING + TOTAL (pending + processed).
+     Chip shows X/Y where X = pending, Y = total visible. */
+  var pendingByType = {}; var totalByType = {};
+  TYPE_ORDER.forEach(function(t){ pendingByType[t] = 0; totalByType[t] = 0; });
+  var allPending = 0; var allTotal = 0;
   REQUESTS.forEach(function(r){
-    if(counts[r.type] != null) counts[r.type]++;
+    if(!r) return;
+    allTotal++;
+    if(r.status !== "processed") allPending++;
+    if(totalByType[r.type] != null){
+      totalByType[r.type]++;
+      if(r.status !== "processed") pendingByType[r.type]++;
+    }
   });
-  var chips = [{key:"all", label:"All", count:counts.all}].concat(
+  var chips = [{key:"all", label:"All", pending:allPending, total:allTotal}].concat(
     TYPE_ORDER.map(function(t){
-      return { key:t, label:TYPE_META[t].shortLabel, count:counts[t] };
+      return { key:t, label:TYPE_META[t].shortLabel, pending:pendingByType[t], total:totalByType[t] };
     })
   );
   document.getElementById("chips").innerHTML = chips.map(function(c){
     var active = c.key === activeFilter ? " active" : "";
+    var counter = c.pending + "/" + c.total;
     return '<button class="rd-chip'+active+'" data-filter="'+c.key+'">' +
       esc(c.label) +
-      '<span class="rd-chip-count">'+c.count+'</span>' +
+      '<span class="rd-chip-count">'+counter+'</span>' +
     '</button>';
   }).join('');
   /* wire chip clicks */
@@ -303,94 +345,229 @@ function renderList(){
 
   var listEl = document.getElementById("list");
   if(filtered.length === 0){
-    listEl.innerHTML = '<div class="rd-empty"><div class="rd-empty-icon">✓</div>No active requests. New submissions appear here.</div>';
+    listEl.innerHTML = '<div class="rd-empty"><div class="rd-empty-icon">✓</div>No requests yet. New submissions appear here.</div>';
     return;
   }
 
-  listEl.innerHTML = filtered.map(function(r){
-    var meta = TYPE_META[r.type] || { label: r.type, cssClass: "" };
-    var f = r.fields || {};
-    var first = f.firstName || "";
-    var last  = f.lastName || f.last_name || "";
-    var name  = (first + " " + last).trim() || "—";
-    var room = f.roomNumber || f.room || "";
-    var roomLabel = room ? ("Room " + esc(room)) : "—";
+  /* split into pending and processed */
+  var pending   = filtered.filter(function(r){ return r.status !== "processed"; });
+  var processed = filtered.filter(function(r){ return r.status === "processed"; });
 
-    /* Body content depends on type */
-    var bodyRows = [];
-    if(r.type === "express_checkout"){
-      if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
-      if(f.email) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Email</span>'+esc(f.email)+'</div>');
-      if(f.note) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Note</span>'+esc(f.note)+'</div>');
-    } else if(r.type === "refund"){
-      if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
-      if(f.email) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Email</span>'+esc(f.email)+'</div>');
-      if(f.requestedAmount) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Amount</span>$'+esc(f.requestedAmount)+'</div>');
-      if(f.reason) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Reason</span>'+esc(f.reason)+'</div>');
-    } else if(r.type === "lost_found"){
-      if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
-      if(f.email) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Email</span>'+esc(f.email)+'</div>');
-      if(f.item) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Item</span>'+esc(f.item)+'</div>');
-    } else if(r.type === "late_checkout"){
-      if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
-      if(f.requestedTime) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Requested</span>'+esc(f.requestedTime)+'</div>');
-    } else if(r.type === "housekeeping_incident"){
-      if(f.description) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Found</span>'+esc(f.description)+'</div>');
-      if(f.suggestedCharge != null) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Suggested $</span>'+esc(f.suggestedCharge)+'</div>');
-      if(f.reportedBy) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Reported by</span>'+esc(f.reportedBy)+'</div>');
-    }
-    var body = bodyRows.length ? '<div class="rd-card-body">'+bodyRows.join('')+'</div>' : '';
+  var html = "";
 
-    return '<div class="rd-card" data-id="'+esc(r.id)+'">' +
-      '<div class="rd-card-head">' +
-        '<span class="rd-card-type '+meta.cssClass+'">'+esc(meta.label)+'</span>' +
-        '<span class="rd-card-room">'+roomLabel+'</span>' +
-        '<span class="rd-card-name">'+esc(name)+'</span>' +
-        '<span class="rd-card-time">'+esc(timeAgo(r.createdAt))+'</span>' +
-      '</div>' +
-      body +
-      '<div class="rd-card-actions">' +
-        '<button class="rd-btn rd-btn-process" data-id="'+esc(r.id)+'" data-action="process">&#10003; Mark Processed</button>' +
-        '<button class="rd-btn rd-btn-archive" data-id="'+esc(r.id)+'" data-action="archive">Archive</button>' +
-      '</div>' +
-    '</div>';
-  }).join('');
+  /* PENDING SECTION */
+  html += '<div class="rd-section-head">Pending <span class="rd-section-count">' + pending.length + '</span></div>';
+  if(pending.length === 0){
+    html += '<div class="rd-section-empty">All caught up. New submissions appear here.</div>';
+  } else {
+    html += pending.map(renderCardHtml).join('');
+  }
+
+  /* PROCESSED SECTION (only show if any) */
+  if(processed.length > 0){
+    html += '<div class="rd-section-head rd-section-head-muted">Processed <span class="rd-section-count">' + processed.length + '</span></div>';
+    html += processed.map(renderCardHtml).join('');
+  }
+
+  listEl.innerHTML = html;
 
   /* wire action buttons */
   document.querySelectorAll(".rd-btn[data-action]").forEach(function(btn){
     btn.onclick = function(){
       var id = btn.getAttribute("data-id");
       var action = btn.getAttribute("data-action");
-      handleAction(id, action, btn);
+      var rec = REQUESTS.filter(function(r){ return r.id === id; })[0];
+      handleAction(id, action, btn, rec);
     };
   });
 }
 
-function handleAction(id, action, btn){
+function renderCardHtml(r){
+  var meta = TYPE_META[r.type] || { label: r.type, cssClass: "" };
+  var f = r.fields || {};
+  var first = f.firstName || "";
+  var last  = f.lastName || f.last_name || "";
+  var name  = (first + " " + last).trim() || "—";
+  var room = f.roomNumber || f.room || "";
+  var roomLabel = room ? ("Room " + esc(room)) : "—";
+  var isProcessed = (r.status === "processed");
+
+  /* Body content depends on type */
+  var bodyRows = [];
+  if(r.type === "express_checkout"){
+    if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
+    if(f.email) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Email</span>'+esc(f.email)+'</div>');
+    if(f.note)  bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Note</span>'+esc(f.note)+'</div>');
+  } else if(r.type === "refund"){
+    if(f.phone)           bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
+    if(f.email)           bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Email</span>'+esc(f.email)+'</div>');
+    if(f.requestedAmount) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Amount</span>$'+esc(f.requestedAmount)+'</div>');
+    if(f.reason)          bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Reason</span>'+esc(f.reason)+'</div>');
+  } else if(r.type === "lost_found"){
+    if(f.phone) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
+    if(f.email) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Contact</span>'+esc(f.email)+'</div>');
+    if(f.item)  bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Item</span>'+esc(f.item)+'</div>');
+  } else if(r.type === "late_checkout"){
+    if(f.phone)         bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Phone</span>'+esc(f.phone)+'</div>');
+    if(f.requestedTime) bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Requested</span>'+esc(f.requestedTime)+'</div>');
+  } else if(r.type === "housekeeping_incident"){
+    if(f.description)              bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Found</span>'+esc(f.description)+'</div>');
+    if(f.suggestedCharge != null)  bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Suggested $</span>'+esc(f.suggestedCharge)+'</div>');
+    if(f.reportedBy)               bodyRows.push('<div class="rd-card-body-row"><span class="rd-card-label">Reported by</span>'+esc(f.reportedBy)+'</div>');
+  }
+  var body = bodyRows.length ? '<div class="rd-card-body">'+bodyRows.join('')+'</div>' : '';
+
+  /* Processed meta line + notes display */
+  var processedMeta = "";
+  var notesHtml = "";
+  if(isProcessed){
+    processedMeta = '<div class="rd-card-meta">' +
+      (r.processedBy ? '<span>Processed by ' + esc(r.processedBy) + '</span>' : '') +
+      (r.processedAt ? '<span>' + esc(timeAgo(r.processedAt)) + '</span>' : '') +
+    '</div>';
+    var procNotes = (r.notes || []).filter(function(n){ return n && n.type === "process"; });
+    if(procNotes.length){
+      notesHtml = '<div class="rd-card-notes">' +
+        procNotes.map(function(n){
+          return '<div class="rd-note">' + esc(n.text || "") + '</div>' +
+                 '<div class="rd-note-meta">' + esc(n.author || "") + ' · ' + esc(timeAgo(n.at)) + '</div>';
+        }).join('<hr style="border:none;border-top:1px solid var(--line);margin:6px 0">') +
+      '</div>';
+    }
+  }
+
+  /* Action buttons differ by status */
+  var actions = "";
+  if(isProcessed){
+    actions = '<div class="rd-card-actions">' +
+      '<button class="rd-btn rd-btn-archive" data-id="'+esc(r.id)+'" data-action="archive">Archive</button>' +
+    '</div>';
+  } else {
+    actions = '<div class="rd-card-actions">' +
+      '<button class="rd-btn rd-btn-process" data-id="'+esc(r.id)+'" data-action="process">&#10003; Mark Processed</button>' +
+      '<button class="rd-btn rd-btn-archive" data-id="'+esc(r.id)+'" data-action="archive">Archive</button>' +
+    '</div>';
+  }
+
+  return '<div class="rd-card' + (isProcessed ? ' is-processed' : '') + '" data-id="'+esc(r.id)+'">' +
+    '<div class="rd-card-head">' +
+      '<span class="rd-card-type '+meta.cssClass+'">'+esc(meta.label)+'</span>' +
+      (isProcessed ? '<span class="rd-processed-badge">Processed</span>' : '') +
+      '<span class="rd-card-room">'+roomLabel+'</span>' +
+      '<span class="rd-card-name">'+esc(name)+'</span>' +
+      '<span class="rd-card-time">'+esc(timeAgo(r.createdAt))+'</span>' +
+    '</div>' +
+    body +
+    notesHtml +
+    processedMeta +
+    actions +
+  '</div>';
+}
+
+function handleAction(id, action, btn, rec){
+  if(action === "process"){
+    /* open modal to collect optional note + show guidance */
+    openProcessModal(id, rec, btn);
+    return;
+  }
+  /* archive — direct call */
   btn.disabled = true;
-  var url = action === "process" ? "/request/process" : "/request/archive";
-  var payload = action === "process"
-    ? { id: id, processedBy: agentName || "Unknown" }
-    : { id: id, archivedBy: agentName || "Unknown" };
-  fetch(WORKER_URL + url, {
+  fetch(WORKER_URL + "/request/archive", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
+    body: JSON.stringify({ id: id, archivedBy: agentName || "Unknown" })
   })
   .then(function(r){ return r.json(); })
   .then(function(data){
     if(data && data.ok){
-      /* immediate refresh */
       doRefresh();
     } else {
       btn.disabled = false;
-      alert("Action failed. Please try again.");
+      alert("Archive failed. Please try again.");
     }
   })
   .catch(function(){
     btn.disabled = false;
     alert("Network error. Check connection.");
   });
+}
+
+function openProcessModal(id, rec, triggerBtn){
+  var meta = TYPE_META[(rec && rec.type) || ""] || { label: "Request" };
+  var f = (rec && rec.fields) || {};
+  var roomLabel = f.roomNumber ? ("Room " + f.roomNumber) : "";
+  var headLabel = meta.label + (roomLabel ? " · " + roomLabel : "");
+
+  /* housekeeping-specific guidance block */
+  var guidance = "";
+  if(rec && rec.type === "housekeeping_incident"){
+    var charge = f.suggestedCharge != null ? ("$" + esc(f.suggestedCharge)) : "the amount above";
+    guidance =
+      '<div class="rd-modal-guidance">' +
+        '<div class="rd-modal-guidance-title">Recommended workflow</div>' +
+        '<ol>' +
+          '<li>Call the guest first.</li>' +
+          '<li>Advise of the charge (' + charge + ') and get verbal confirmation.</li>' +
+          '<li>If no answer, proceed with the charge &mdash; this incident report serves as evidence.</li>' +
+          '<li>Note the outcome below.</li>' +
+        '</ol>' +
+      '</div>';
+  }
+
+  var bg = document.createElement("div");
+  bg.className = "rd-modal-bg";
+  bg.innerHTML =
+    '<div class="rd-modal rd-modal-large">' +
+      '<div class="rd-modal-head">Mark Processed &mdash; ' + esc(headLabel) + '</div>' +
+      guidance +
+      '<textarea class="rd-modal-textarea" id="procNote" placeholder="Add a note (optional). e.g., Called guest at 11:30 AM, confirmed charge."></textarea>' +
+      '<div class="rd-modal-actions">' +
+        '<button class="rd-modal-btn-cancel" id="procCancel">Cancel</button>' +
+        '<button class="rd-modal-btn-confirm" id="procConfirm">Confirm Processed</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(bg);
+  var note    = document.getElementById("procNote");
+  var cancel  = document.getElementById("procCancel");
+  var confirm = document.getElementById("procConfirm");
+  setTimeout(function(){ note.focus(); }, 50);
+
+  function close(){
+    if(bg.parentNode) bg.parentNode.removeChild(bg);
+    if(triggerBtn) triggerBtn.disabled = false;
+  }
+  cancel.onclick = close;
+  bg.onclick = function(e){ if(e.target === bg) close(); };
+
+  confirm.onclick = function(){
+    confirm.disabled = true;
+    confirm.textContent = "Submitting…";
+    fetch(WORKER_URL + "/request/process", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        id: id,
+        processedBy: agentName || "Unknown",
+        note: (note.value || "").trim()
+      })
+    })
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      if(data && data.ok){
+        close();
+        doRefresh();
+      } else {
+        confirm.disabled = false;
+        confirm.textContent = "Confirm Processed";
+        alert("Submit failed. Please try again.");
+      }
+    })
+    .catch(function(){
+      confirm.disabled = false;
+      confirm.textContent = "Confirm Processed";
+      alert("Network error. Please try again.");
+    });
+  };
 }
 
 /* ─────────────────────────────────────────────────────

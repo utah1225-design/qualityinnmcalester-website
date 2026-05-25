@@ -544,9 +544,21 @@ async function processRequest(request, env) {
   const raw = await env.HOTEL_KV.get("request:" + body.id);
   if (!raw) return json({ error: "not found" }, 404);
   const r = JSON.parse(raw);
-  r.status = "archived";              /* processed = immediately archived per design */
+  /* Mark processed (visible in dashboard until manually archived
+     or auto-archived 30 days after processedAt). */
+  r.status = "processed";
   r.processedAt = new Date().toISOString();
   r.processedBy = body.processedBy || "Unknown";
+  /* append a processing note if one was provided */
+  if (!Array.isArray(r.notes)) r.notes = [];
+  if (body.note && String(body.note).trim()) {
+    r.notes.push({
+      author: body.processedBy || "Unknown",
+      text: String(body.note).trim(),
+      at: r.processedAt,
+      type: "process"
+    });
+  }
   await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
   return json({ ok: true, id: r.id, status: r.status });
 }
@@ -564,30 +576,51 @@ async function archiveRequest(request, env) {
   return json({ ok: true, id: r.id, status: r.status });
 }
 
-/* Auto-archive requests by type-specific age thresholds.
-   Called from the scheduled() cron handler below.
-   Rules:
-     express_checkout      -> 48 hours
-     housekeeping_incident -> 10 days
-   Other types are NOT auto-archived (front desk must process manually). */
+/* Auto-archive requests with two rules:
+     (A) PENDING items older than per-type threshold from createdAt
+            (express_checkout=48h, housekeeping_incident=10d).
+            This handles abandoned / unprocessed items.
+     (B) PROCESSED items older than 30 days from processedAt
+            (universal across all types). This cleans up the
+            audit log so the dashboard does not grow forever.
+   Other types in pending state are NOT auto-archived
+   (front desk must process or archive manually). */
 async function autoArchiveOldRequests(env) {
   const items = await readAll(env, "request");
   const now = Date.now();
   const HOUR = 3600 * 1000;
-  const THRESHOLDS = {
+  const DAY  = 24 * HOUR;
+  const PENDING_THRESHOLDS = {
     express_checkout:      48 * HOUR,
-    housekeeping_incident: 10 * 24 * HOUR
+    housekeeping_incident: 10 * DAY
   };
+  const PROCESSED_RETENTION = 30 * DAY;
   let archived = 0;
   for (const r of items) {
     if (!r || r.status === "archived") continue;
-    const threshold = THRESHOLDS[r.type];
-    if (!threshold) continue;
-    const created = new Date(r.createdAt).getTime();
-    if (now - created > threshold) {
+    let shouldArchive = false;
+    let reason = "";
+    if (r.status === "processed") {
+      const procT = new Date(r.processedAt || r.createdAt).getTime();
+      if (now - procT > PROCESSED_RETENTION) {
+        shouldArchive = true;
+        reason = "Auto (30d post-process)";
+      }
+    } else {
+      /* pending: type-specific from createdAt */
+      const th = PENDING_THRESHOLDS[r.type];
+      if (th) {
+        const created = new Date(r.createdAt).getTime();
+        if (now - created > th) {
+          shouldArchive = true;
+          reason = "Auto (" + Math.round(th / HOUR) + "h pending)";
+        }
+      }
+    }
+    if (shouldArchive) {
       r.status = "archived";
-      r.processedAt = r.processedAt || new Date().toISOString();
-      r.processedBy = r.processedBy || ("Auto (" + Math.round(threshold / HOUR) + "h)");
+      r.archivedAt = new Date().toISOString();
+      r.archivedBy = reason;
       await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
       archived++;
     }
