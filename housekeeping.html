@@ -170,8 +170,8 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
     <div class="hk-card">
       <div class="hk-success">
         <div class="hk-success-icon">&#10003;</div>
-        <h2>Report sent</h2>
-        <p>Front desk has been notified and will contact the guest. You can report another incident if needed.</p>
+        <h2 id="successTitle">Report sent.</h2>
+        <p id="successBody">Front desk has been notified. You can report another incident if needed.</p>
         <button onclick="showLanding()">Report Another</button>
       </div>
     </div>
@@ -467,6 +467,20 @@ function loadMyReports(){
 /* ────────────────────────────────────────────
    INIT
    ──────────────────────────────────────────── */
+function applyFormMessage(){
+  var msgs = (SETTINGS_CACHE && SETTINGS_CACHE.formMessages) || {};
+  var cfg = msgs.housekeeping_incident;
+  if(!cfg) return;
+  if(cfg.title){
+    var t = document.getElementById("successTitle");
+    if(t) t.textContent = cfg.title;
+  }
+  if(cfg.body){
+    var b = document.getElementById("successBody");
+    if(b) b.textContent = cfg.body;
+  }
+}
+
 (function init(){
   /* wire refresh button for "My Recent Reports" */
   var refreshBtn = document.getElementById("recentRefreshBtn");
@@ -474,6 +488,7 @@ function loadMyReports(){
     refreshBtn.onclick = function(){ loadMyReports(); };
   }
   loadSettings().then(function(){
+    applyFormMessage();
     var existing = loadAgent();
     if(existing){
       agentName = existing;

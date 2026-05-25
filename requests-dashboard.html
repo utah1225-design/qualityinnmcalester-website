@@ -125,11 +125,32 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Bl
 .rd-modal-btn-confirm:hover{background:#168558}
 .rd-modal-btn-confirm:disabled{opacity:0.6;cursor:wait}
 
+/* TIME + DEVICE display in card head */
+.rd-card-time-block{display:flex;flex-direction:column;align-items:flex-end;gap:1px;margin-left:auto;font-size:11px;line-height:1.35}
+.rd-card-time-rel{color:var(--ink-mute);font-weight:500}
+.rd-card-time-abs{color:var(--ink-mute);font-size:10px;opacity:0.85}
+.rd-card-device{color:var(--ink-mute);font-size:10px;font-style:italic;margin-top:2px}
+
+/* ARCHIVED chip + cards */
+.rd-chip[data-filter="archived"]{margin-left:8px;border-left:3px solid var(--line)}
+.rd-chip[data-filter="archived"].active{background:var(--ink-soft);border-color:var(--ink-soft)}
+.rd-card.is-archived{opacity:0.65;border-style:dashed;background:var(--paper)}
+.rd-card.is-archived .rd-card-room,.rd-card.is-archived .rd-card-name{color:var(--ink-mute)}
+.rd-archived-badge{font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:#eaecf0;color:var(--ink-soft);padding:2px 7px;border-radius:3px}
+.rd-btn-restore{background:var(--accent);color:#fff;border-color:var(--accent)}
+.rd-btn-restore:hover{background:#234e76}
+
+/* View Incident Report link */
+.rd-report-link{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--accent);text-decoration:none;font-weight:600;padding:7px 11px;border:1px solid var(--accent);border-radius:5px;background:#fff;margin-right:4px}
+.rd-report-link:hover{background:var(--accent-soft)}
+.rd-report-link svg{width:13px;height:13px}
+
 /* RESPONSIVE */
 @media (max-width:640px){
   .rd-main{padding:14px}
   .rd-chips{gap:6px}
   .rd-chip{padding:5px 10px;font-size:11px}
+  .rd-card-time-block{font-size:10px}
 }
 </style>
 </head>
@@ -175,6 +196,7 @@ var TYPE_ORDER = ["express_checkout","refund","lost_found","late_checkout","hous
    ───────────────────────────────────────────────────── */
 var SETTINGS_CACHE = null;
 var REQUESTS = [];
+var ARCHIVED_REQUESTS = [];   /* V1.01: lazily refreshed alongside REQUESTS */
 var activeFilter = "all";
 var agentName = null;
 
@@ -193,6 +215,22 @@ function timeAgo(iso){
   if(diff < 3600000) return Math.round(diff/60000) + " min ago";
   if(diff < 86400000) return Math.round(diff/3600000) + "h ago";
   return Math.round(diff/86400000) + "d ago";
+}
+function formatAbsoluteTime(iso){
+  if(!iso) return "";
+  var d = new Date(iso);
+  if(isNaN(d.getTime())) return "";
+  var now = new Date();
+  var sameDay = d.toDateString() === now.toDateString();
+  var h = d.getHours();
+  var m = d.getMinutes();
+  var ampm = h >= 12 ? "PM" : "AM";
+  h = h % 12; if(h === 0) h = 12;
+  var mm = (m < 10 ? "0" : "") + m;
+  var timeStr = h + ":" + mm + " " + ampm;
+  if(sameDay) return timeStr + " today";
+  var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  return months[d.getMonth()] + " " + d.getDate() + " · " + timeStr;
 }
 function loadAgent(){
   try {
@@ -290,14 +328,27 @@ function promptAgentName(){
    FETCH + RENDER
    ───────────────────────────────────────────────────── */
 function loadRequests(){
-  return fetch(WORKER_URL + "/requests")
+  /* fetch active + archived in parallel */
+  var p1 = fetch(WORKER_URL + "/requests")
     .then(function(r){ return r.json(); })
     .then(function(data){
       REQUESTS = (data && data.requests) || [];
-      /* newest first */
       REQUESTS.sort(function(a,b){ return new Date(b.createdAt) - new Date(a.createdAt); });
     })
-    .catch(function(e){ console.error("loadRequests failed:", e); REQUESTS = []; });
+    .catch(function(e){ console.error("loadRequests(active) failed:", e); REQUESTS = []; });
+  var p2 = fetch(WORKER_URL + "/requests?status=archived")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      ARCHIVED_REQUESTS = (data && data.requests) || [];
+      ARCHIVED_REQUESTS.sort(function(a,b){
+        /* sort by archivedAt desc if present, else createdAt */
+        var aT = new Date(a.archivedAt || a.createdAt);
+        var bT = new Date(b.archivedAt || b.createdAt);
+        return bT - aT;
+      });
+    })
+    .catch(function(e){ console.error("loadRequests(archived) failed:", e); ARCHIVED_REQUESTS = []; });
+  return Promise.all([p1, p2]);
 }
 
 function renderChips(){
@@ -320,7 +371,9 @@ function renderChips(){
       return { key:t, label:TYPE_META[t].shortLabel, pending:pendingByType[t], total:totalByType[t] };
     })
   );
-  document.getElementById("chips").innerHTML = chips.map(function(c){
+  /* Archived chip = single count, no pending/total split */
+  var archivedCount = (ARCHIVED_REQUESTS || []).length;
+  var html = chips.map(function(c){
     var active = c.key === activeFilter ? " active" : "";
     var counter = c.pending + "/" + c.total;
     return '<button class="rd-chip'+active+'" data-filter="'+c.key+'">' +
@@ -328,6 +381,11 @@ function renderChips(){
       '<span class="rd-chip-count">'+counter+'</span>' +
     '</button>';
   }).join('');
+  html += '<button class="rd-chip' + (activeFilter === "archived" ? " active" : "") + '" data-filter="archived">' +
+    'Archived' +
+    '<span class="rd-chip-count">' + archivedCount + '</span>' +
+  '</button>';
+  document.getElementById("chips").innerHTML = html;
   /* wire chip clicks */
   document.querySelectorAll(".rd-chip").forEach(function(btn){
     btn.onclick = function(){
@@ -339,6 +397,30 @@ function renderChips(){
 }
 
 function renderList(){
+  /* ARCHIVED view: separate dataset, single section, no pending/processed split */
+  if(activeFilter === "archived"){
+    var arch = (ARCHIVED_REQUESTS || []).slice();
+    var listEl = document.getElementById("list");
+    if(arch.length === 0){
+      listEl.innerHTML = '<div class="rd-empty"><div class="rd-empty-icon">✉</div>No archived requests.</div>';
+      return;
+    }
+    var html = '<div class="rd-section-head rd-section-head-muted">Archived <span class="rd-section-count">' + arch.length + '</span></div>';
+    html += arch.map(renderCardHtml).join('');
+    listEl.innerHTML = html;
+    /* wire action buttons (Restore + others if any) */
+    document.querySelectorAll(".rd-btn[data-action]").forEach(function(btn){
+      btn.onclick = function(){
+        var id = btn.getAttribute("data-id");
+        var action = btn.getAttribute("data-action");
+        var rec = ARCHIVED_REQUESTS.filter(function(r){ return r.id === id; })[0]
+                 || REQUESTS.filter(function(r){ return r.id === id; })[0];
+        handleAction(id, action, btn, rec);
+      };
+    });
+    return;
+  }
+
   var filtered = activeFilter === "all"
     ? REQUESTS.slice()
     : REQUESTS.filter(function(r){ return r.type === activeFilter; });
@@ -391,6 +473,7 @@ function renderCardHtml(r){
   var room = f.roomNumber || f.room || "";
   var roomLabel = room ? ("Room " + esc(room)) : "—";
   var isProcessed = (r.status === "processed");
+  var isArchived  = (r.status === "archived");
 
   /* Body content depends on type */
   var bodyRows = [];
@@ -420,11 +503,12 @@ function renderCardHtml(r){
   /* Processed meta line + notes display */
   var processedMeta = "";
   var notesHtml = "";
-  if(isProcessed){
-    processedMeta = '<div class="rd-card-meta">' +
-      (r.processedBy ? '<span>Processed by ' + esc(r.processedBy) + '</span>' : '') +
-      (r.processedAt ? '<span>' + esc(timeAgo(r.processedAt)) + '</span>' : '') +
-    '</div>';
+  if(isProcessed || isArchived){
+    var processedLine = [];
+    if(r.processedBy) processedLine.push('<span>Processed by ' + esc(r.processedBy) + '</span>');
+    if(r.processedAt) processedLine.push('<span>' + esc(timeAgo(r.processedAt)) + '</span>');
+    if(isArchived && r.archivedAt) processedLine.push('<span>Archived ' + esc(timeAgo(r.archivedAt)) + '</span>');
+    if(processedLine.length) processedMeta = '<div class="rd-card-meta">' + processedLine.join('') + '</div>';
     var procNotes = (r.notes || []).filter(function(n){ return n && n.type === "process"; });
     if(procNotes.length){
       notesHtml = '<div class="rd-card-notes">' +
@@ -438,24 +522,53 @@ function renderCardHtml(r){
 
   /* Action buttons differ by status */
   var actions = "";
-  if(isProcessed){
+  if(isArchived){
     actions = '<div class="rd-card-actions">' +
+      '<button class="rd-btn rd-btn-restore" data-id="'+esc(r.id)+'" data-action="restore">↺ Restore</button>' +
+    '</div>';
+  } else if(isProcessed){
+    /* For processed housekeeping incidents, surface the printable report link */
+    var reportLink = "";
+    if(r.type === "housekeeping_incident"){
+      reportLink = '<a class="rd-report-link" href="' + WORKER_URL + '/incident/' + esc(r.id) + '" target="_blank" rel="noopener" title="Open printable incident report">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>' +
+        'View Report' +
+      '</a>';
+    }
+    actions = '<div class="rd-card-actions">' +
+      reportLink +
       '<button class="rd-btn rd-btn-archive" data-id="'+esc(r.id)+'" data-action="archive">Archive</button>' +
     '</div>';
   } else {
     actions = '<div class="rd-card-actions">' +
-      '<button class="rd-btn rd-btn-process" data-id="'+esc(r.id)+'" data-action="process">&#10003; Mark Processed</button>' +
+      '<button class="rd-btn rd-btn-process" data-id="'+esc(r.id)+'" data-action="process">✓ Mark Processed</button>' +
       '<button class="rd-btn rd-btn-archive" data-id="'+esc(r.id)+'" data-action="archive">Archive</button>' +
     '</div>';
   }
 
-  return '<div class="rd-card' + (isProcessed ? ' is-processed' : '') + '" data-id="'+esc(r.id)+'">' +
+  /* Time + device block: relative time on top, absolute below, device below */
+  var timeBlock =
+    '<div class="rd-card-time-block">' +
+      '<div class="rd-card-time-rel">' + esc(timeAgo(r.createdAt)) + '</div>' +
+      '<div class="rd-card-time-abs">' + esc(formatAbsoluteTime(r.createdAt)) + '</div>' +
+      (r.deviceLabel ? '<div class="rd-card-device">' + esc(r.deviceLabel) + '</div>' : '') +
+    '</div>';
+
+  var statusBadge = "";
+  if(isArchived)       statusBadge = '<span class="rd-archived-badge">Archived</span>';
+  else if(isProcessed) statusBadge = '<span class="rd-processed-badge">Processed</span>';
+
+  var cardClass = "rd-card";
+  if(isArchived)       cardClass += " is-archived";
+  else if(isProcessed) cardClass += " is-processed";
+
+  return '<div class="' + cardClass + '" data-id="'+esc(r.id)+'">' +
     '<div class="rd-card-head">' +
       '<span class="rd-card-type '+meta.cssClass+'">'+esc(meta.label)+'</span>' +
-      (isProcessed ? '<span class="rd-processed-badge">Processed</span>' : '') +
+      statusBadge +
       '<span class="rd-card-room">'+roomLabel+'</span>' +
       '<span class="rd-card-name">'+esc(name)+'</span>' +
-      '<span class="rd-card-time">'+esc(timeAgo(r.createdAt))+'</span>' +
+      timeBlock +
     '</div>' +
     body +
     notesHtml +
@@ -466,16 +579,25 @@ function renderCardHtml(r){
 
 function handleAction(id, action, btn, rec){
   if(action === "process"){
-    /* open modal to collect optional note + show guidance */
     openProcessModal(id, rec, btn);
     return;
   }
-  /* archive — direct call */
+  /* archive or restore — both are direct calls */
   btn.disabled = true;
-  fetch(WORKER_URL + "/request/archive", {
+  var url, payload, errMsg;
+  if(action === "restore"){
+    url = "/request/restore";
+    payload = { id: id, restoredBy: agentName || "Unknown" };
+    errMsg = "Restore failed. Please try again.";
+  } else {
+    url = "/request/archive";
+    payload = { id: id, archivedBy: agentName || "Unknown" };
+    errMsg = "Archive failed. Please try again.";
+  }
+  fetch(WORKER_URL + url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id: id, archivedBy: agentName || "Unknown" })
+    body: JSON.stringify(payload)
   })
   .then(function(r){ return r.json(); })
   .then(function(data){
@@ -483,7 +605,7 @@ function handleAction(id, action, btn, rec){
       doRefresh();
     } else {
       btn.disabled = false;
-      alert("Archive failed. Please try again.");
+      alert(errMsg);
     }
   })
   .catch(function(){

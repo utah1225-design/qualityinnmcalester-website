@@ -203,13 +203,20 @@ export default {
         return await saveRequest(request, env);
       }
       if (path === "/requests" && request.method === "GET") {
-        return await listRequests(env);
+        return await listRequests(env, url);
       }
       if (path === "/request/process" && request.method === "POST") {
         return await processRequest(request, env);
       }
       if (path === "/request/archive" && request.method === "POST") {
         return await archiveRequest(request, env);
+      }
+      if (path === "/request/restore" && request.method === "POST") {
+        return await restoreRequest(request, env);
+      }
+      if (path.indexOf("/incident/") === 0 && request.method === "GET") {
+        const id = path.substring("/incident/".length);
+        return await incidentReport(env, id);
       }
 
       /* ---- unified settings (admin + readers) ---- */
@@ -515,6 +522,37 @@ async function listAllMaintenance(env) {
    Status flow: pending -> processed -> archived (or skip to archived)
    ============================================================ */
 
+/* Parse a User-Agent string into a friendly device/browser label.
+   Examples: "iPhone · Safari", "Windows · Chrome", "Android · Chrome". */
+function parseDeviceLabel(ua) {
+  if (!ua) return "";
+  if (/iPhone/i.test(ua)) {
+    if (/CriOS/i.test(ua))  return "iPhone · Chrome";
+    if (/FxiOS/i.test(ua))  return "iPhone · Firefox";
+    return "iPhone · Safari";
+  }
+  if (/iPad/i.test(ua)) {
+    if (/CriOS/i.test(ua))  return "iPad · Chrome";
+    return "iPad · Safari";
+  }
+  if (/Android/i.test(ua)) {
+    if (/Chrome/i.test(ua))  return "Android · Chrome";
+    if (/Firefox/i.test(ua)) return "Android · Firefox";
+    return "Android";
+  }
+  let os = "Desktop";
+  if (/Windows/i.test(ua))               os = "Windows";
+  else if (/Macintosh|Mac OS X/i.test(ua)) os = "Mac";
+  else if (/Linux/i.test(ua))            os = "Linux";
+  let br = "";
+  if (/Edg\//i.test(ua))                     br = "Edge";
+  else if (/OPR\/|Opera/i.test(ua))          br = "Opera";
+  else if (/Chrome/i.test(ua) && !/Edg/i.test(ua)) br = "Chrome";
+  else if (/Safari/i.test(ua) && !/Chrome/i.test(ua)) br = "Safari";
+  else if (/Firefox/i.test(ua))               br = "Firefox";
+  return br ? (os + " · " + br) : os;
+}
+
 async function saveRequest(request, env) {
   const r = await request.json();
   if (!r.type) {
@@ -526,16 +564,22 @@ async function saveRequest(request, env) {
   if (typeof r.fields !== "object" || r.fields === null) r.fields = {};
   if (!("processedAt" in r)) r.processedAt = null;
   if (!("processedBy" in r)) r.processedBy = null;
+  /* Capture device info from the User-Agent header for the dashboard's audit view */
+  const ua = request.headers.get("User-Agent") || "";
+  r.userAgent  = ua;
+  r.deviceLabel = parseDeviceLabel(ua);
   await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
   await addToIndex(env, "request", r.id);
   return json({ ok: true, id: r.id });
 }
 
-async function listRequests(env) {
+async function listRequests(env, url) {
   const items = await readAll(env, "request");
-  /* return active (non-archived) for the dashboard view */
-  const active = items.filter(function(x){ return x && x.status !== "archived"; });
-  return json({ requests: active });
+  const wantArchived = url && url.searchParams && url.searchParams.get("status") === "archived";
+  const out = wantArchived
+    ? items.filter(function(x){ return x && x.status === "archived"; })
+    : items.filter(function(x){ return x && x.status !== "archived"; });
+  return json({ requests: out });
 }
 
 async function processRequest(request, env) {
@@ -569,9 +613,28 @@ async function archiveRequest(request, env) {
   const raw = await env.HOTEL_KV.get("request:" + body.id);
   if (!raw) return json({ error: "not found" }, 404);
   const r = JSON.parse(raw);
+  /* track priorStatus so restore can put it back to where it was */
+  if (r.status !== "archived") r.priorStatus = r.status;
   r.status = "archived";
-  r.processedAt = r.processedAt || new Date().toISOString();
-  r.processedBy = r.processedBy || (body.archivedBy || "Unknown");
+  r.archivedAt = new Date().toISOString();
+  r.archivedBy = body.archivedBy || "Unknown";
+  await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
+  return json({ ok: true, id: r.id, status: r.status });
+}
+
+/* Restore an archived request back to its prior status (or pending if unknown). */
+async function restoreRequest(request, env) {
+  const body = await request.json();
+  if (!body.id) return json({ error: "id required" }, 400);
+  const raw = await env.HOTEL_KV.get("request:" + body.id);
+  if (!raw) return json({ error: "not found" }, 404);
+  const r = JSON.parse(raw);
+  if (r.status !== "archived") return json({ error: "not archived" }, 400);
+  r.status = r.priorStatus || "pending";
+  r.restoredAt = new Date().toISOString();
+  r.restoredBy = body.restoredBy || "Unknown";
+  /* clear archive bookkeeping (we keep restoredAt/By as audit trail) */
+  delete r.priorStatus;
   await env.HOTEL_KV.put("request:" + r.id, JSON.stringify(r));
   return json({ ok: true, id: r.id, status: r.status });
 }
@@ -634,6 +697,155 @@ async function autoArchiveOldCheckouts(env) {
 }
 
 
+/* Generate a printable HTML "Housekeeping Incident Report" for a request.
+   Read-only, on-demand. Browser print -> "Save as PDF" produces the audit doc. */
+async function incidentReport(env, id) {
+  const raw = await env.HOTEL_KV.get("request:" + id);
+  if (!raw) {
+    return new Response("Incident report not found.", { status: 404, headers: { "Content-Type": "text/plain" } });
+  }
+  const r = JSON.parse(raw);
+  if (r.type !== "housekeeping_incident") {
+    return new Response("This report ID is not a housekeeping incident.", { status: 400, headers: { "Content-Type": "text/plain" } });
+  }
+  const f = r.fields || {};
+  const esc = function(s){ if(s==null) return ""; return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); };
+  const fmtDate = function(iso){ if(!iso) return "—"; try { return new Date(iso).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" }); } catch(e){ return iso; } };
+  const procNotes = (r.notes || []).filter(function(n){ return n && n.type === "process"; });
+  const notesHtml = procNotes.length
+    ? procNotes.map(function(n){
+        return '<div class="note"><div class="note-text">' + esc(n.text || "") + '</div>' +
+               '<div class="note-meta">' + esc(n.author || "") + ' &middot; ' + esc(fmtDate(n.at)) + '</div></div>';
+      }).join('')
+    : '<div class="note-empty">No notes recorded.</div>';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Housekeeping Incident Report ${esc(r.id)} — Quality Inn &amp; Suites McAlester</title>
+<style>
+  :root{--navy:#1c2c47;--gold:#c9964a;--cream:#fbf8f3;--ink:#2a3245;--slate:#5a6378;--border:#d8d4cc;--alert:#c4493e}
+  *{box-sizing:border-box}
+  body{margin:0;background:#eee;color:var(--ink);font-family:Georgia,"Times New Roman",serif;font-size:14px;line-height:1.5}
+  .page{max-width:820px;margin:24px auto;background:#fff;padding:48px 56px;box-shadow:0 4px 18px rgba(0,0,0,0.08);border-top:6px solid var(--navy)}
+  .print-bar{max-width:820px;margin:0 auto;padding:14px 16px;display:flex;justify-content:flex-end;gap:10px}
+  .print-bar button{padding:9px 18px;background:var(--navy);color:#fff;border:none;border-radius:5px;font-family:inherit;font-size:13px;cursor:pointer;font-weight:600}
+  .print-bar button:hover{background:#2a3d5d}
+  .print-bar .secondary{background:#fff;color:var(--navy);border:1px solid var(--navy)}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:30px;padding-bottom:18px;border-bottom:2px solid var(--navy)}
+  .head-left .brand{font-size:22px;font-weight:700;color:var(--navy);letter-spacing:0.02em;font-family:"Georgia",serif}
+  .head-left .sub{font-size:12px;color:var(--gold);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;margin-top:2px}
+  .head-left .addr{font-size:12px;color:var(--slate);margin-top:8px;line-height:1.5}
+  .head-right{text-align:right}
+  .head-right .doc-title{font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--alert);margin-bottom:6px}
+  .head-right .doc-id{font-size:14px;color:var(--ink);font-family:Menlo,Consolas,monospace}
+  .head-right .doc-date{font-size:12px;color:var(--slate);margin-top:4px}
+  h1{font-size:20px;color:var(--navy);margin:24px 0 16px;letter-spacing:0.01em;padding-bottom:6px;border-bottom:1px solid var(--border)}
+  .field-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;margin-bottom:24px}
+  .field-grid .full{grid-column:1 / -1}
+  .field-label{font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--slate);margin-bottom:3px}
+  .field-value{font-size:14px;color:var(--ink)}
+  .field-charge{font-size:18px;color:var(--alert);font-weight:700}
+  .desc-box{padding:14px 16px;background:var(--cream);border-left:4px solid var(--gold);border-radius:0 4px 4px 0;line-height:1.6;white-space:pre-wrap;word-wrap:break-word}
+  .notes-box{margin-bottom:16px}
+  .note{padding:11px 14px;background:var(--cream);border-left:4px solid var(--navy);border-radius:0 4px 4px 0;margin-bottom:10px;line-height:1.55}
+  .note-text{font-size:14px;color:var(--ink);white-space:pre-wrap;word-wrap:break-word}
+  .note-meta{font-size:11px;color:var(--slate);margin-top:5px}
+  .note-empty{font-size:13px;color:var(--slate);font-style:italic;padding:10px 0}
+  .legal{margin-top:34px;padding-top:18px;border-top:1px solid var(--border);font-size:11px;color:var(--slate);line-height:1.6}
+  .sig{margin-top:30px;display:grid;grid-template-columns:1fr 1fr;gap:48px}
+  .sig-line{border-top:1px solid var(--ink);padding-top:6px;font-size:11px;color:var(--slate);letter-spacing:0.06em;text-transform:uppercase}
+  .footer{text-align:center;margin-top:36px;font-size:11px;color:var(--slate);letter-spacing:0.04em}
+  @media print {
+    .print-bar{display:none}
+    body{background:#fff}
+    .page{box-shadow:none;margin:0;max-width:none;padding:30px 40px;border-top:6px solid var(--navy)}
+    @page{margin:0.5in}
+  }
+</style>
+</head>
+<body>
+
+<div class="print-bar">
+  <button class="secondary" onclick="window.close()">Close</button>
+  <button onclick="window.print()">Print / Save as PDF</button>
+</div>
+
+<div class="page">
+
+  <div class="head">
+    <div class="head-left">
+      <div class="brand">Quality Inn &amp; Suites</div>
+      <div class="sub">McAlester on Hwy 69</div>
+      <div class="addr">400 S George Nigh Expy<br>McAlester, OK 74501<br>(918) 420-9537</div>
+    </div>
+    <div class="head-right">
+      <div class="doc-title">Housekeeping Incident Report</div>
+      <div class="doc-id">${esc(r.id)}</div>
+      <div class="doc-date">Generated ${esc(fmtDate(new Date().toISOString()))}</div>
+    </div>
+  </div>
+
+  <h1>Incident Details</h1>
+  <div class="field-grid">
+    <div>
+      <div class="field-label">Room Number</div>
+      <div class="field-value">${esc(f.roomNumber || "—")}</div>
+    </div>
+    <div>
+      <div class="field-label">Reported By</div>
+      <div class="field-value">${esc(f.reportedBy || "—")}</div>
+    </div>
+    <div>
+      <div class="field-label">Date Reported</div>
+      <div class="field-value">${esc(fmtDate(r.createdAt))}</div>
+    </div>
+    <div>
+      <div class="field-label">Date Processed</div>
+      <div class="field-value">${esc(fmtDate(r.processedAt))}</div>
+    </div>
+    <div>
+      <div class="field-label">Processed By</div>
+      <div class="field-value">${esc(r.processedBy || "—")}</div>
+    </div>
+    <div>
+      <div class="field-label">Suggested Charge</div>
+      <div class="field-value field-charge">$${esc(f.suggestedCharge != null ? f.suggestedCharge : "—")}</div>
+    </div>
+    <div class="full">
+      <div class="field-label">Description of Findings</div>
+      <div class="desc-box">${esc(f.description || "—")}</div>
+    </div>
+  </div>
+
+  <h1>Front Desk Action / Notes</h1>
+  <div class="notes-box">${notesHtml}</div>
+
+  <div class="legal">
+    <strong>Audit Trail.</strong> This report was generated from the housekeeping incident logged in the property's internal system. The details above were entered by housekeeping staff and reviewed by the front desk team. Any charge to the guest's account was processed through the property management system (PMS) separately. This document serves as a record of the inspection findings and the action taken.
+  </div>
+
+  <div class="sig">
+    <div class="sig-line">Front Desk Signature</div>
+    <div class="sig-line">Date</div>
+  </div>
+
+  <div class="footer">Quality Inn &amp; Suites McAlester on Hwy 69 &middot; (918) 420-9537</div>
+
+</div>
+
+</body>
+</html>`;
+
+  return new Response(html, {
+    headers: {
+      "Content-Type": "text/html; charset=utf-8",
+      ...CORS
+    }
+  });
+}
+
 /* ============================================================
    UNIFIED SETTINGS — front desk + maintenance + admin in one key.
    Stored at KV key "settings".
@@ -651,6 +863,32 @@ const DEFAULT_SETTINGS = {
   frontDeskStaff:    ["Front Desk 1","Front Desk 2","Front Desk 3"],
   maintenanceStaff:  ["Maintenance 1","Maintenance 2","Maintenance 3"],
   housekeepingStaff: ["Housekeeping 1","Housekeeping 2","Housekeeping 3"],
+  formMessages: {
+    express_checkout: {
+      title: "Thanks — your check-out is logged.",
+      body:  "We've passed your details to the front desk. Safe travels! Thank you for choosing Quality Inn & Suites McAlester."
+    },
+    refund: {
+      title: "Thanks — request received.",
+      body:  "The front desk team has been notified. For follow-up, please call (918) 420-9537. Thank you for choosing Quality Inn & Suites McAlester."
+    },
+    lost_found: {
+      title: "Thanks — your report is logged.",
+      body:  "Found items are held for 30 days. To check status, please call (918) 420-9537. Thank you for choosing Quality Inn & Suites McAlester."
+    },
+    late_checkout: {
+      title: "Thanks — request received.",
+      body:  "This is a request, not a confirmation. Please call the front desk at (918) 420-9537 or stop by the desk to confirm availability. Thank you for choosing Quality Inn & Suites McAlester."
+    },
+    report: {
+      title: "Thanks — your report has been received.",
+      body:  "The front desk has been alerted. For anything urgent, please call (918) 420-9537. Thank you for choosing Quality Inn & Suites McAlester."
+    },
+    housekeeping_incident: {
+      title: "Report sent.",
+      body:  "Front desk has been notified. You can report another incident if needed."
+    }
+  },
   staffMaxPerTeam:  5,
   /* inbox polling — tunable from admin to balance quota vs responsiveness */
   inboxPollActiveMs:   15000,

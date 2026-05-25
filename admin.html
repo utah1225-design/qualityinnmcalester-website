@@ -172,6 +172,15 @@ input { font-family: inherit; font-size: 14px; }
     </div>
   </div>
 
+  <!-- SUBMIT MESSAGES (V1.01) -->
+  <div class="ad-section">
+    <h3>Submit Messages</h3>
+    <div class="ad-section-desc">Shown to guests on the success page after they submit a form. Keep it neutral — do not promise specific follow-up times.</div>
+
+    <div id="msgList" style="display:flex;flex-direction:column;gap:18px"></div>
+    <div class="ad-hint">Title is the bold headline. Body is the line of explanation.</div>
+  </div>
+
   <!-- RESPONSE TIERS -->
   <div class="ad-section">
     <h3>Response Time Tiers</h3>
@@ -348,7 +357,45 @@ function loadSettings(){
 var rosterFD = [];
 var rosterMT = [];
 var rosterHK = [];
+var msgConfig = {};   /* V1.01: per-form success messages */
+var MSG_TYPES = [
+  { key:"express_checkout",      label:"Express Checkout" },
+  { key:"refund",                label:"Refund Request" },
+  { key:"lost_found",            label:"Lost & Found" },
+  { key:"late_checkout",         label:"Late Checkout" },
+  { key:"report",                label:"Report an Issue" },
+  { key:"housekeeping_incident", label:"Housekeeping (staff)" }
+];
 var MAX_STAFF = 5;
+
+function renderFormMessages(){
+  var listEl = document.getElementById("msgList");
+  if(!listEl) return;
+  listEl.innerHTML = MSG_TYPES.map(function(t){
+    var cfg = (msgConfig && msgConfig[t.key]) || { title:"", body:"" };
+    var escHtml = function(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); };
+    return '<div style="border:1px solid var(--line);border-radius:6px;padding:14px 14px 10px">' +
+      '<div style="font-size:11px;font-weight:700;letter-spacing:0.05em;text-transform:uppercase;color:var(--ink-mute);margin-bottom:10px">' + escHtml(t.label) + '</div>' +
+      '<div class="ad-field" style="margin-bottom:8px">' +
+        '<label style="font-size:10px">Title</label>' +
+        '<input class="ad-input ad-input-sm" data-msg-key="' + escHtml(t.key) + '" data-msg-field="title" type="text" value="' + escHtml(cfg.title) + '">' +
+      '</div>' +
+      '<div class="ad-field">' +
+        '<label style="font-size:10px">Body</label>' +
+        '<textarea class="ad-input" data-msg-key="' + escHtml(t.key) + '" data-msg-field="body" rows="2" style="font-family:inherit;font-size:13px;resize:vertical">' + escHtml(cfg.body) + '</textarea>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+  /* wire change handlers */
+  document.querySelectorAll('[data-msg-key]').forEach(function(el){
+    el.addEventListener('input', function(){
+      var k = el.getAttribute('data-msg-key');
+      var f = el.getAttribute('data-msg-field');
+      if(!msgConfig[k]) msgConfig[k] = { title:"", body:"" };
+      msgConfig[k][f] = el.value;
+    });
+  });
+}
 
 function renderRoster(){
   var fdList = document.getElementById('fdList');
@@ -425,7 +472,14 @@ function populateFields(){
   rosterFD = (settings.frontDeskStaff    || ['Front Desk 1','Front Desk 2','Front Desk 3']).slice(0, MAX_STAFF);
   rosterMT = (settings.maintenanceStaff  || ['Maintenance 1','Maintenance 2','Maintenance 3']).slice(0, MAX_STAFF);
   rosterHK = (settings.housekeepingStaff || ['Housekeeping 1','Housekeeping 2','Housekeeping 3']).slice(0, MAX_STAFF);
+  /* V1.01 — form messages */
+  msgConfig = settings.formMessages || {};
+  /* ensure all 6 keys exist so the UI can render */
+  MSG_TYPES.forEach(function(t){
+    if(!msgConfig[t.key]) msgConfig[t.key] = { title:"", body:"" };
+  });
   renderRoster();
+  renderFormMessages();
   /* inbox polling */
   document.getElementById('fldInboxPoll').value    = Math.round((settings.inboxPollActiveMs   || 15000)/1000);
   document.getElementById('fldComposerPoll').value = Math.round((settings.inboxPollComposerMs || 5000)/1000);
@@ -459,6 +513,7 @@ function saveAll(){
     frontDeskStaff:           cleanFD,
     maintenanceStaff:         cleanMT,
     housekeepingStaff:        cleanHK,
+    formMessages:             msgConfig,
     inboxPollActiveMs:   Math.min(60000, Math.max(5000, parseInt(document.getElementById('fldInboxPoll').value, 10) * 1000)) || settings.inboxPollActiveMs,
     inboxPollComposerMs: Math.min(10000, Math.max(3000, parseInt(document.getElementById('fldComposerPoll').value, 10) * 1000)) || settings.inboxPollComposerMs,
     excellentMs:         Math.max(60000, parseInt(document.getElementById('fldExcellent').value, 10) * 60000) || settings.excellentMs,
@@ -548,6 +603,14 @@ var DEFAULTS = {
   frontDeskStaff:   ["Front Desk 1","Front Desk 2","Front Desk 3"],
   maintenanceStaff: ["Maintenance 1","Maintenance 2","Maintenance 3"],
   housekeepingStaff: ["Housekeeping 1","Housekeeping 2","Housekeeping 3"],
+  formMessages: {
+    express_checkout:      { title:"Thanks — your check-out is logged.", body:"We've passed your details to the front desk. Safe travels! Thank you for choosing Quality Inn & Suites McAlester." },
+    refund:                { title:"Thanks — request received.", body:"The front desk team has been notified. For follow-up, please call (918) 420-9537. Thank you for choosing Quality Inn & Suites McAlester." },
+    lost_found:            { title:"Thanks — your report is logged.", body:"Found items are held for 30 days. To check status, please call (918) 420-9537. Thank you for choosing Quality Inn & Suites McAlester." },
+    late_checkout:         { title:"Thanks — request received.", body:"This is a request, not a confirmation. Please call the front desk at (918) 420-9537 or stop by the desk to confirm availability. Thank you for choosing Quality Inn & Suites McAlester." },
+    report:                { title:"Thanks — your report has been received.", body:"The front desk has been alerted. For anything urgent, please call (918) 420-9537. Thank you for choosing Quality Inn & Suites McAlester." },
+    housekeeping_incident: { title:"Report sent.", body:"Front desk has been notified. You can report another incident if needed." }
+  },
   inboxPollActiveMs:   15000,
   inboxPollComposerMs: 5000,
   excellentMs:  180000,

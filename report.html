@@ -94,8 +94,8 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--font-bo
   <div class="gf-card" id="successCard" style="display:none">
     <div class="gf-success">
       <div class="gf-success-icon">&#10003;</div>
-      <h2>Thanks &mdash; we've got it.</h2>
-      <p>We've alerted the front desk. Someone will be in touch shortly. For urgent matters call (918) 426-8091.</p>
+      <h2 id="successTitle">Thanks — your report has been received.</h2>
+      <p id="successBody">The front desk has been alerted. For anything urgent, please call (918) 420-9537. Thank you for choosing Quality Inn &amp; Suites McAlester.</p>
       <a class="gf-back" href="index.html">&larr; Back to homepage</a>
     </div>
   </div>
@@ -165,15 +165,38 @@ document.getElementById("submitBtn").onclick = function(){
     } else {
       btn.disabled = false;
       btn.textContent = "Submit";
-      showError("Sorry, something went wrong. Please call the front desk at (918) 426-8091.");
+      showError("Sorry, something went wrong. Please call the front desk at (918) 420-9537.");
     }
   })
   .catch(function(){
     btn.disabled = false;
     btn.textContent = "Submit";
-    showError("Network error. Please call the front desk at (918) 426-8091.");
+    showError("Network error. Please call the front desk at (918) 420-9537.");
   });
 };
+
+
+/* V1.01: load configured success messages from settings, with hardcoded fallback */
+(function loadFormMessage(){
+  fetch(WORKER_URL + "/settings")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var msgs = (data && data.settings && data.settings.formMessages) || {};
+      var cfg = msgs["report"];
+      if(cfg){
+        if(cfg.title) {
+          var t = document.getElementById("successTitle");
+          if(t) t.textContent = cfg.title;
+        }
+        if(cfg.body){
+          var b = document.getElementById("successBody");
+          if(b) b.textContent = cfg.body;
+        }
+      }
+    })
+    .catch(function(){ /* silent — keep hardcoded fallback */ });
+})();
+
 </script>
 
 </body>
