@@ -120,6 +120,12 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Bl
 .lf-signin-select,.lf-signin-input{width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:6px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;background:var(--paper-card)}
 .lf-signin-btn{width:100%;padding:11px;background:var(--accent);color:#fff;border:none;border-radius:6px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
 
+/* V1.02 quick-pick chips for L&F descriptions */
+.lf-chips-row{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}
+.lf-chip-pick{padding:5px 11px;background:var(--paper);color:var(--accent);border:1px solid var(--line);border-radius:14px;font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;transition:all 0.1s}
+.lf-chip-pick:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.lf-chips-label{font-size:10px;font-weight:600;color:var(--ink-mute);letter-spacing:0.04em;text-transform:uppercase;margin-bottom:4px;width:100%}
+
 @media (max-width:640px){
   .lf-main{padding:14px}
   .lf-time-block{font-size:10px}
@@ -162,6 +168,40 @@ body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,Bl
 
 <script>
 var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+/* V1.02: Quick-pick items (matches housekeeping page) */
+var FOUND_ITEMS = [
+  "Phone charger","Phone","Earbuds / headphones","Laptop charger",
+  "Keys (room/car)","Wallet","Cash","Glasses","Sunglasses",
+  "Jewelry","Watch","Ring","Necklace",
+  "Clothing","Jacket","Socks","Toiletries","Toothbrush","Hairbrush",
+  "Medication","Pill bottle","Book","Documents",
+  "Bag / purse","Backpack","Water bottle","Tumbler","Toy / stuffed animal"
+];
+function renderChipRow(rowId, targetId, items){
+  var rowEl = document.getElementById(rowId);
+  if(!rowEl) return;
+  var label = rowEl.querySelector(".lf-chips-label");
+  rowEl.innerHTML = "";
+  if(label) rowEl.appendChild(label);
+  items.forEach(function(name){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "lf-chip-pick";
+    b.textContent = name;
+    b.onclick = function(){
+      var ta = document.getElementById(targetId);
+      if(!ta) return;
+      var cur = (ta.value || "").trim();
+      ta.value = cur ? (cur + (cur.endsWith(",") ? " " : ", ") + name) : name;
+      ta.focus();
+      var v = ta.value;
+      ta.setSelectionRange(v.length, v.length);
+    };
+    rowEl.appendChild(b);
+  });
+}
+
 
 /* STATE */
 var SETTINGS_CACHE = null;
@@ -473,7 +513,12 @@ function openModalShell(headerText, bodyHtml, onConfirm){
 function openAddModal(){
   var body =
     '<p>Log a new found item to inventory.</p>' +
-    '<div class="lf-modal-field"><label>Description</label><textarea class="lf-modal-textarea" id="mDesc" placeholder="Color, size, brand, distinguishing features…"></textarea></div>' +
+    '<div class="lf-modal-field"><label>Description</label>' +
+      '<div class="lf-chips-row" id="addChipsRow">' +
+        '<div class="lf-chips-label">Quick pick:</div>' +
+      '</div>' +
+      '<textarea class="lf-modal-textarea" id="mDesc" placeholder="Color, size, brand, distinguishing features…"></textarea>' +
+    '</div>' +
     '<div class="lf-modal-field"><label>Found Location</label><input class="lf-modal-input" id="mFound" placeholder="e.g., Room 215, Lobby, Breakfast area"></div>' +
     '<div class="lf-modal-field"><label>Storage Location</label><input class="lf-modal-input" id="mStorage" placeholder="e.g., Safe shelf 3, Office cabinet, Back office bag"></div>';
   openModalShell("Log Found Item", body, function(bg){
@@ -494,6 +539,7 @@ function openAddModal(){
     .then(function(data){ return !!(data && data.ok); })
     .catch(function(){ return false; });
   });
+  renderChipRow("addChipsRow", "mDesc", FOUND_ITEMS);
 }
 
 function openReturnModal(id){
@@ -538,7 +584,12 @@ function openEditModal(id){
   var f = it.fields || {};
   var body =
     '<p>Edit item <strong>' + esc(id) + '</strong></p>' +
-    '<div class="lf-modal-field"><label>Description</label><textarea class="lf-modal-textarea" id="mDesc">' + esc(f.description || "") + '</textarea></div>' +
+    '<div class="lf-modal-field"><label>Description</label>' +
+      '<div class="lf-chips-row" id="editChipsRow">' +
+        '<div class="lf-chips-label">Quick pick:</div>' +
+      '</div>' +
+      '<textarea class="lf-modal-textarea" id="mDesc">' + esc(f.description || "") + '</textarea>' +
+    '</div>' +
     '<div class="lf-modal-field"><label>Found Location</label><input class="lf-modal-input" id="mFound" value="' + esc(f.foundLocation || "") + '"></div>' +
     '<div class="lf-modal-field"><label>Storage Location</label><input class="lf-modal-input" id="mStorage" value="' + esc(f.storageLocation || "") + '"></div>';
   openModalShell("Edit Item", body, function(bg){
@@ -558,6 +609,7 @@ function openEditModal(id){
     .then(function(data){ return !!(data && data.ok); })
     .catch(function(){ return false; });
   });
+  renderChipRow("editChipsRow", "mDesc", FOUND_ITEMS);
 }
 
 document.getElementById("addBtn").onclick = openAddModal;

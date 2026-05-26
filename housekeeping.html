@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Housekeeping — Quality Inn & Suites McAlester</title>
+<title>Missing/Damage Report — Quality Inn & Suites McAlester</title>
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
 <link rel="shortcut icon" href="assets/favicon.ico">
@@ -127,7 +127,7 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
 
 <div class="hk-topbar">
   <div>
-    <div class="hk-title">Housekeeping</div>
+    <div class="hk-title">Missing/Damage Report</div>
     <div class="hk-sub">Quality Inn &amp; Suites McAlester</div>
   </div>
   <div class="hk-agent">
@@ -143,7 +143,7 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
     <p class="hk-intro">Report a room incident found during cleaning. Front desk will handle the rest.</p>
     <button class="hk-big-btn" onclick="showForm()">
       <span class="hk-big-btn-icon">&#9888;</span>
-      Report Room Incident
+      Report Missing/Damage
     </button>
     <button class="hk-btn-secondary" id="lfLogBtn" type="button">
       <span class="hk-btn-secondary-icon">&#128274;</span>
@@ -157,6 +157,16 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
       </div>
       <div class="hk-recent-list" id="recentList">
         <div class="hk-recent-empty">Loading…</div>
+      </div>
+    </div>
+    <!-- V1.02: My Found Items -->
+    <div class="hk-found-section">
+      <div class="hk-found-head">
+        <div class="hk-found-title">My Found Items (Lost &amp; Found)</div>
+        <button class="hk-found-refresh" id="foundRefreshBtn" title="Refresh">&#8635;</button>
+      </div>
+      <div class="hk-found-list" id="foundList">
+        <div class="hk-found-empty">Loading…</div>
       </div>
     </div>
   </div>
@@ -174,6 +184,9 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
 
       <div class="hk-field">
         <label>What you found<span class="req">*</span></label>
+        <div class="hk-chips-row" id="damageChipsRow">
+          <div class="hk-chips-label">Quick pick (tap to insert):</div>
+        </div>
         <textarea class="hk-textarea" id="description" placeholder="e.g., burn marks on bedding, missing towels, smoking in non-smoking room…"></textarea>
       </div>
 
@@ -212,6 +225,49 @@ body{margin:0;background:var(--cream);color:var(--ink);font-family:-apple-system
    CONFIG + STATE
    ──────────────────────────────────────────── */
 var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+/* V1.02: Quick-pick item lists for chip rows */
+var DAMAGE_ITEMS = [
+  "Burn marks on bedding","Smoking smell","Stained towels","Stained linens",
+  "Broken lamp","Broken TV remote","Damaged furniture","Hole in wall",
+  "Missing towels","Missing pillows","Missing remote","Missing iron",
+  "Bodily fluid stains","Pet hair / accident","Vomit","Excessive trash"
+];
+var FOUND_ITEMS = [
+  "Phone charger","Phone","Earbuds / headphones","Laptop charger",
+  "Keys (room/car)","Wallet","Cash","Glasses","Sunglasses",
+  "Jewelry","Watch","Ring","Necklace",
+  "Clothing","Jacket","Socks","Toiletries","Toothbrush","Hairbrush",
+  "Medication","Pill bottle","Book","Documents",
+  "Bag / purse","Backpack","Water bottle","Tumbler","Toy / stuffed animal"
+];
+
+function renderChipRow(rowId, targetId, items){
+  var rowEl = document.getElementById(rowId);
+  if(!rowEl) return;
+  /* preserve the label child, replace any prior chips */
+  var label = rowEl.querySelector(".hk-chips-label");
+  rowEl.innerHTML = "";
+  if(label) rowEl.appendChild(label);
+  items.forEach(function(name){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "hk-chip-pick";
+    b.textContent = name;
+    b.onclick = function(){
+      var ta = document.getElementById(targetId);
+      if(!ta) return;
+      var cur = (ta.value || "").trim();
+      ta.value = cur ? (cur + (cur.endsWith(",") ? " " : ", ") + name) : name;
+      ta.focus();
+      /* place cursor at end */
+      var v = ta.value;
+      ta.setSelectionRange(v.length, v.length);
+    };
+    rowEl.appendChild(b);
+  });
+}
+
 var SETTINGS_CACHE = null;
 var agentName = null;
 
@@ -265,8 +321,10 @@ function showLanding(){
   clearError();
   /* refresh "my recent reports" list */
   if(agentName) loadMyReports();
+  loadMyFoundItems();
 }
 function showForm(){
+  renderChipRow("damageChipsRow", "description", DAMAGE_ITEMS);
   document.getElementById("landingView").style.display = "none";
   document.getElementById("formView").style.display = "";
   document.getElementById("successView").style.display = "none";
@@ -492,6 +550,62 @@ function loadMyReports(){
     });
 }
 
+/* V1.02: Load found items logged by THIS housekeeper (filter client-side by foundBy). */
+function loadMyFoundItems(){
+  var listEl = document.getElementById("foundList");
+  if(!listEl) return;
+  var btn = document.getElementById("foundRefreshBtn");
+  if(btn) btn.disabled = true;
+  /* fetch both held + closed in parallel so housekeeper sees full history */
+  var p1 = fetch(WORKER_URL + "/lfitems").then(function(r){ return r.json(); }).catch(function(){ return {lfitems:[]}; });
+  var p2 = fetch(WORKER_URL + "/lfitems?status=archived").then(function(r){ return r.json(); }).catch(function(){ return {lfitems:[]}; });
+  Promise.all([p1, p2]).then(function(results){
+    var all = (results[0].lfitems || []).concat(results[1].lfitems || []);
+    /* filter to items this housekeeper found */
+    var mine = all.filter(function(it){
+      var f = (it && it.fields) || {};
+      return (f.foundBy || "") === agentName;
+    });
+    /* limit to last 10 days for performance + relevance */
+    var TEN_DAYS = 10 * 24 * 3600 * 1000;
+    var now = Date.now();
+    mine = mine.filter(function(it){
+      var t = new Date(it.createdAt).getTime();
+      return (now - t) < TEN_DAYS;
+    });
+    /* newest first */
+    mine.sort(function(a, b){ return new Date(b.createdAt) - new Date(a.createdAt); });
+    if(mine.length === 0){
+      listEl.innerHTML = '<div class="hk-found-empty">No items logged in the last 10 days. Use the "Log Found Item" button above to add one.</div>';
+      if(btn) btn.disabled = false;
+      return;
+    }
+    listEl.innerHTML = mine.map(renderFoundItemRow).join('');
+    if(btn) btn.disabled = false;
+  });
+}
+
+function renderFoundItemRow(it){
+  var f = it.fields || {};
+  var status = it.status || "held";
+  var statusClass = "hk-found-status-" + status;
+  var desc = (f.description || "").slice(0, 110);
+  var loc = "";
+  if(f.foundLocation && f.storageLocation) loc = f.foundLocation + " → " + f.storageLocation;
+  else if(f.foundLocation) loc = "Found in " + f.foundLocation;
+  else if(f.storageLocation) loc = "Stored at " + f.storageLocation;
+  return '<div class="hk-found-item">' +
+    '<div class="hk-found-item-head">' +
+      '<span class="hk-found-id">' + esc(it.id) + '</span>' +
+      '<span class="hk-found-status ' + statusClass + '">' + esc(status) + '</span>' +
+      '<span class="hk-found-time">' + esc(timeAgo(it.createdAt)) + '</span>' +
+    '</div>' +
+    '<div class="hk-found-desc">' + esc(desc) + '</div>' +
+    (loc ? '<div class="hk-found-loc">' + esc(loc) + '</div>' : '') +
+  '</div>';
+}
+
+
 /* ────────────────────────────────────────────
    INIT
    ──────────────────────────────────────────── */
@@ -505,6 +619,9 @@ function openLfLogModal(){
       '<p>Found something in a room or area? Log it so front desk can match it to guest reports.</p>' +
       '<div class="lf-modal-field">' +
         '<label>Description *</label>' +
+        '<div class="hk-chips-row" id="lfChipsRow">' +
+          '<div class="hk-chips-label">Quick pick (tap to insert):</div>' +
+        '</div>' +
         '<textarea class="lf-modal-textarea" id="lfDesc" placeholder="Color, brand, size, distinguishing features (e.g., black iPhone with red case)"></textarea>' +
       '</div>' +
       '<div class="lf-modal-field">' +
@@ -522,6 +639,7 @@ function openLfLogModal(){
       '</div>' +
     '</div>';
   document.body.appendChild(bg);
+  renderChipRow("lfChipsRow", "lfDesc", FOUND_ITEMS);
   setTimeout(function(){ document.getElementById("lfDesc").focus(); }, 50);
   function close(){ if(bg.parentNode) bg.parentNode.removeChild(bg); }
   function setMsg(text, kind){
@@ -555,6 +673,7 @@ function openLfLogModal(){
     .then(function(data){
       if(data && data.ok){
         setMsg("Logged. Front desk will see it. (ID: " + data.id + ")", "ok");
+        loadMyFoundItems();   /* V1.02: refresh "My Found Items" section */
         setTimeout(close, 1200);
       } else {
         btn.disabled = false; btn.textContent = "Log Item";
@@ -592,6 +711,11 @@ function applyFormMessage(){
   var lfBtn = document.getElementById("lfLogBtn");
   if(lfBtn){
     lfBtn.onclick = function(){ openLfLogModal(); };
+  }
+  /* V1.02: wire My Found Items refresh */
+  var foundBtn = document.getElementById("foundRefreshBtn");
+  if(foundBtn){
+    foundBtn.onclick = function(){ loadMyFoundItems(); };
   }
   loadSettings().then(function(){
     applyFormMessage();
