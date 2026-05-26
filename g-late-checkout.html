@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet">
+<title>Late Check-Out Request — Quality Inn & Suites McAlester</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1c2c47;
+  --navy-soft:#2a3d5d;
+  --gold:#c9964a;
+  --gold-pale:#fbf6ed;
+  --cream:#fbf8f3;
+  --white:#fff;
+  --slate:#5a6378;
+  --ink:#2a3245;
+  --border:#e6e2da;
+  --good:#1d9b6c;
+  --alert:#c4493e;
+  --rl:10px;
+  --shadow:0 2px 8px rgba(28,44,71,0.06),0 12px 30px rgba(28,44,71,0.08);
+  --font-display:"Playfair Display",Georgia,serif;
+  --font-body:"DM Sans","Inter",-apple-system,BlinkMacSystemFont,Arial,sans-serif;
+}
+*{box-sizing:border-box;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--font-body);font-size:15px;line-height:1.6}
+
+/* HEADER */
+.gf-header{background:var(--navy);padding:14px 5%;display:flex;align-items:center;gap:14px}
+.gf-brand{height:38px;width:auto;display:block;flex-shrink:0}
+.gf-text{font-family:var(--font-display);font-size:15px;color:#fff;line-height:1.3}
+.gf-text span{color:var(--gold);display:block}
+
+/* PAGE */
+.gf-page{max-width:640px;margin:0 auto;padding:36px 22px 60px}
+.gf-h1{font-family:var(--font-display);font-size:clamp(26px,4vw,34px);color:var(--navy);margin:0 0 6px;line-height:1.15}
+.gf-intro{color:var(--slate);margin:0 0 28px;font-size:15px}
+.gf-card{background:var(--white);border-radius:var(--rl);padding:28px 26px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.gf-field{margin-bottom:18px}
+.gf-field label{display:block;font-size:12px;font-weight:600;color:var(--navy);letter-spacing:0.02em;text-transform:uppercase;margin-bottom:6px}
+.gf-field .req{color:var(--alert);margin-left:3px}
+.gf-input,.gf-textarea{width:100%;padding:11px 13px;border:1px solid var(--border);border-radius:7px;font-family:inherit;font-size:15px;background:var(--cream);outline:none;transition:border-color 0.15s,background 0.15s}
+.gf-input:focus,.gf-textarea:focus{border-color:var(--gold);background:#fff}
+.gf-textarea{resize:vertical;min-height:90px}
+.gf-submit{display:block;width:100%;padding:14px;background:var(--navy);color:#fff;border:none;border-radius:7px;font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:0.02em;margin-top:8px;transition:background 0.15s}
+.gf-submit:hover{background:var(--navy-soft)}
+.gf-submit:disabled{opacity:0.6;cursor:wait}
+
+/* CONFIRMATION */
+.gf-success{text-align:center;padding:24px 0}
+.gf-success-icon{width:60px;height:60px;border-radius:50%;background:#e3f5ec;color:var(--good);font-size:30px;line-height:60px;margin:0 auto 18px;display:block}
+.gf-success h2{font-family:var(--font-display);font-size:22px;color:var(--navy);margin:0 0 8px}
+.gf-success p{color:var(--slate);font-size:15px;max-width:420px;margin:0 auto 18px}
+.gf-back{display:inline-block;color:var(--navy);text-decoration:none;font-size:13px;font-weight:600;padding:8px 18px;border:1px solid var(--border);border-radius:6px}
+.gf-back:hover{background:var(--cream)}
+
+.gf-error{color:var(--alert);font-size:13px;margin-top:8px;display:none}
+.gf-error.show{display:block}
+</style>
+</head>
+<body>
+
+<header class="gf-header">
+  <img src="assets/logos/quality-inn-horizontal-white.png" alt="Quality Inn & Suites by Choice Hotels" class="gf-brand">
+  <div class="gf-text">Quality Inn &amp; Suites<span>McAlester on Hwy 69</span></div>
+</header>
+
+<main class="gf-page">
+  <h1 class="gf-h1">Late Check-Out Request</h1>
+  <p class="gf-intro">Need a bit more time? Tell us when you'd like to leave.</p>
+
+  <div class="gf-card" id="formCard">
+    <form id="gfForm" onsubmit="return false;">
+      <div class="gf-field">
+        <label>Room Number<span class="req">*</span></label>
+        <input class="gf-input" id="roomNumber" type="text" inputmode="numeric" required>
+      </div>
+      <div class="gf-field">
+        <label>First Name<span class="req">*</span></label>
+        <input class="gf-input" id="firstName" type="text" autocomplete="given-name" required>
+      </div>
+      <div class="gf-field">
+        <label>Last Name<span class="req">*</span></label>
+        <input class="gf-input" id="lastName" type="text" autocomplete="family-name" required>
+      </div>
+      <div class="gf-field">
+        <label>Phone Number<span class="req">*</span></label>
+        <input class="gf-input" id="phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="(555) 123-4567" required>
+      </div>
+      <div class="gf-field">
+        <label>Requested Check-Out Time<span class="req">*</span></label>
+        <input class="gf-input" id="requestedTime" type="text" placeholder="e.g., 1:00 PM or 2:00 PM" required>
+      </div>
+
+      <button type="submit" class="gf-submit" id="submitBtn">Submit</button>
+      <div class="gf-error" id="errMsg"></div>
+    </form>
+  </div>
+
+  <div class="gf-card" id="successCard" style="display:none">
+    <div class="gf-success">
+      <div class="gf-success-icon">&#10003;</div>
+      <h2 id="successTitle">Thanks — request received.</h2>
+      <p id="successBody">This is a request, not a confirmation. Please call the front desk at (918) 420-9537 or stop by the desk to confirm availability. Thank you for choosing Quality Inn &amp; Suites McAlester.</p>
+      <a class="gf-back" href="index.html">&larr; Back to homepage</a>
+    </div>
+  </div>
+</main>
+
+<script>
+var WORKER_URL = "https://qi-concierge.utah1225.workers.dev";
+
+function showError(msg){
+  var e = document.getElementById("errMsg");
+  e.textContent = msg;
+  e.classList.add("show");
+}
+function clearError(){
+  var e = document.getElementById("errMsg");
+  e.textContent = "";
+  e.classList.remove("show");
+}
+
+function val(id){
+  var el = document.getElementById(id);
+  return el ? (el.value || "").trim() : "";
+}
+
+document.getElementById("submitBtn").onclick = function(){
+  clearError();
+  var btn = document.getElementById("submitBtn");
+
+  var payload = (function(){
+    return {
+        type: "late_checkout",
+        fields: {
+          roomNumber:    val("roomNumber"),
+          firstName:     val("firstName"),
+          lastName:      val("lastName"),
+          phone:         val("phone"),
+          requestedTime: val("requestedTime")
+        },
+        _validateErr: (!val("roomNumber")    ? "Please enter your room number." :
+                       !val("firstName")     ? "Please enter your first name." :
+                       !val("lastName")      ? "Please enter your last name." :
+                       !val("phone")         ? "Please enter your phone number." :
+                       !val("requestedTime") ? "Please tell us when you'd like to check out." :
+                       null)
+      };
+  })();
+
+  /* validate required fields */
+  if(payload._validateErr){
+    showError(payload._validateErr);
+    return;
+  }
+  delete payload._validateErr;
+
+  btn.disabled = true;
+  btn.textContent = "Submitting...";
+
+  fetch(WORKER_URL + "/request", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if(data && data.ok){
+      document.getElementById("formCard").style.display = "none";
+      document.getElementById("successCard").style.display = "block";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      btn.disabled = false;
+      btn.textContent = "Submit";
+      showError("Sorry, something went wrong. Please call the front desk at (918) 420-9537.");
+    }
+  })
+  .catch(function(){
+    btn.disabled = false;
+    btn.textContent = "Submit";
+    showError("Network error. Please call the front desk at (918) 420-9537.");
+  });
+};
+
+
+/* V1.01: load configured success messages from settings, with hardcoded fallback */
+(function loadFormMessage(){
+  fetch(WORKER_URL + "/settings")
+    .then(function(r){ return r.json(); })
+    .then(function(data){
+      var msgs = (data && data.settings && data.settings.formMessages) || {};
+      var cfg = msgs["late_checkout"];
+      if(cfg){
+        if(cfg.title) {
+          var t = document.getElementById("successTitle");
+          if(t) t.textContent = cfg.title;
+        }
+        if(cfg.body){
+          var b = document.getElementById("successBody");
+          if(b) b.textContent = cfg.body;
+        }
+      }
+    })
+    .catch(function(){ /* silent — keep hardcoded fallback */ });
+})();
+
+</script>
+
+</body>
+</html>
