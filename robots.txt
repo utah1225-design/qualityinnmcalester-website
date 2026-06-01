@@ -1,4 +1,5 @@
 User-agent: *
+Allow: /
 
 # Guest-facing forms (private, behind QR / in-room links)
 Disallow: /g-checkout.html
@@ -25,3 +26,5 @@ Disallow: /maintenance.html
 Disallow: /shift-handoff.html
 Disallow: /lost-found-inventory.html
 Disallow: /incident-log.html
+
+Sitemap: https://www.qualityinnmcalester.com/sitemap.xml
