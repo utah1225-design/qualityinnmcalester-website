@@ -7,19 +7,23 @@
 <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon-192.png">
 <link rel="apple-touch-icon" sizes="192x192" href="assets/favicon-192.png">
 <link rel="shortcut icon" href="assets/favicon.ico">
-<title>Travel Tips & McAlester Local Updates | Quality Inn & Suites Blog</title>
-<meta name="description" content="Travel guides, McAlester local tips, MCAAP visitor resources, and Southeast Oklahoma road trip inspiration from the team at Quality Inn & Suites McAlester on Hwy 69.">
+<title>Travel Tips &amp; McAlester Local Updates | Quality Inn &amp; Suites Blog</title>
+<meta name="description" content="Travel guides, McAlester local tips, MCAAP visitor resources, and Southeast Oklahoma road trip inspiration from the team at Quality Inn &amp; Suites McAlester on Hwy 69.">
 <link rel="canonical" href="https://www.qualityinnmcalester.com/blog.html">
 <meta property="og:type" content="website">
-<meta property="og:title" content="Travel Tips & McAlester Local Updates">
-<meta property="og:description" content="Travel guides, McAlester local tips, MCAAP visitor resources, and Southeast Oklahoma road trip inspiration from the team at Quality Inn & Suites McAlester on Hwy 69.">
+<meta property="og:title" content="Travel Tips &amp; McAlester Local Updates">
+<meta property="og:description" content="Travel guides, McAlester local tips, MCAAP visitor resources, and Southeast Oklahoma road trip inspiration from Quality Inn &amp; Suites McAlester on Hwy 69.">
 <meta property="og:url" content="https://www.qualityinnmcalester.com/blog.html">
 <meta property="og:site_name" content="Quality Inn &amp; Suites McAlester on Hwy 69">
 <meta property="og:image" content="https://www.qualityinnmcalester.com/images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-front-day-parking-lot-01.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="800">
 <meta property="og:image:alt" content="Quality Inn &amp; Suites McAlester on Hwy 69 — McAlester Oklahoma">
-
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Travel Tips &amp; McAlester Local Updates | Quality Inn &amp; Suites Blog">
+<meta name="twitter:description" content="McAlester travel guides, MCAAP visitor resources, and Southeast Oklahoma road trip tips from Quality Inn &amp; Suites on Hwy 69.">
+<meta name="twitter:image" content="https://www.qualityinnmcalester.com/images/exterior/quality-inn-suites-mcalester-on-hwy69-exterior-front-day-parking-lot-01.jpg">
+<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
@@ -39,17 +43,12 @@ html{scroll-behavior:smooth}
 body{font-family:var(--font-body);background:var(--cream);color:var(--navy);line-height:1.65;-webkit-font-smoothing:antialiased}
 a{color:inherit;text-decoration:none}
 img{max-width:100%;display:block}
-
-/* ── NAV ── */
 .nav{background:var(--navy);display:flex;align-items:center;justify-content:space-between;padding:0 5%;height:68px;position:sticky;top:0;z-index:200;border-bottom:2px solid var(--gold)}
 .nav-logo-wrap{display:flex;align-items:center;gap:14px}
 .nav-brand-mark{height:42px;width:auto;display:block;flex-shrink:0}
 .nav-logo-text{font-family:var(--font-display);font-size:15px;color:#fff;line-height:1.3;display:inline-block}
 .nav-logo-text .nav-loc{color:var(--gold);display:block}
-@media (max-width:680px){
-  .nav-brand-mark{height:34px}
-  .nav-logo-text{font-size:13px}
-}
+@media (max-width:680px){.nav-brand-mark{height:34px}.nav-logo-text{font-size:13px}}
 .nav-links{display:flex;align-items:center;gap:24px}
 .nav-links a{font-size:13px;font-weight:500;color:rgba(255,255,255,0.75);transition:color .15s}
 .nav-links a:hover,.nav-links a.active{color:#fff}
@@ -61,124 +60,38 @@ img{max-width:100%;display:block}
 .mobile-menu.open{display:flex}
 .mobile-menu a{font-size:14px;font-weight:500;color:rgba(255,255,255,0.75);padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.07)}
 .mobile-menu a:hover{color:var(--gold)}
-
-/* ── BUTTONS ── */
 .btn-primary{background:var(--gold);color:var(--navy);font-weight:700;font-size:15px;padding:14px 28px;border-radius:40px;transition:all .2s;display:inline-flex;align-items:center;gap:8px}
 .btn-primary:hover{background:var(--gold-light);transform:translateY(-2px);box-shadow:0 8px 28px rgba(201,150,74,0.35)}
-.btn-secondary{background:transparent;color:var(--navy);font-weight:600;font-size:14px;padding:12px 24px;border-radius:40px;border:2px solid var(--border);transition:all .2s;display:inline-flex;align-items:center;gap:8px}
+.btn-secondary{background:transparent;color:var(--navy);font-weight:600;font-size:14px;padding:12px 24px;border-radius:40px;border:2px solid var(--border);transition:all .2s;display:inline-flex;align-items:center;gap:8px;cursor:pointer;font-family:inherit}
 .btn-secondary:hover{border-color:var(--navy);background:var(--navy);color:#fff}
-.btn-ghost{background:transparent;color:#fff;font-weight:500;font-size:15px;padding:14px 28px;border-radius:40px;border:1.5px solid rgba(255,255,255,0.28);transition:all .2s;display:inline-flex;align-items:center;gap:8px}
-.btn-ghost:hover{border-color:rgba(255,255,255,0.65);background:rgba(255,255,255,0.05)}
-
-/* ── TRUST BAR ── */
-.trust-bar{background:var(--white);border-bottom:1px solid var(--border);padding:14px 5%;display:flex;flex-wrap:wrap;gap:6px 24px;align-items:center;justify-content:center}
-.trust-item{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:500;color:var(--slate)}
-.trust-item::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0}
-
-/* ── PAGE HEADER / HERO (subpages) ── */
 .page-hero{background:var(--navy);background-image:radial-gradient(ellipse 70% 90% at 85% 40%,rgba(201,150,74,0.12) 0%,transparent 60%);padding:64px 5%;position:relative;overflow:hidden}
-.page-hero::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 55px,rgba(255,255,255,0.01) 55px,rgba(255,255,255,0.01) 56px);pointer-events:none}
 .page-hero-inner{max-width:900px;margin:0 auto}
 .page-eyebrow{display:inline-flex;align-items:center;gap:7px;background:rgba(201,150,74,0.15);border:1px solid rgba(201,150,74,0.3);border-radius:40px;padding:5px 14px;font-size:11px;font-weight:600;color:var(--gold-light);letter-spacing:.08em;text-transform:uppercase;margin-bottom:18px}
 .page-eyebrow::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--gold)}
 .page-hero h1{font-family:var(--font-display);font-size:clamp(26px,4vw,44px);color:#fff;line-height:1.15;margin-bottom:14px}
 .page-hero h1 em{font-style:normal;color:var(--gold)}
-.page-hero p{font-size:16px;color:rgba(255,255,255,0.62);font-weight:300;line-height:1.75;max-width:600px;margin-bottom:24px}
-.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.35);margin-bottom:20px}
+.page-hero p{font-size:16px;color:rgba(255,255,255,0.7);font-weight:300;line-height:1.75;max-width:600px;margin-bottom:24px}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:12px;color:rgba(255,255,255,0.4);margin-bottom:20px}
 .breadcrumb a{color:rgba(255,255,255,0.5);transition:color .15s}
 .breadcrumb a:hover{color:var(--gold)}
 .breadcrumb-sep{opacity:0.3}
-
-/* ── SECTIONS ── */
 .section{padding:72px 5%}
 .section-alt{background:var(--white)}
-.section-dark{background:var(--navy);color:#fff}
-.section-green{background:#1a3a1a}
 .container{max-width:1100px;margin:0 auto}
 .sl{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:8px}
-.section-dark .sl,.section-green .sl{color:var(--gold)}
 .st{font-family:var(--font-display);font-size:clamp(22px,3.2vw,34px);line-height:1.2;margin-bottom:12px;color:var(--navy)}
-.section-dark .st,.section-green .st{color:#fff}
 .ss{font-size:15px;color:var(--slate);font-weight:300;line-height:1.7;max-width:560px}
-.section-dark .ss,.section-green .ss{color:rgba(255,255,255,0.6)}
 .sh{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin-bottom:40px;flex-wrap:wrap}
-
-/* ── CARDS ── */
-.card{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);padding:28px 24px;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
-.card:hover{transform:translateY(-2px);box-shadow:0 12px 36px rgba(15,31,61,0.12)}
-.card-dark{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:var(--rl);padding:28px 24px;transition:background .2s,border-color .2s}
-.card-dark:hover{background:rgba(255,255,255,0.09);border-color:rgba(201,150,74,0.3)}
-.card-featured{background:var(--navy);border-color:var(--navy);color:#fff}
-.card-icon{font-size:28px;margin-bottom:14px}
-.card h3{font-family:var(--font-display);font-size:18px;margin-bottom:8px;color:var(--navy)}
-.card-dark h3,.card-featured h3{color:#fff}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);padding:0;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s;overflow:hidden;display:flex;flex-direction:column}
+.card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(15,31,61,0.12)}
+.card-body{padding:24px}
+.card h3{font-family:var(--font-display);font-size:18px;margin-bottom:8px;color:var(--navy);line-height:1.3}
 .card p{font-size:13.5px;color:var(--slate);line-height:1.65}
-.card-dark p{color:rgba(255,255,255,0.55)}
-.card-featured p{color:rgba(255,255,255,0.65)}
-.card-tag{display:inline-flex;margin-top:14px;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em;background:var(--gold-pale);color:var(--gold);border:1px solid rgba(201,150,74,0.25)}
-.card-dark .card-tag,.card-featured .card-tag{background:rgba(201,150,74,0.2);color:var(--gold-light);border-color:rgba(201,150,74,0.2)}
-
-/* ── GRIDS ── */
-.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
-.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-.grid-auto{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
-
-/* ── FAQ ACCORDION ── */
-.faq-list{display:flex;flex-direction:column;gap:10px}
-.faq-item{border:1px solid var(--border);border-radius:var(--r);overflow:hidden;background:var(--white)}
-.faq-item summary{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;font-weight:600;font-size:14px;color:var(--navy);cursor:pointer;list-style:none;background:var(--cream);transition:background .15s;gap:12px}
-.faq-item summary::-webkit-details-marker{display:none}
-.faq-item summary:hover{background:#f0ebe0}
-.faq-arrow{font-size:14px;color:var(--gold);flex-shrink:0;transition:transform .2s}
-details[open] .faq-arrow{transform:rotate(180deg)}
-.faq-body{padding:18px 22px;font-size:14px;color:var(--slate);line-height:1.75;border-top:1px solid var(--border)}
-.faq-body strong{color:var(--green)}
-
-/* ── COMPARISON TABLE ── */
-.compare-table{width:100%;border-collapse:collapse;font-size:13.5px;border-radius:var(--rl);overflow:hidden;box-shadow:var(--shadow)}
-.compare-table th{background:var(--navy);color:#fff;padding:14px 18px;text-align:left;font-weight:600}
-.compare-table td{padding:13px 18px;border-bottom:1px solid var(--border);background:#fff;vertical-align:top}
-.compare-table tr:last-child td{border-bottom:none}
-.compare-table tr:nth-child(even) td{background:#fafafa}
-.compare-win{color:var(--green)}
-.compare-lose{color:var(--red)}
-.compare-feat{font-weight:600;color:var(--navy)}
-
-/* ── REVIEW CARDS ── */
-.review-card{background:var(--cream);border:1px solid var(--border);border-radius:var(--rl);padding:24px;transition:box-shadow .2s}
-.review-card:hover{box-shadow:var(--shadow)}
-.rc-stars{color:var(--gold);font-size:14px;letter-spacing:1px;margin-bottom:10px}
-.rc-text{font-size:14px;color:var(--slate);line-height:1.7;font-style:italic;margin-bottom:14px;font-weight:300}
-.rc-author{font-size:12px;font-weight:600;color:var(--navy)}
-.rc-platform{font-size:11px;color:var(--slate-light)}
-.review-agg{display:flex;align-items:center;gap:20px;background:var(--navy);border-radius:var(--rl);padding:24px 28px;margin-bottom:32px;flex-wrap:wrap}
-.ra-score{font-family:var(--font-display);font-size:56px;color:var(--gold);font-weight:700;line-height:1}
-.ra-stars{color:var(--gold);font-size:18px;letter-spacing:2px;display:block;margin-bottom:4px}
-.ra-count{font-size:13px;color:rgba(255,255,255,0.5)}
-.ra-label{font-size:14px;color:#fff;font-weight:600;margin-bottom:2px}
-
-/* ── PROMO CARDS ── */
-.promo-card{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);padding:28px;box-shadow:var(--shadow);position:relative;overflow:hidden}
-.promo-card::before{content:'';position:absolute;top:0;left:0;right:0;height:4px;background:linear-gradient(90deg,var(--gold),var(--gold-light))}
-.promo-code{display:inline-flex;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--gold-pale);border:1px solid rgba(201,150,74,0.25);color:var(--gold);letter-spacing:.08em;text-transform:uppercase;margin-bottom:12px}
-.promo-cta{display:inline-flex;align-items:center;gap:6px;margin-top:16px;font-size:13px;font-weight:600;color:var(--navy);background:var(--cream);border:1px solid var(--border);padding:9px 18px;border-radius:40px;transition:all .15s}
-.promo-cta:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
-
-/* ── STAT CELLS ── */
-.stats-row{display:flex;gap:32px;flex-wrap:wrap;padding-top:28px;border-top:1px solid rgba(255,255,255,0.1)}
-.stat .n{font-family:var(--font-display);font-size:30px;color:var(--gold);font-weight:700;line-height:1}
-.stat .l{font-size:11px;color:rgba(255,255,255,0.45);margin-top:3px;letter-spacing:.05em;text-transform:uppercase}
-
-/* ── NEARBY LIST ── */
-.nearby-list{list-style:none}
-.nearby-item{display:flex;align-items:flex-start;gap:14px;padding:14px 0;border-bottom:.5px solid var(--border)}
-.nearby-item:last-child{border-bottom:none}
-.nearby-icon{width:40px;height:40px;border-radius:9px;background:var(--gold-pale);border:1px solid rgba(201,150,74,0.2);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
-.nearby-name{font-size:14px;font-weight:600;margin-bottom:2px;color:var(--navy)}
-.nearby-dist{font-size:12px;color:var(--slate-light)}
-
-/* ── BOOKING SECTION ── */
+.badge-green{display:inline-block;background:rgba(45,106,79,0.12);color:var(--green);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(45,106,79,0.2)}
+.badge-gold{display:inline-block;background:var(--gold-pale);color:var(--gold);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(201,150,74,0.25)}
+.badge-red{display:inline-block;background:rgba(197,48,48,0.1);color:var(--red);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
+.read-link{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:13px;font-weight:600;color:var(--gold)}
+.card:hover .read-link{gap:10px}
 .booking-section{background:var(--navy);background-image:radial-gradient(ellipse 80% 100% at 50% 120%,rgba(201,150,74,0.14) 0%,transparent 55%);padding:80px 5%}
 .booking-inner{max-width:800px;margin:0 auto;text-align:center}
 .booking-inner h2{font-family:var(--font-display);font-size:clamp(24px,3.5vw,38px);color:#fff;margin-bottom:10px}
@@ -196,22 +109,6 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 .booking-details{font-size:13px;color:rgba(255,255,255,0.35);display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:center}
 .booking-details span::before{content:'·';color:var(--gold);margin-right:6px}
 .booking-details span:first-child::before{display:none}
-
-/* ── BREAKFAST BAND ── */
-.breakfast-band{background:linear-gradient(135deg,#1a3a1a,#2d5a2d);padding:56px 5%;position:relative;overflow:hidden}
-.breakfast-band::before{content:'🍳';position:absolute;right:5%;top:50%;transform:translateY(-50%);font-size:140px;opacity:.07;pointer-events:none}
-.breakfast-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:48px;align-items:center}
-.bb-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#7bc47f;margin-bottom:8px}
-.bb-title{font-family:var(--font-display);font-size:clamp(22px,3vw,30px);color:#fff;margin-bottom:10px}
-.bb-sub{font-size:15px;color:rgba(255,255,255,0.6);font-weight:300;line-height:1.7;margin-bottom:18px}
-.bb-chips{display:flex;flex-wrap:wrap;gap:7px}
-.bb-chip{background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.12);color:rgba(255,255,255,0.82);font-size:12px;padding:5px 13px;border-radius:20px}
-.bb-time{flex-shrink:0;text-align:center;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);border-radius:var(--r);padding:24px 32px}
-.bb-time .t{font-family:var(--font-display);font-size:34px;color:#fff;font-weight:700;line-height:1}
-.bb-time .ts{font-size:11px;color:rgba(255,255,255,0.4);margin-top:5px;text-transform:uppercase;letter-spacing:.07em}
-.bb-time .te{font-size:11px;color:#7bc47f;font-weight:600;margin-top:8px;letter-spacing:.05em;text-transform:uppercase}
-
-/* ── FOOTER ── */
 .footer{background:#0a1628;padding:52px 5% 28px}
 .footer-inner{max-width:1100px;margin:0 auto}
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px;margin-bottom:40px}
@@ -231,86 +128,14 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 .footer-bottom p{font-size:12px;color:rgba(255,255,255,0.25)}
 .footer-bottom a{color:rgba(255,255,255,0.3);font-size:12px;transition:color .15s}
 .footer-bottom a:hover{color:var(--gold)}
-
-/* ── AMENITY CHIPS ── */
-.amenity-chip{display:inline-flex;align-items:center;gap:6px;background:var(--gold-pale);border:1px solid rgba(201,150,74,0.2);color:var(--navy);font-size:12px;font-weight:500;padding:6px 13px;border-radius:20px}
-.amenity-chip .icon{font-size:14px}
-
-/* ── ROOM CARD ── */
-.room-card{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--shadow);transition:transform .2s,box-shadow .2s}
-.room-card:hover{transform:translateY(-3px);box-shadow:0 12px 36px rgba(15,31,61,0.12)}
-.room-img{height:180px;background:linear-gradient(135deg,var(--navy-mid),var(--navy));display:flex;align-items:center;justify-content:center;font-size:64px;opacity:.65;position:relative}
-.room-badge{position:absolute;top:12px;left:12px;background:var(--gold);color:var(--navy);font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.06em}
-.room-badge.limited{background:var(--red);color:#fff}
-.room-body{padding:20px}
-.room-name{font-family:var(--font-display);font-size:19px;margin-bottom:8px}
-.room-features{list-style:none;margin-bottom:14px}
-.room-features li{font-size:13px;color:var(--slate);padding:4px 0;border-bottom:.5px solid var(--border);display:flex;align-items:center;gap:7px}
-.room-features li:last-child{border-bottom:none}
-.room-features li::before{content:'✓';color:var(--green);font-weight:700;font-size:11px}
-.room-cta{display:block;text-align:center;background:var(--navy);color:#fff;font-weight:600;font-size:13px;padding:11px;border-radius:8px;transition:background .15s}
-.room-cta:hover{background:var(--navy-mid)}
-
-/* ── BOOKING WIDGET ── */
-.booking-card{background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:var(--rl);padding:28px 24px}
-.bc-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);margin-bottom:16px}
-.bc-input-group{margin-bottom:12px}
-.bc-input-label{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:5px;font-weight:500}
-.bc-input{width:100%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:8px;padding:10px 14px;color:#fff;font-size:14px;font-family:var(--font-body);outline:none;transition:border-color .15s}
-.bc-input:focus{border-color:rgba(201,150,74,0.6)}
-.bc-input::placeholder{color:rgba(255,255,255,0.3)}
-.bc-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.bc-btn{width:100%;background:var(--gold);color:var(--navy);font-weight:700;font-size:15px;padding:14px;border-radius:40px;border:none;cursor:pointer;font-family:var(--font-body);transition:all .2s;margin-top:8px}
-.bc-btn:hover{background:var(--gold-light);transform:translateY(-1px)}
-.bc-note{font-size:11px;color:rgba(255,255,255,0.3);text-align:center;margin-top:10px}
-
-/* ── MISC ── */
-.badge-green{display:inline-block;background:rgba(45,106,79,0.12);color:var(--green);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(45,106,79,0.2)}
-.badge-gold{display:inline-block;background:var(--gold-pale);color:var(--gold);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(201,150,74,0.25)}
-.badge-red{display:inline-block;background:rgba(197,48,48,0.1);color:var(--red);font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px}
-.pill-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.divider{height:1px;background:var(--border);margin:32px 0}
-.mono{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:.05em}
-
-/* ── RESPONSIVE ── */
-@media(max-width:1024px){
-  .footer-grid{grid-template-columns:1fr 1fr;gap:28px}
-  .grid-4{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:768px){
-  .nav-links{display:none}
-  .nav-mobile-btn{display:block}
-  .section{padding:52px 5%}
-  .grid-2,.grid-3,.booking-opts{grid-template-columns:1fr}
-  .breakfast-inner{grid-template-columns:1fr}
-  .breakfast-band::before{display:none}
-  .bb-time{width:100%}
-  .compare-table{font-size:12px}
-  .compare-table th,.compare-table td{padding:10px 12px}
-}
-@media(max-width:540px){
-  .footer-grid{grid-template-columns:1fr}
-  .grid-4{grid-template-columns:1fr}
-  .stats-row{gap:20px}
-  .review-agg{flex-direction:column;gap:12px}
-}
-
-/* ── ANIMATIONS ── */
-@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
-.anim-1{animation:fadeUp .45s ease both}
-.anim-2{animation:fadeUp .45s .08s ease both}
-.anim-3{animation:fadeUp .45s .16s ease both}
-.anim-4{animation:fadeUp .45s .24s ease both}
-.anim-5{animation:fadeUp .45s .32s ease both}
-
-/* ── BOOKING MODAL ── */
+@media(max-width:1024px){.footer-grid{grid-template-columns:1fr 1fr;gap:28px}}
+@media(max-width:768px){.nav-links{display:none}.nav-mobile-btn{display:block}.section{padding:52px 5%}.booking-opts{grid-template-columns:1fr}}
+@media(max-width:540px){.footer-grid{grid-template-columns:1fr}}
 .bm-overlay{display:none;position:fixed;inset:0;background:rgba(10,18,40,0.82);z-index:9999;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
 .bm-overlay.open{display:flex}
-.bm-box{background:#fff;border-radius:20px;width:100%;max-width:500px;margin:16px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.35);animation:bmIn .25s ease}
-@keyframes bmIn{from{opacity:0;transform:translateY(24px) scale(0.97)}to{opacity:1;transform:none}}
+.bm-box{background:#fff;border-radius:20px;width:100%;max-width:500px;margin:16px;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,0.35)}
 .bm-head{background:#0f1f3d;padding:28px 28px 24px;position:relative}
-.bm-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;line-height:32px;text-align:center;transition:background .15s}
-.bm-close:hover{background:rgba(255,255,255,0.2)}
+.bm-close{position:absolute;top:16px;right:16px;background:rgba(255,255,255,0.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:18px;line-height:32px;text-align:center}
 .bm-logo{font-family:'Playfair Display',Georgia,serif;font-size:14px;color:rgba(255,255,255,0.55);margin-bottom:6px}
 .bm-logo span{color:#c9964a}
 .bm-head h2{font-family:'Playfair Display',Georgia,serif;font-size:22px;color:#fff;margin-bottom:4px}
@@ -319,7 +144,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 .bm-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
 .bm-field{display:flex;flex-direction:column;gap:5px}
 .bm-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#718096}
-.bm-input{padding:11px 14px;border:1.5px solid #e8e0d5;border-radius:10px;font-size:14px;font-family:inherit;color:#0f1f3d;outline:none;transition:border-color .15s;background:#faf7f2;width:100%}
+.bm-input{padding:11px 14px;border:1.5px solid #e8e0d5;border-radius:10px;font-size:14px;font-family:inherit;color:#0f1f3d;outline:none;background:#faf7f2;width:100%}
 .bm-input:focus{border-color:#c9964a;background:#fff}
 .bm-guests{width:100%;padding:11px 14px;border:1.5px solid #e8e0d5;border-radius:10px;font-size:14px;font-family:inherit;color:#0f1f3d;outline:none;background:#faf7f2;cursor:pointer;margin-bottom:12px}
 .bm-promo-row{display:flex;align-items:center;gap:8px;margin-bottom:20px}
@@ -328,150 +153,139 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 .bm-promo-field.show{display:block}
 .bm-promo-input{width:100%;padding:9px 12px;border:1.5px solid #e8e0d5;border-radius:8px;font-size:13px;font-family:inherit;color:#0f1f3d;background:#faf7f2;outline:none;letter-spacing:.08em;text-transform:uppercase}
 .bm-promo-input:focus{border-color:#c9964a}
-.bm-submit{width:100%;background:#c9964a;color:#0f1f3d;font-weight:700;font-size:15px;padding:15px;border-radius:40px;border:none;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
-.bm-submit:hover{background:#e8b96a;transform:translateY(-1px);box-shadow:0 8px 24px rgba(201,150,74,0.4)}
+.bm-submit{width:100%;background:#c9964a;color:#0f1f3d;font-weight:700;font-size:15px;padding:15px;border-radius:40px;border:none;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:12px}
+.bm-submit:hover{background:#e8b96a}
 .bm-divider{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .bm-divider::before,.bm-divider::after{content:'';flex:1;height:1px;background:#e8e0d5}
 .bm-divider span{font-size:11px;color:#a0aec0;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
-.bm-call{width:100%;background:transparent;color:#0f1f3d;font-weight:600;font-size:14px;padding:13px;border-radius:40px;border:2px solid #e8e0d5;cursor:pointer;font-family:inherit;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:7px;text-decoration:none}
+.bm-call{width:100%;background:transparent;color:#0f1f3d;font-weight:600;font-size:14px;padding:13px;border-radius:40px;border:2px solid #e8e0d5;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:7px;text-decoration:none}
 .bm-call:hover{border-color:#0f1f3d;background:#0f1f3d;color:#fff}
 .bm-note{font-size:11px;color:#a0aec0;text-align:center;margin-top:14px;line-height:1.6}
 .bm-note a{color:#c9964a;font-weight:600}
-.bm-perks{display:flex;flex-wrap:wrap;gap:6px;margin-top:16px;padding-top:16px;border-top:1px solid #f0ede8}
-.bm-perk{display:flex;align-items:center;gap:5px;font-size:11px;color:#718096}
-.bm-perk::before{content:'✓';color:#2d6a4f;font-weight:700}
-@media(max-width:480px){.bm-row{grid-template-columns:1fr}.bm-box{margin:8px}.bm-body{padding:20px 20px 24px}.bm-head{padding:22px 20px 18px}}
+@media(max-width:480px){.bm-row{grid-template-columns:1fr}}
 </style>
-
 <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@graph": [
-      {
-        "@type": "WebSite",
-        "@id": "https://www.qualityinnmcalester.com/#website",
-        "url": "https://www.qualityinnmcalester.com/",
-        "name": "Quality Inn & Suites McAlester on Hwy 69"
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://www.qualityinnmcalester.com/#website",
+      "url": "https://www.qualityinnmcalester.com/",
+      "name": "Quality Inn & Suites McAlester on Hwy 69"
+    },
+    {
+      "@type": ["CollectionPage", "Blog"],
+      "@id": "https://www.qualityinnmcalester.com/blog.html#webpage",
+      "url": "https://www.qualityinnmcalester.com/blog.html",
+      "name": "Travel Tips & McAlester Local Updates | Quality Inn & Suites Blog",
+      "description": "Travel guides, McAlester local tips, MCAAP visitor resources, and Southeast Oklahoma road trip inspiration from the team at Quality Inn & Suites McAlester on Hwy 69.",
+      "isPartOf": {"@id": "https://www.qualityinnmcalester.com/#website"},
+      "about": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "breadcrumb": {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          {"@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.qualityinnmcalester.com/"},
+          {"@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.qualityinnmcalester.com/blog.html"}
+        ]
       },
-      {
-        "@type": ["WebPage", "Blog"],
-        "@id": "https://www.qualityinnmcalester.com/blog/#webpage",
-        "url": "https://www.qualityinnmcalester.com/blog/",
-        "name": "Travel Tips & McAlester Local Updates | Quality Inn & Suites Blog",
-        "description": "Travel guides, McAlester local tips, MCAAP visitor resources, and Southeast Oklahoma road trip inspiration from the team at Quality Inn & Suites McAlester on Hwy 69.",
-        "isPartOf": { "@id": "https://www.qualityinnmcalester.com/#website" },
-        "about": { "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "breadcrumb": {
-          "@type": "BreadcrumbList",
-          "itemListElement": [
-            { "@type": "ListItem", "position": 1, "name": "Home", "item": "https://www.qualityinnmcalester.com/" },
-            { "@type": "ListItem", "position": 2, "name": "Blog", "item": "https://www.qualityinnmcalester.com/blog/" }
-          ]
-        },
-        "inLanguage": "en-US"
-      },
-      {
-        "@type": "Hotel",
-        "@id": "https://www.qualityinnmcalester.com/#hotel",
-        "name": "Quality Inn & Suites McAlester on Hwy 69",
-        "url": "https://www.qualityinnmcalester.com/",
-        "telephone": "+1-918-426-8091",
-        "address": {
-          "@type": "PostalAddress",
-          "streetAddress": "400 S George Nigh Expy",
-          "addressLocality": "McAlester",
-          "addressRegion": "OK",
-          "postalCode": "74501",
-          "addressCountry": "US"
-        }
-      },
-      {
-        "@type": "BlogPosting",
-        "@id": "https://www.qualityinnmcalester.com/blog/mcaap-visitor-guide/",
-        "headline": "MCAAP Visitor Guide: Where to Stay Near McAlester Army Ammunition Plant",
-        "description": "A complete lodging and navigation guide for contractors, defense workers, and government visitors coming to the McAlester Army Ammunition Plant in Pittsburg County, Oklahoma.",
-        "keywords": "MCAAP visitor lodging McAlester, McAlester Army Ammunition Plant hotel, MCAAP contractor hotel",
-        "datePublished": "2026-03-15",
-        "dateModified": "2026-03-15",
-        "author": { "@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "publisher": { "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "isPartOf": { "@id": "https://www.qualityinnmcalester.com/blog/#webpage" },
-        "url": "https://www.qualityinnmcalester.com/blog/mcaap-visitor-guide/",
-        "articleSection": "Crew & Contractors"
-      },
-      {
-        "@type": "BlogPosting",
-        "@id": "https://www.qualityinnmcalester.com/blog/things-to-do-mcalester-2026/",
-        "headline": "10 Best Things to Do in McAlester OK in 2026",
-        "description": "From the Scottish Rite Masonic Temple and Pete's Place in Krebs to Robbers Cave and Lake Eufaula — your guide to the best of McAlester, Oklahoma in 2026.",
-        "keywords": "things to do in McAlester OK, McAlester Oklahoma attractions, what to do McAlester",
-        "datePublished": "2026-02-01",
-        "dateModified": "2026-02-01",
-        "author": { "@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "publisher": { "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "isPartOf": { "@id": "https://www.qualityinnmcalester.com/blog/#webpage" },
-        "url": "https://www.qualityinnmcalester.com/blog/things-to-do-mcalester-2026/",
-        "articleSection": "Explore McAlester"
-      },
-      {
-        "@type": "BlogPosting",
-        "@id": "https://www.qualityinnmcalester.com/blog/hwy-69-oklahoma-road-trip/",
-        "headline": "Road Trip Through Southeast Oklahoma: Your Hwy 69 Stop Guide",
-        "description": "Planning a drive down Hwy 69 through Oklahoma? Here's everything you need to know about stops, food, fuel, and lodging along the route — with McAlester as your anchor city.",
-        "keywords": "Hwy 69 Oklahoma road trip, Highway 69 Oklahoma stops, Southeast Oklahoma road trip",
-        "datePublished": "2026-01-10",
-        "dateModified": "2026-01-10",
-        "author": { "@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "publisher": { "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "isPartOf": { "@id": "https://www.qualityinnmcalester.com/blog/#webpage" },
-        "url": "https://www.qualityinnmcalester.com/blog/hwy-69-oklahoma-road-trip/",
-        "articleSection": "Travel Tips"
-      },
-      {
-        "@type": "BlogPosting",
-        "@id": "https://www.qualityinnmcalester.com/blog/southeast-expo-center-events-2026/",
-        "headline": "Southeast Expo Center Events 2026: McAlester Events Calendar",
-        "description": "Your complete guide to events at the Southeast Expo Center in McAlester, OK in 2026 — with lodging tips for each event and how to get the best rate nearby.",
-        "keywords": "Southeast Expo Center McAlester events, McAlester Oklahoma events 2026",
-        "datePublished": "2025-12-20",
-        "dateModified": "2025-12-20",
-        "author": { "@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "publisher": { "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "isPartOf": { "@id": "https://www.qualityinnmcalester.com/blog/#webpage" },
-        "url": "https://www.qualityinnmcalester.com/blog/southeast-expo-center-events-2026/",
-        "articleSection": "Explore McAlester"
-      },
-      {
-        "@type": "BlogPosting",
-        "@id": "https://www.qualityinnmcalester.com/blog/extended-stay-mcalester-weekly-rates/",
-        "headline": "Extended Stay in McAlester: How to Find Weekly Rates That Work for Your Crew",
-        "description": "Looking for extended stay lodging in McAlester OK? Compare weekly rates, kitchenette availability, breakfast options, and parking at every hotel in town — and see why contractors choose Quality Inn.",
-        "keywords": "extended stay McAlester OK weekly rates, crew lodging McAlester, kitchenette hotel McAlester",
-        "datePublished": "2025-11-15",
-        "dateModified": "2025-11-15",
-        "author": { "@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "publisher": { "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "isPartOf": { "@id": "https://www.qualityinnmcalester.com/blog/#webpage" },
-        "url": "https://www.qualityinnmcalester.com/blog/extended-stay-mcalester-weekly-rates/",
-        "articleSection": "Crew & Contractors"
-      },
-      {
-        "@type": "BlogPosting",
-        "@id": "https://www.qualityinnmcalester.com/blog/lake-eufaula-day-trip-mcalester/",
-        "headline": "Visiting Lake Eufaula from McAlester: A Day Trip Guide",
-        "description": "Lake Eufaula is just 35 minutes east of McAlester and one of Oklahoma's most beautiful outdoor destinations. Here's a complete day trip guide — what to bring, where to go, and how to plan.",
-        "keywords": "Lake Eufaula day trip McAlester, Lake Eufaula Oklahoma, things to do near McAlester OK",
-        "datePublished": "2025-10-05",
-        "dateModified": "2025-10-05",
-        "author": { "@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "publisher": { "@id": "https://www.qualityinnmcalester.com/#hotel" },
-        "isPartOf": { "@id": "https://www.qualityinnmcalester.com/blog/#webpage" },
-        "url": "https://www.qualityinnmcalester.com/blog/lake-eufaula-day-trip-mcalester/",
-        "articleSection": "Explore McAlester"
-      }
-    ]
-  }
-  </script>
+      "inLanguage": "en-US"
+    },
+    {
+      "@type": "Hotel",
+      "@id": "https://www.qualityinnmcalester.com/#hotel",
+      "name": "Quality Inn & Suites McAlester on Hwy 69",
+      "url": "https://www.qualityinnmcalester.com/",
+      "telephone": "+1-918-426-8091",
+      "address": {"@type": "PostalAddress", "streetAddress": "400 S George Nigh Expy", "addressLocality": "McAlester", "addressRegion": "OK", "postalCode": "74501", "addressCountry": "US"}
+    },
+    {
+      "@type": "BlogPosting",
+      "@id": "https://www.qualityinnmcalester.com/blog-mcaap-visitor-guide.html",
+      "headline": "MCAAP Visitor Guide: Where to Stay Near McAlester Army Ammunition Plant",
+      "description": "A complete lodging and navigation guide for contractors, defense workers, and government visitors coming to the McAlester Army Ammunition Plant in Pittsburg County, Oklahoma.",
+      "keywords": "MCAAP visitor lodging McAlester, McAlester Army Ammunition Plant hotel, MCAAP contractor hotel",
+      "datePublished": "2026-03-15",
+      "dateModified": "2026-03-15",
+      "author": {"@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "publisher": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "isPartOf": {"@id": "https://www.qualityinnmcalester.com/blog.html#webpage"},
+      "url": "https://www.qualityinnmcalester.com/blog-mcaap-visitor-guide.html",
+      "articleSection": "Crew & Contractors"
+    },
+    {
+      "@type": "BlogPosting",
+      "@id": "https://www.qualityinnmcalester.com/blog-things-to-do-mcalester.html",
+      "headline": "10 Best Things to Do in McAlester OK in 2026",
+      "description": "From the Scottish Rite Masonic Temple and Pete's Place in Krebs to Robbers Cave and Lake Eufaula — your guide to the best of McAlester, Oklahoma in 2026.",
+      "keywords": "things to do in McAlester OK, McAlester Oklahoma attractions, what to do McAlester",
+      "datePublished": "2026-02-01",
+      "dateModified": "2026-02-01",
+      "author": {"@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "publisher": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "isPartOf": {"@id": "https://www.qualityinnmcalester.com/blog.html#webpage"},
+      "url": "https://www.qualityinnmcalester.com/blog-things-to-do-mcalester.html",
+      "articleSection": "Explore McAlester"
+    },
+    {
+      "@type": "BlogPosting",
+      "@id": "https://www.qualityinnmcalester.com/blog-hwy-69-road-trip.html",
+      "headline": "Road Trip Through Southeast Oklahoma: Your Hwy 69 Stop Guide",
+      "description": "Planning a drive down Hwy 69 through Oklahoma? Everything you need to know about stops, food, fuel, and lodging along the route — with McAlester as your anchor city.",
+      "keywords": "Hwy 69 Oklahoma road trip, Highway 69 Oklahoma stops, Southeast Oklahoma road trip",
+      "datePublished": "2026-01-10",
+      "dateModified": "2026-01-10",
+      "author": {"@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "publisher": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "isPartOf": {"@id": "https://www.qualityinnmcalester.com/blog.html#webpage"},
+      "url": "https://www.qualityinnmcalester.com/blog-hwy-69-road-trip.html",
+      "articleSection": "Travel Tips"
+    },
+    {
+      "@type": "BlogPosting",
+      "@id": "https://www.qualityinnmcalester.com/blog-southeast-expo-events.html",
+      "headline": "Southeast Expo Center Events: McAlester Events Calendar Guide",
+      "description": "Your complete guide to events at the Southeast Expo Center in McAlester, OK — with lodging tips for each event and how to get the best rate nearby.",
+      "keywords": "Southeast Expo Center McAlester events, McAlester Oklahoma events",
+      "datePublished": "2025-12-20",
+      "dateModified": "2025-12-20",
+      "author": {"@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "publisher": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "isPartOf": {"@id": "https://www.qualityinnmcalester.com/blog.html#webpage"},
+      "url": "https://www.qualityinnmcalester.com/blog-southeast-expo-events.html",
+      "articleSection": "Explore McAlester"
+    },
+    {
+      "@type": "BlogPosting",
+      "@id": "https://www.qualityinnmcalester.com/blog-extended-stay-weekly-rates.html",
+      "headline": "Extended Stay in McAlester: How to Find Weekly Rates That Work for Your Crew",
+      "description": "Looking for extended stay lodging in McAlester OK? Compare weekly rates, kitchenette availability, breakfast options, and parking — and see why crews choose Quality Inn & Suites.",
+      "keywords": "extended stay McAlester OK weekly rates, crew lodging McAlester, kitchenette hotel McAlester",
+      "datePublished": "2025-11-15",
+      "dateModified": "2025-11-15",
+      "author": {"@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "publisher": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "isPartOf": {"@id": "https://www.qualityinnmcalester.com/blog.html#webpage"},
+      "url": "https://www.qualityinnmcalester.com/blog-extended-stay-weekly-rates.html",
+      "articleSection": "Crew & Contractors"
+    },
+    {
+      "@type": "BlogPosting",
+      "@id": "https://www.qualityinnmcalester.com/blog-lake-eufaula-day-trip.html",
+      "headline": "Visiting Lake Eufaula from McAlester: A Day Trip Guide",
+      "description": "Lake Eufaula is just about 35 minutes east of McAlester and one of Oklahoma's most beautiful outdoor destinations. Here's a complete day trip guide — what to bring, where to go, and how to plan.",
+      "keywords": "Lake Eufaula day trip McAlester, Lake Eufaula Oklahoma, things to do near McAlester OK",
+      "datePublished": "2025-10-05",
+      "dateModified": "2025-10-05",
+      "author": {"@type": "Organization", "name": "Quality Inn & Suites McAlester", "@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "publisher": {"@id": "https://www.qualityinnmcalester.com/#hotel"},
+      "isPartOf": {"@id": "https://www.qualityinnmcalester.com/blog.html#webpage"},
+      "url": "https://www.qualityinnmcalester.com/blog-lake-eufaula-day-trip.html",
+      "articleSection": "Explore McAlester"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <nav class="nav">
@@ -490,7 +304,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
     <a href="direction.html">Directions</a>
   </div>
   <div style="display:flex;align-items:center;gap:12px">
-    <a href="#" onclick="bmOpen();return false;" class="nav-book" target="_blank" rel="noopener">Book Direct →</a>
+    <a href="#" onclick="bmOpen();return false;" class="nav-book">Book Direct →</a>
     <button class="nav-mobile-btn" onclick="document.getElementById('mob-menu').classList.toggle('open')" aria-label="Menu">☰</button>
   </div>
 </nav>
@@ -507,6 +321,7 @@ details[open] .faq-arrow{transform:rotate(180deg)}
   <a href="book.html">Book Your Stay</a>
   <a href="tel:+19184268091" style="color:var(--gold);font-weight:600">📞 918-426-8091</a>
 </div>
+
 <section class="page-hero">
 <div class="page-hero-inner">
 <nav class="breadcrumb"><a href="index.html">Home</a><span class="breadcrumb-sep">&#8250;</span><span>Travel Blog</span></nav>
@@ -521,28 +336,76 @@ details[open] .faq-arrow{transform:rotate(180deg)}
 <div class="container">
 <div class="sh"><div><div class="sl">Travel guides &amp; local tips</div><h2 class="st">McAlester Travel Blog</h2><p class="ss">Local knowledge from the team at Quality Inn &amp; Suites McAlester &mdash; attractions, contractor resources, road trip guides, and Southeast Oklahoma tips.</p></div></div>
 <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:32px">
-<button onclick="filterBlog(this,'all')" class="btn-secondary" style="font-size:12px;padding:8px 18px;border-radius:20px" data-active="true">All Posts</button>
+<button onclick="filterBlog(this,'all')" class="btn-secondary" style="font-size:12px;padding:8px 18px;border-radius:20px;background:var(--navy);color:#fff" data-active="true">All Posts</button>
 <button onclick="filterBlog(this,'explore')" class="btn-secondary" style="font-size:12px;padding:8px 18px;border-radius:20px">Explore McAlester</button>
 <button onclick="filterBlog(this,'crew')" class="btn-secondary" style="font-size:12px;padding:8px 18px;border-radius:20px">Crew &amp; Contractors</button>
 <button onclick="filterBlog(this,'travel')" class="btn-secondary" style="font-size:12px;padding:8px 18px;border-radius:20px">Travel Tips</button>
 </div>
 <div id="blog-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px">
-<article class="card" data-cat="crew" style="cursor:default"><div style="background:linear-gradient(135deg,var(--navy),var(--navy-mid));height:160px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:16px">&#127894;</div><span class="badge-red" style="margin-bottom:8px;display:inline-block">Crew &amp; Contractors</span><h3 style="margin-bottom:8px">MCAAP Visitor Guide: Where to Stay Near McAlester Army Ammunition Plant</h3><p style="font-size:13px;color:var(--slate);margin-bottom:12px;font-weight:300">A complete lodging and navigation guide for contractors, defense workers, and government visitors to MCAAP.</p><div style="font-size:11px;color:var(--slate-light)">March 15, 2026 &middot; 8 min read</div></article>
-<article class="card" data-cat="explore" style="cursor:default"><div style="background:linear-gradient(135deg,#1a4a2e,var(--gold));height:160px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:16px">&#127981;</div><span class="badge-gold" style="margin-bottom:8px;display:inline-block">Explore McAlester</span><h3 style="margin-bottom:8px">10 Best Things to Do in McAlester OK in 2026</h3><p style="font-size:13px;color:var(--slate);margin-bottom:12px;font-weight:300">From the Scottish Rite Temple and Pete&rsquo;s Place to Robbers Cave and Lake Eufaula &mdash; your definitive McAlester guide.</p><div style="font-size:11px;color:var(--slate-light)">February 1, 2026 &middot; 10 min read</div></article>
-<article class="card" data-cat="travel" style="cursor:default"><div style="background:linear-gradient(135deg,#2a1a0d,#5a3a1a);height:160px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:16px">&#128665;</div><span class="badge-green" style="margin-bottom:8px;display:inline-block">Travel Tips</span><h3 style="margin-bottom:8px">Road Trip Through Southeast Oklahoma: Your Hwy 69 Stop Guide</h3><p style="font-size:13px;color:var(--slate);margin-bottom:12px;font-weight:300">Planning a drive down Hwy 69? Stops, food, fuel, and the best overnight in McAlester as your anchor city.</p><div style="font-size:11px;color:var(--slate-light)">January 10, 2026 &middot; 7 min read</div></article>
-<article class="card" data-cat="explore" style="cursor:default"><div style="background:linear-gradient(135deg,#1b1b3a,#4a3080);height:160px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:16px">&#127920;</div><span class="badge-gold" style="margin-bottom:8px;display:inline-block">Explore McAlester</span><h3 style="margin-bottom:8px">Southeast Expo Center Events 2026: McAlester Events Calendar</h3><p style="font-size:13px;color:var(--slate);margin-bottom:12px;font-weight:300">A complete guide to events at Southeast Expo Center in 2026 &mdash; livestock shows, fairs, trade shows, and lodging tips.</p><div style="font-size:11px;color:var(--slate-light)">December 20, 2025 &middot; 6 min read</div></article>
-<article class="card" data-cat="crew" style="cursor:default"><div style="background:linear-gradient(135deg,var(--navy),#2a6496);height:160px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:16px">&#127968;</div><span class="badge-red" style="margin-bottom:8px;display:inline-block">Crew &amp; Contractors</span><h3 style="margin-bottom:8px">Extended Stay in McAlester: How to Find Weekly Rates That Work for Your Crew</h3><p style="font-size:13px;color:var(--slate);margin-bottom:12px;font-weight:300">Compare weekly rates, kitchenette availability, and breakfast options across every extended-stay option in McAlester.</p><div style="font-size:11px;color:var(--slate-light)">November 15, 2025 &middot; 9 min read</div></article>
-<article class="card" data-cat="explore" style="cursor:default"><div style="background:linear-gradient(135deg,#0a3d62,#1a9e9e);height:160px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:48px;margin-bottom:16px">&#9972;</div><span class="badge-gold" style="margin-bottom:8px;display:inline-block">Explore McAlester</span><h3 style="margin-bottom:8px">Visiting Lake Eufaula from McAlester: A Day Trip Guide</h3><p style="font-size:13px;color:var(--slate);margin-bottom:12px;font-weight:300">Lake Eufaula is just 35 minutes east &mdash; Oklahoma&rsquo;s largest lake and one of the best outdoor day trips from McAlester.</p><div style="font-size:11px;color:var(--slate-light)">October 5, 2025 &middot; 8 min read</div></article>
+
+<a href="blog-mcaap-visitor-guide.html" class="card" data-cat="crew">
+<div style="background:linear-gradient(135deg,var(--navy),var(--navy-mid));height:160px;display:flex;align-items:center;justify-content:center;font-size:48px">&#127894;</div>
+<div class="card-body">
+<span class="badge-red" style="margin-bottom:8px;display:inline-block">Crew &amp; Contractors</span>
+<h3>MCAAP Visitor Guide: Where to Stay Near McAlester Army Ammunition Plant</h3>
+<p>A complete lodging and navigation guide for contractors, defense workers, and government visitors heading to MCAAP.</p>
+<span class="read-link">Read the guide &#8594;</span>
+</div>
+</a>
+
+<a href="blog-things-to-do-mcalester.html" class="card" data-cat="explore">
+<div style="background:linear-gradient(135deg,#1a4a2e,var(--gold));height:160px;display:flex;align-items:center;justify-content:center;font-size:48px">&#127981;</div>
+<div class="card-body">
+<span class="badge-gold" style="margin-bottom:8px;display:inline-block">Explore McAlester</span>
+<h3>10 Best Things to Do in McAlester OK in 2026</h3>
+<p>From the Scottish Rite Masonic Temple and Pete's Place in Krebs to Robbers Cave and Lake Eufaula &mdash; your definitive McAlester guide.</p>
+<span class="read-link">Read the guide &#8594;</span>
+</div>
+</a>
+
+<a href="blog-hwy-69-road-trip.html" class="card" data-cat="travel">
+<div style="background:linear-gradient(135deg,#2a1a0d,#5a3a1a);height:160px;display:flex;align-items:center;justify-content:center;font-size:48px">&#128665;</div>
+<div class="card-body">
+<span class="badge-green" style="margin-bottom:8px;display:inline-block">Travel Tips</span>
+<h3>Road Trip Through Southeast Oklahoma: Your Hwy 69 Stop Guide</h3>
+<p>Planning a drive down Hwy 69? Stops, food, fuel, and the best overnight in McAlester as your anchor city.</p>
+<span class="read-link">Read the guide &#8594;</span>
+</div>
+</a>
+
+<a href="blog-southeast-expo-events.html" class="card" data-cat="explore">
+<div style="background:linear-gradient(135deg,#1b1b3a,#4a3080);height:160px;display:flex;align-items:center;justify-content:center;font-size:48px">&#127920;</div>
+<div class="card-body">
+<span class="badge-gold" style="margin-bottom:8px;display:inline-block">Explore McAlester</span>
+<h3>Southeast Expo Center Events: McAlester Events Calendar Guide</h3>
+<p>A complete guide to events at the Southeast Expo Center &mdash; livestock shows, fairs, trade shows, and lodging tips.</p>
+<span class="read-link">Read the guide &#8594;</span>
+</div>
+</a>
+
+<a href="blog-extended-stay-weekly-rates.html" class="card" data-cat="crew">
+<div style="background:linear-gradient(135deg,var(--navy),#2a6496);height:160px;display:flex;align-items:center;justify-content:center;font-size:48px">&#127968;</div>
+<div class="card-body">
+<span class="badge-red" style="margin-bottom:8px;display:inline-block">Crew &amp; Contractors</span>
+<h3>Extended Stay in McAlester: How to Find Weekly Rates That Work for Your Crew</h3>
+<p>Compare weekly rates, kitchenette availability, breakfast, and parking across extended-stay options in McAlester.</p>
+<span class="read-link">Read the guide &#8594;</span>
+</div>
+</a>
+
+<a href="blog-lake-eufaula-day-trip.html" class="card" data-cat="explore">
+<div style="background:linear-gradient(135deg,#0a3d62,#1a9e9e);height:160px;display:flex;align-items:center;justify-content:center;font-size:48px">&#9972;</div>
+<div class="card-body">
+<span class="badge-gold" style="margin-bottom:8px;display:inline-block">Explore McAlester</span>
+<h3>Visiting Lake Eufaula from McAlester: A Day Trip Guide</h3>
+<p>About 35 minutes east &mdash; Oklahoma's largest lake and one of the best outdoor day trips from McAlester.</p>
+<span class="read-link">Read the guide &#8594;</span>
+</div>
+</a>
+
 </div>
 </div>
 </section>
-<script>
-function filterBlog(btn,cat){
-  document.querySelectorAll("[data-cat]").forEach(function(a){a.style.display=(cat==="all"||a.dataset.cat===cat)?"block":"none"});
-  document.querySelectorAll(".btn-secondary[onclick]").forEach(function(b){b.style.background="";b.style.color=""});
-  btn.style.background="var(--navy)";btn.style.color="#fff";
-}
-</script>
 
 <section class="booking-section">
   <div class="booking-inner">
@@ -554,7 +417,7 @@ function filterBlog(btn,cat){
         <div style="font-size:22px;margin-bottom:8px">🌐</div>
         <div class="bo-title">Book Online</div>
         <div class="bo-sub">Secure booking through Choice Hotels. Earn Choice Privileges points. Best rate guaranteed.</div>
-        <a href="#" onclick="bmOpen();return false;" class="bo-btn bo-btn-gold" target="_blank" rel="noopener">Book at ChoiceHotels.com →</a>
+        <a href="#" onclick="bmOpen();return false;" class="bo-btn bo-btn-gold">Book at ChoiceHotels.com →</a>
       </div>
       <div class="bo-card">
         <div style="font-size:22px;margin-bottom:8px">📞</div>
@@ -572,6 +435,7 @@ function filterBlog(btn,cat){
     </div>
   </div>
 </section>
+
 <footer class="footer">
   <div class="footer-inner">
     <div class="footer-grid">
@@ -629,7 +493,6 @@ function filterBlog(btn,cat){
   </div>
 </footer>
 
-<!-- BOOKING MODAL -->
 <div class="bm-overlay" id="bm-overlay" role="dialog" aria-modal="true" aria-label="Book your stay">
   <div class="bm-box">
     <div class="bm-head">
@@ -640,14 +503,8 @@ function filterBlog(btn,cat){
     </div>
     <div class="bm-body">
       <div class="bm-row">
-        <div class="bm-field">
-          <label class="bm-label" for="bm-ci">Check In</label>
-          <input type="date" id="bm-ci" class="bm-input">
-        </div>
-        <div class="bm-field">
-          <label class="bm-label" for="bm-co">Check Out</label>
-          <input type="date" id="bm-co" class="bm-input">
-        </div>
+        <div class="bm-field"><label class="bm-label" for="bm-ci">Check In</label><input type="date" id="bm-ci" class="bm-input"></div>
+        <div class="bm-field"><label class="bm-label" for="bm-co">Check Out</label><input type="date" id="bm-co" class="bm-input"></div>
       </div>
       <label class="bm-label" style="display:block;margin-bottom:5px" for="bm-guests">Guests</label>
       <select class="bm-guests" id="bm-guests">
@@ -658,70 +515,37 @@ function filterBlog(btn,cat){
       </select>
       <div class="bm-promo-row">
         <button class="bm-promo-toggle" onclick="bmTogglePromo()" id="bm-promo-btn">+ Have a promo code?</button>
-        <div class="bm-promo-field" id="bm-promo-field">
-          <input type="text" class="bm-promo-input" id="bm-promo-input" placeholder="e.g. MCAAP or RAIL" maxlength="12">
-        </div>
+        <div class="bm-promo-field" id="bm-promo-field"><input type="text" class="bm-promo-input" id="bm-promo-input" placeholder="e.g. MCAAP or RAIL" maxlength="12"></div>
       </div>
-      <button class="bm-submit" onclick="bmBook()">
-        <span>&#128197;</span> Check Rates &amp; Book at ChoiceHotels.com
-      </button>
+      <button class="bm-submit" onclick="bmBook()"><span>&#128197;</span> Check Rates &amp; Book at ChoiceHotels.com</button>
       <div class="bm-divider"><span>or</span></div>
-      <a href="tel:+19184268091" class="bm-call">
-        <span>&#128222;</span> Call Direct &mdash; (918) 426-8091
-      </a>
-      <div class="bm-perks">
-        <div class="bm-perk">Best rate guaranteed</div>
-        <div class="bm-perk">Earn Choice Privileges points</div>
-        <div class="bm-perk">Free cancellation on most rates</div>
-        <div class="bm-perk">24/7 front desk</div>
-      </div>
-      <div class="bm-note">
-        Reservations processed securely by <a href="https://www.choicehotels.com" target="_blank" rel="noopener">ChoiceHotels.com</a><br>
-        Check-in 3:00 PM &nbsp;&middot;&nbsp; Check-out 11:00 AM &nbsp;&middot;&nbsp; Pet-friendly $15/night
-      </div>
+      <a href="tel:+19184268091" class="bm-call"><span>&#128222;</span> Call Direct &mdash; (918) 426-8091</a>
+      <div class="bm-note">Reservations processed securely by <a href="https://www.choicehotels.com" target="_blank" rel="noopener">ChoiceHotels.com</a><br>Check-in 3:00 PM &nbsp;&middot;&nbsp; Check-out 11:00 AM &nbsp;&middot;&nbsp; Pet-friendly $15/night</div>
     </div>
   </div>
 </div>
 
-
 <script>
+function filterBlog(btn,cat){
+  document.querySelectorAll("[data-cat]").forEach(function(a){a.style.display=(cat==="all"||a.dataset.cat===cat)?"flex":"none"});
+  document.querySelectorAll(".btn-secondary[onclick]").forEach(function(b){b.style.background="";b.style.color=""});
+  btn.style.background="var(--navy)";btn.style.color="#fff";
+}
 (function(){
-  var t=new Date(),tm=new Date(t);
-  tm.setDate(tm.getDate()+1);
+  var t=new Date(),tm=new Date(t);tm.setDate(tm.getDate()+1);
   function fmt(d){return d.toISOString().split('T')[0];}
   var ci=document.getElementById('bm-ci'),co=document.getElementById('bm-co');
-  if(ci)ci.value=fmt(t);
-  if(co)co.value=fmt(tm);
-  // Also set inline hero widget if present
-  var hci=document.getElementById('checkin'),hco=document.getElementById('checkout');
-  if(hci)hci.value=fmt(t);
-  if(hco)hco.value=fmt(tm);
+  if(ci)ci.value=fmt(t);if(co)co.value=fmt(tm);
 })();
-
 function bmOpen(promo){
   document.getElementById('bm-overlay').classList.add('open');
   document.body.style.overflow='hidden';
-  if(promo){
-    var pf=document.getElementById('bm-promo-field');
-    var pi=document.getElementById('bm-promo-input');
-    pf.classList.add('show');
-    if(pi)pi.value=promo;
-    document.getElementById('bm-promo-btn').textContent='- Promo code';
-  }
+  if(promo){var pf=document.getElementById('bm-promo-field'),pi=document.getElementById('bm-promo-input');pf.classList.add('show');if(pi)pi.value=promo;document.getElementById('bm-promo-btn').textContent='- Promo code';}
 }
-function bmClose(){
-  document.getElementById('bm-overlay').classList.remove('open');
-  document.body.style.overflow='';
-}
-function bmTogglePromo(){
-  var pf=document.getElementById('bm-promo-field');
-  var btn=document.getElementById('bm-promo-btn');
-  var show=pf.classList.toggle('show');
-  btn.textContent=show?'- Promo code':'+ Have a promo code?';
-}
+function bmClose(){document.getElementById('bm-overlay').classList.remove('open');document.body.style.overflow='';}
+function bmTogglePromo(){var pf=document.getElementById('bm-promo-field'),btn=document.getElementById('bm-promo-btn');var show=pf.classList.toggle('show');btn.textContent=show?'- Promo code':'+ Have a promo code?';}
 function bmBook(){
-  var ci=document.getElementById('bm-ci').value;
-  var co=document.getElementById('bm-co').value;
+  var ci=document.getElementById('bm-ci').value,co=document.getElementById('bm-co').value;
   var promo=document.getElementById('bm-promo-input').value.trim().toUpperCase();
   var url='https://www.choicehotels.com/oklahoma/mcalester/quality-inn-hotels/ok293';
   var params=[];
@@ -731,10 +555,8 @@ function bmBook(){
   if(params.length)url+='?'+params.join('&');
   window.open(url,'_blank');
 }
-function bookNow(){bmOpen();}
 document.getElementById('bm-overlay').addEventListener('click',function(e){if(e.target===this)bmClose();});
 document.addEventListener('keydown',function(e){if(e.key==='Escape')bmClose();});
 </script>
-
 </body>
 </html>
