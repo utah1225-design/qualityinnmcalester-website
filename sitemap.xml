@@ -56,14 +56,44 @@
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://www.qualityinnmcalester.com/blog.html</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
     <loc>https://www.qualityinnmcalester.com/book.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/blog.html</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/blog-mcaap-visitor-guide.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/blog-things-to-do-mcalester.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/blog-hwy-69-road-trip.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/blog-southeast-expo-events.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/blog-extended-stay-weekly-rates.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/blog-lake-eufaula-day-trip.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
   </url>
   <url>
     <loc>https://www.qualityinnmcalester.com/privacy-policy.html</loc>
