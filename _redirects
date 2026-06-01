@@ -1,9 +1,0 @@
-# Cloudflare Pages redirects
-# Real files (index.html, amenities.html, blog-*.html, sitemap.xml, robots.txt, etc.)
-# are served directly and take priority over these rules.
-#
-# Catch-all: any unknown/old path (e.g. leftover Wix URLs) gets a clean 301
-# to the homepage instead of a silent soft-404. Keep this LAST.
-# If you ever add specific old-URL mappings, put them ABOVE this line.
-
-/*    /    301
