@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<!-- PRIVATE PAGE — do not index. This form is shared by link/QR only. -->
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="shortcut icon" href="assets/favicon.ico">
+<title>Credit Card Authorization | Quality Inn &amp; Suites McAlester on Hwy 69</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0f1f3d;--navy-mid:#1a3260;--gold:#c9964a;--gold-light:#e8b96a;--gold-pale:rgba(201,150,74,0.1);--cream:#faf7f2;--white:#fff;--slate:#4a5568;--slate-light:#718096;--border:#e8e0d5;--green:#2d6a4f;--green-bg:rgba(45,106,79,0.08);--red:#c53030;--red-bg:rgba(197,48,48,0.07);--font-display:'Playfair Display',Georgia,serif;--font-body:'DM Sans',-apple-system,sans-serif;--r:10px;--rl:16px;--shadow:0 4px 20px rgba(15,31,61,0.09)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background:var(--cream);color:var(--navy);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+img{max-width:100%;display:block}
+.topbar{background:var(--navy);border-bottom:2px solid var(--gold);padding:14px 5%;display:flex;align-items:center;gap:14px}
+.topbar img{height:38px;width:auto}
+.topbar .tb-text{font-family:var(--font-display);font-size:15px;color:#fff;line-height:1.25}
+.topbar .tb-text span{color:var(--gold);display:block;font-size:13px}
+.wrap{max-width:720px;margin:0 auto;padding:32px 5% 64px}
+.page-title{font-family:var(--font-display);font-size:clamp(24px,4vw,32px);color:var(--navy);margin-bottom:6px}
+.page-sub{font-size:14px;color:var(--slate);margin-bottom:24px}
+.notice{background:var(--green-bg);border:1px solid rgba(45,106,79,0.25);border-left:4px solid var(--green);border-radius:var(--r);padding:16px 18px;margin-bottom:28px;font-size:13.5px;color:#234e3a}
+.notice strong{color:var(--green)}
+.card{background:var(--white);border:1px solid var(--border);border-radius:var(--rl);padding:24px 22px;margin-bottom:18px;box-shadow:var(--shadow)}
+.card h2{font-family:var(--font-display);font-size:17px;color:var(--navy);margin-bottom:4px}
+.card .sec-sub{font-size:12.5px;color:var(--slate-light);margin-bottom:16px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--slate);margin-bottom:5px;letter-spacing:.01em}
+.field label .req{color:var(--red)}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:inherit;color:var(--navy);background:var(--cream);outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold);background:#fff}
+.field textarea{resize:vertical;min-height:64px}
+.field.invalid input,.field.invalid select{border-color:var(--red);background:var(--red-bg)}
+.field .hint{font-size:11px;color:var(--slate-light);margin-top:4px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.row3{display:grid;grid-template-columns:2fr 1fr 1fr;gap:14px}
+@media(max-width:560px){.row2,.row3{grid-template-columns:1fr}}
+.checks{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media(max-width:560px){.checks{grid-template-columns:1fr}}
+.check{display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--navy);background:var(--cream);border:1.5px solid var(--border);border-radius:9px;padding:10px 12px;cursor:pointer}
+.check input{width:auto;margin:0}
+.last4-wrap{display:flex;align-items:center;gap:10px}
+.last4-mask{font-family:var(--font-display);font-size:20px;color:var(--slate-light);letter-spacing:2px;white-space:nowrap}
+.last4-wrap input{max-width:120px;font-size:18px;letter-spacing:4px;text-align:center;font-weight:600}
+.consent{display:flex;align-items:flex-start;gap:10px;font-size:13px;color:var(--navy);background:var(--cream);border:1.5px solid var(--border);border-radius:9px;padding:14px 16px;margin-top:6px}
+.consent.invalid{border-color:var(--red);background:var(--red-bg)}
+.consent input{width:auto;margin-top:3px;flex-shrink:0}
+.auth-text{font-size:12.5px;color:var(--slate);line-height:1.65;background:var(--cream);border:1px solid var(--border);border-radius:9px;padding:14px 16px;margin-bottom:14px}
+.sig-wrap{border:1.5px solid var(--border);border-radius:9px;background:#fff;position:relative;touch-action:none}
+.sig-wrap.invalid{border-color:var(--red)}
+#sigpad{width:100%;height:150px;display:block;border-radius:9px;cursor:crosshair}
+.sig-clear{position:absolute;top:8px;right:8px;background:var(--cream);border:1px solid var(--border);border-radius:6px;font-size:11px;font-weight:600;color:var(--slate);padding:5px 10px;cursor:pointer;font-family:inherit}
+.sig-line{font-size:11px;color:var(--slate-light);margin-top:6px;text-align:center}
+.submit-btn{width:100%;background:var(--gold);color:var(--navy);font-weight:700;font-size:16px;padding:16px;border-radius:40px;border:none;cursor:pointer;font-family:inherit;margin-top:8px;transition:all .2s}
+.submit-btn:hover{background:var(--gold-light)}
+.submit-btn:disabled{opacity:.6;cursor:default}
+.err-box{display:none;background:var(--red-bg);border:1px solid rgba(197,48,48,0.3);border-radius:9px;padding:14px 16px;margin-bottom:18px;font-size:13px;color:var(--red)}
+.err-box.show{display:block}
+.err-box ul{margin:8px 0 0 18px}
+.privacy{font-size:11.5px;color:var(--slate-light);text-align:center;margin-top:18px;line-height:1.6}
+.success-overlay{display:none;position:fixed;inset:0;background:rgba(10,18,40,0.9);z-index:9999;align-items:center;justify-content:center;padding:20px}
+.success-overlay.show{display:flex}
+.success-box{background:#fff;border-radius:20px;max-width:440px;width:100%;padding:40px 32px;text-align:center}
+.success-box .check-circle{width:64px;height:64px;border-radius:50%;background:var(--green-bg);border:2px solid var(--green);color:var(--green);font-size:32px;line-height:60px;margin:0 auto 18px}
+.success-box h2{font-family:var(--font-display);font-size:24px;color:var(--navy);margin-bottom:10px}
+.success-box p{font-size:14px;color:var(--slate);line-height:1.7;margin-bottom:8px}
+.success-box .phone{font-weight:700;color:var(--navy)}
+.footer{text-align:center;padding:24px 5%;font-size:12px;color:var(--slate-light);border-top:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <img src="assets/logos/quality-inn-horizontal-white.png" alt="Quality Inn & Suites by Choice Hotels">
+  <div class="tb-text">Quality Inn &amp; Suites<span>McAlester on Hwy 69</span></div>
+</div>
+
+<div class="wrap">
+  <h1 class="page-title">Credit Card Authorization</h1>
+  <p class="page-sub">For phone &amp; third-party reservations · Quality Inn &amp; Suites McAlester on Hwy 69</p>
+
+  <div class="notice">
+    <strong>Before you begin:</strong> For your security, this form collects only the <strong>last 4 digits</strong> of your card — never the full number and never the CVC. Our front desk takes your full card details separately by phone or secure terminal. This form is your written authorization on file, matched to your card by its last 4 digits. Questions? Call <strong>(918) 426-8091</strong>.
+  </div>
+
+  <div class="err-box" id="errBox">
+    Please fix the following:
+    <ul id="errList"></ul>
+  </div>
+
+  <!-- Hidden iframe receives the POST response so there is no CORS issue -->
+  <iframe name="cc_iframe" id="cc_iframe" style="display:none"></iframe>
+
+  <form id="ccform" method="post" target="cc_iframe" action="PASTE_APPS_SCRIPT_EXEC_URL_HERE" accept-charset="UTF-8">
+
+    <div class="card">
+      <h2>Guest &amp; Reservation</h2>
+      <div class="sec-sub">The guest staying at the hotel and the reservation this card covers.</div>
+      <div class="row2">
+        <div class="field" data-req><label>Guest Name <span class="req">*</span></label><input type="text" name="guest_name" autocomplete="name"></div>
+        <div class="field"><label>Confirmation Number</label><input type="text" name="confirmation_number" placeholder="e.g. CH-123456"></div>
+      </div>
+      <div class="row2">
+        <div class="field" data-req><label>Arrival Date <span class="req">*</span></label><input type="date" name="arrival_date"></div>
+        <div class="field" data-req><label>Departure Date <span class="req">*</span></label><input type="date" name="departure_date"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Guest Email</label><input type="email" name="guest_email" autocomplete="email"></div>
+        <div class="field"><label>Guest Phone</label><input type="tel" name="guest_phone" autocomplete="tel"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Charges Authorized</h2>
+      <div class="sec-sub">What is this card authorized to cover?</div>
+      <div class="checks">
+        <label class="check"><input type="checkbox" name="charge_type" value="Room &amp; Tax"> Room &amp; Tax</label>
+        <label class="check"><input type="checkbox" name="charge_type" value="Incidentals"> Incidentals</label>
+        <label class="check"><input type="checkbox" name="charge_type" value="All Charges"> All Charges</label>
+        <label class="check"><input type="checkbox" name="charge_type" value="Specific Amount"> Specific Amount (below)</label>
+      </div>
+      <div class="row2" style="margin-top:14px">
+        <div class="field"><label>Total Amount (if specific)</label><input type="text" name="total_amount" placeholder="e.g. $450.00"></div>
+        <div class="field"><label>Note to Hotel</label><input type="text" name="note_to_hotel" placeholder="e.g. corporate billing"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Cardholder Information</h2>
+      <div class="sec-sub">The person who owns the card and authorizes the charge.</div>
+      <div class="row2">
+        <div class="field" data-req><label>Name on Card <span class="req">*</span></label><input type="text" name="name_on_card"></div>
+        <div class="field"><label>Card Type</label>
+          <select name="card_type">
+            <option value="">Select…</option>
+            <option>Visa</option><option>Mastercard</option><option>American Express</option><option>Discover</option><option>Other</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field" data-req id="last4field">
+          <label>Last 4 Digits of Card <span class="req">*</span></label>
+          <div class="last4-wrap">
+            <span class="last4-mask">••••&nbsp;&nbsp;••••&nbsp;&nbsp;••••</span>
+            <input type="text" name="card_last4" id="card_last4" inputmode="numeric" maxlength="4" placeholder="1234" autocomplete="off">
+          </div>
+          <div class="hint">Only the last 4 digits — never the full number.</div>
+        </div>
+        <div class="field"><label>Expiration (MM/YY)</label><input type="text" name="expiry" maxlength="5" placeholder="MM/YY" autocomplete="off"></div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Cardholder Phone</label><input type="tel" name="cardholder_phone"></div>
+        <div class="field"><label>Cardholder Email</label><input type="email" name="cardholder_email"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Billing Address</h2>
+      <div class="sec-sub">The billing address associated with the card.</div>
+      <div class="field"><label>Street Address</label><input type="text" name="billing_address" autocomplete="address-line1"></div>
+      <div class="field"><label>Apt / Suite</label><input type="text" name="billing_address2" autocomplete="address-line2"></div>
+      <div class="row3">
+        <div class="field"><label>City</label><input type="text" name="city" autocomplete="address-level2"></div>
+        <div class="field"><label>State</label><input type="text" name="state" maxlength="20" autocomplete="address-level1"></div>
+        <div class="field"><label>ZIP</label><input type="text" name="zip" maxlength="10" autocomplete="postal-code"></div>
+      </div>
+      <div class="field"><label>Country</label><input type="text" name="country" value="US" autocomplete="country-name"></div>
+    </div>
+
+    <div class="card">
+      <h2>Authorization</h2>
+      <div class="auth-text">
+        I certify that all information provided on this form is true, correct, and complete. I authorize <strong>Quality Inn &amp; Suites McAlester on Hwy 69</strong> to charge the credit card identified above (full card details provided separately and securely to the hotel) for the charges indicated, inclusive of applicable taxes, fees, and service charges. This authorization remains in effect for the guest stay referenced above.
+      </div>
+      <label class="consent" id="consentBox">
+        <input type="checkbox" name="authorization_agreed" value="yes" id="agree">
+        <span>I have read and agree to the authorization statement above, and I am the cardholder or am authorized to act on the cardholder's behalf. <span class="req">*</span></span>
+      </label>
+    </div>
+
+    <div class="card">
+      <h2>Cardholder Signature <span class="req" style="color:var(--red)">*</span></h2>
+      <div class="sec-sub">Sign with your mouse or finger.</div>
+      <div class="sig-wrap" id="sigWrap">
+        <button type="button" class="sig-clear" id="sigClear">Clear</button>
+        <canvas id="sigpad"></canvas>
+      </div>
+      <div class="sig-line">Sign above</div>
+      <input type="hidden" name="signature_data" id="signature_data">
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">Submit Authorization</button>
+
+    <p class="privacy">This form collects only the last 4 digits of your card. The full card number and CVC are never requested or stored here. Submissions are sent securely to hotel management.</p>
+  </form>
+</div>
+
+<div class="footer">
+  Quality Inn &amp; Suites McAlester on Hwy 69 · 400 S George Nigh Expy, McAlester, OK 74501 · (918) 426-8091
+</div>
+
+<div class="success-overlay" id="successOverlay">
+  <div class="success-box">
+    <div class="check-circle">&#10003;</div>
+    <h2>Authorization Received</h2>
+    <p>Thank you. Your credit card authorization has been submitted to Quality Inn &amp; Suites McAlester on Hwy 69.</p>
+    <p>If you provided your email, a confirmation copy is on its way.</p>
+    <p>Questions? Call <span class="phone">(918) 426-8091</span> — available 24/7.</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var form = document.getElementById('ccform');
+  var submitBtn = document.getElementById('submitBtn');
+  var iframe = document.getElementById('cc_iframe');
+  var submitted = false;
+
+  // ── Signature pad ─────────────────────────────
+  var canvas = document.getElementById('sigpad');
+  var ctx = canvas.getContext('2d');
+  var drawing = false, hasDrawn = false, lastX = 0, lastY = 0;
+
+  function sizeCanvas(){
+    var ratio = window.devicePixelRatio || 1;
+    var w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = w * ratio;
+    canvas.height = h * ratio;
+    ctx.setTransform(ratio,0,0,ratio,0,0);
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#0f1f3d';
+  }
+  window.addEventListener('resize', function(){ var d=hasDrawn; sizeCanvas(); /* resize clears; keep simple */ });
+  sizeCanvas();
+
+  function pos(e){
+    var r = canvas.getBoundingClientRect();
+    var cx = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    var cy = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    return {x:cx, y:cy};
+  }
+  function start(e){ drawing=true; var p=pos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
+  function move(e){
+    if(!drawing) return;
+    var p=pos(e);
+    ctx.beginPath(); ctx.moveTo(lastX,lastY); ctx.lineTo(p.x,p.y); ctx.stroke();
+    lastX=p.x; lastY=p.y; hasDrawn=true; e.preventDefault();
+  }
+  function end(){ drawing=false; }
+  canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move);
+  window.addEventListener('mouseup',end);
+  canvas.addEventListener('touchstart',start,{passive:false});
+  canvas.addEventListener('touchmove',move,{passive:false});
+  canvas.addEventListener('touchend',end);
+  document.getElementById('sigClear').addEventListener('click',function(){
+    ctx.clearRect(0,0,canvas.width,canvas.height); hasDrawn=false;
+  });
+
+  // ── Last4 — digits only ───────────────────────
+  document.getElementById('card_last4').addEventListener('input',function(){
+    this.value = this.value.replace(/[^0-9]/g,'').slice(0,4);
+  });
+  // ── Expiry auto-slash ─────────────────────────
+  var exp = form.querySelector('[name=expiry]');
+  exp.addEventListener('input',function(){
+    var v=this.value.replace(/[^0-9]/g,'').slice(0,4);
+    if(v.length>2) v=v.slice(0,2)+'/'+v.slice(2);
+    this.value=v;
+  });
+
+  // ── Validation + submit ───────────────────────
+  function validate(){
+    var errs=[];
+    document.querySelectorAll('.field.invalid').forEach(function(f){f.classList.remove('invalid');});
+    document.getElementById('consentBox').classList.remove('invalid');
+    document.getElementById('sigWrap').classList.remove('invalid');
+
+    function need(sel,msg){
+      var el=form.querySelector(sel);
+      if(!el.value.trim()){ errs.push(msg); el.closest('.field').classList.add('invalid'); }
+    }
+    need('[name=guest_name]','Guest name is required.');
+    need('[name=arrival_date]','Arrival date is required.');
+    need('[name=departure_date]','Departure date is required.');
+    need('[name=name_on_card]','Name on card is required.');
+
+    var last4=document.getElementById('card_last4');
+    if(!/^[0-9]{4}$/.test(last4.value)){ errs.push('Enter the last 4 digits of the card.'); last4.closest('.field').classList.add('invalid'); }
+
+    if(!document.getElementById('agree').checked){ errs.push('You must agree to the authorization statement.'); document.getElementById('consentBox').classList.add('invalid'); }
+    if(!hasDrawn){ errs.push('A signature is required.'); document.getElementById('sigWrap').classList.add('invalid'); }
+    return errs;
+  }
+
+  form.addEventListener('submit',function(e){
+    // capture signature into hidden field
+    if(hasDrawn){ document.getElementById('signature_data').value = canvas.toDataURL('image/png'); }
+    var errs=validate();
+    var box=document.getElementById('errBox');
+    if(errs.length){
+      e.preventDefault();
+      var list=document.getElementById('errList'); list.innerHTML='';
+      errs.forEach(function(m){ var li=document.createElement('li'); li.textContent=m; list.appendChild(li); });
+      box.classList.add('show');
+      window.scrollTo({top:0,behavior:'smooth'});
+      return;
+    }
+    if(form.action.indexOf('PASTE_')!==-1){
+      e.preventDefault();
+      alert('This form is not configured yet: the Apps Script web app URL still needs to be added to the form action.');
+      return;
+    }
+    box.classList.remove('show');
+    submitted=true;
+    submitBtn.disabled=true;
+    submitBtn.textContent='Submitting…';
+    // native submit proceeds into the hidden iframe
+  });
+
+  iframe.addEventListener('load',function(){
+    if(submitted){
+      document.getElementById('successOverlay').classList.add('show');
+    }
+  });
+})();
+</script>
+</body>
+</html>

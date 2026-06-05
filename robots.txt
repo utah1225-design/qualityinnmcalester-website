@@ -1,7 +1,8 @@
 User-agent: *
 Allow: /
 
-# Guest-facing forms (private, behind QR / in-room links)
+# Guest-facing forms (private, shared by link / QR only)
+Disallow: /ccform.html
 Disallow: /g-checkout.html
 Disallow: /g-late-checkout.html
 Disallow: /g-lost-found.html
