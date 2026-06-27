@@ -1,9 +1,9 @@
-# Ready to Deploy — Broken Links + SEO Fixes
+# Ready to Deploy — Broken Links + SEO + Careers Link
 
 **Date:** June 27, 2026
 **Site:** www.qualityinnmcalester.com
 
-Copy the two files below to the website root (replace the existing versions), then deploy.
+Copy the 3 files below to the website root (replace the existing versions), then deploy.
 
 ---
 
@@ -11,64 +11,63 @@ Copy the two files below to the website root (replace the existing versions), th
 
 | File | What changed |
 |---|---|
-| `careers.html` | Fixed 9 broken application links + 1 dropdown pre-fill bug |
+| `careers.html` | Fixed 9 broken application links, fixed dropdown pre-fill bug, added JSON-LD schema |
+| `index.html` | Added **Careers** link to the footer (Hotel column) |
 | `sitemap.xml` | Added 4 indexable pages that were missing |
 
 ---
 
-## 1. Broken links — FIXED
+## 1. Broken links — FIXED (careers.html)
 
-### careers.html pointed to a file that doesn't exist
-All 9 "Apply" buttons linked to **`application-form.html`**, which was never created.
-The real application form is **`e-application.html`**. Every link now points there.
+All 9 "Apply" buttons linked to **`application-form.html`**, which doesn't exist. The real form
+is **`e-application.html`**. Every link now points there.
 
-Affected buttons (all fixed):
-- Submit Application (hero)
-- Submit Your Application (x2)
-- Apply for This Position — Assistant General Manager, Housekeeping, Guest Service Agent,
-  Maintenance Technician, Night Auditor
-- Submit General Application
-
-### Bonus bug found & fixed: position dropdown wouldn't pre-fill
-`e-application.html` pre-fills the "Position" dropdown from the `?position=` URL parameter by
-**exact match**. The Guest Service Agent button passed `?position=Guest+Service+Agent`, but the
-dropdown's actual option value is `Guest Service Agent (Front Desk)` — so it silently failed to
-pre-select. Updated that link to `?position=Guest+Service+Agent+%28Front+Desk%29`. All 6 role
-links now correctly pre-select their position.
+**Bonus bug fixed:** the form pre-fills its Position dropdown from the `?position=` URL parameter
+by exact match. The Guest Service Agent button passed `Guest+Service+Agent`, but the dropdown's
+actual value is `Guest Service Agent (Front Desk)` — so it silently failed to pre-select. Fixed.
 
 ---
 
-## 2. SEO analysis — what was missing
+## 2. JSON-LD structured data — ADDED (careers.html)
 
-### Fixed: 4 public pages were absent from the sitemap
-`sitemap.xml` listed 22 URLs but omitted 4 indexable, public pages. Added:
+careers.html was the one indexable page with no schema markup. Added a `@graph` matching the
+pattern used on about.html / parking.html: **WebPage** (with Home › Careers breadcrumb) +
+**Hotel** + **WebSite**. Validates as well-formed JSON.
+
+Note: used WebPage+Hotel rather than Google `JobPosting` markup on purpose — the page says
+"we are not always hiring," and JobPosting requires accurate datePosted/validThrough for open
+roles. Declaring active postings that aren't open risks Google penalties. If you get specific
+dated openings, we can add proper JobPosting entries then.
+
+---
+
+## 3. Careers link in footer — ADDED (index.html)
+
+Added `<li><a href="careers.html">Careers</a></li>` to the **Hotel** column of the home-page
+footer, right after "About Us". This also gives careers.html an internal link from the homepage,
+which helps it get crawled and indexed.
+
+---
+
+## 4. Sitemap — FIXED (sitemap.xml)
+
+Added 4 indexable public pages that were missing (was 22 URLs, now 26):
 - `group-travel.html`
 - `careers.html`
-- `parking-payment.html` (non-guest parking — a revenue page worth indexing)
-- `blog-construction-crew-rooming.html` (blog post not listed with the others)
+- `parking-payment.html`
+- `blog-construction-crew-rooming.html`
 
-Sitemap now has 26 URLs and validates as well-formed XML.
-
-### Checked and confirmed healthy (no action needed)
-- Every page has a `<title>`, exactly one `<h1>`, and a `viewport` tag.
-- Every `<img>` has `alt` text.
-- All guest/staff utility forms (`g-*.html`, `ccform`, `ai-chat`, `e-application`, `g-feedback`)
-  are correctly `noindex,nofollow` AND blocked in `robots.txt` — their missing meta descriptions
-  are intentional and correct.
-- `robots.txt` references `sitemap.xml` and the canonical tags are consistent.
-- The `$1` flagged by the link scanner in `ai-chat.html` is a **false positive** — it's a
-  JavaScript regex replacement template (`linkify()`), not a hyperlink. No fix needed.
+Validates as well-formed XML.
 
 ---
 
-## 3. Optional polish (NOT changed — your call)
+## Confirmed healthy (no action needed)
 
-These don't break anything; they only affect how listings look in Google. Left as-is to avoid
-altering your copy without approval:
+- Every page has a title, one H1, viewport tag; every image has alt text.
+- All guest/staff utility forms are correctly noindex + blocked in robots.txt.
+- robots.txt references sitemap.xml; canonical tags are consistent.
 
-- **Long title tags (>60 chars, Google truncates):** index (99c), blog-construction-crew (100c),
-  explore (92c), amenities (91c), extended-stay (88c), careers (84c), and several blog posts.
-- **Long meta descriptions (>160 chars, Google truncates ~155):** promotions (239c),
-  blog-extended-stay (233c), explore/amenities/blog-mcaap (~215-222c), and others.
+## Optional polish (NOT changed — your call)
 
-If you want, I can tighten these titles/descriptions in a follow-up pass.
+- Some title tags exceed ~60 chars and some meta descriptions exceed ~155 chars (Google
+  truncates these in results). Cosmetic only. Say the word and I'll tighten them.
