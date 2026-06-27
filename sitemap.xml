@@ -36,6 +36,21 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://www.qualityinnmcalester.com/group-travel.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/careers.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/parking-payment.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
     <loc>https://www.qualityinnmcalester.com/about.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
@@ -94,6 +109,11 @@
     <loc>https://www.qualityinnmcalester.com/blog-lake-eufaula-day-trip.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://www.qualityinnmcalester.com/blog-construction-crew-rooming.html</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://www.qualityinnmcalester.com/privacy-policy.html</loc>
